@@ -41,8 +41,12 @@ hassas ağırlıklandırma çalışması. Ortam: **Blender 5.1.2** (headless, Cy
 | `eat` | 60f | arka ayak üstü oturup patiden kemirme |
 | `alert` | 48f | donup dikleşme, kulaklar dimdik, mikro titreme |
 
-Faz-tabanlı örnekleme → ilk kare == son kare (kusursuz döngü). IK influence
-varsayılan **0** (FK animasyonlar aktif); Blender'da pozlama için slider'ı aç.
+Faz-tabanlı örnekleme → ilk kare == son kare (kusursuz döngü). Bacaklar
+**IK hedefli** (ik_hand/ik_foot + dünya-uzayı IKROT oryantasyon kilidi) —
+sıfır kayma/gömülme (doğrulayıcı: tüm aksiyonlarda en derin uç ≥ −3mm).
+Jest kolları aksiyon bazında influence keyi ile FK'ya geçer. Ayrıca 8
+saldırı animasyonu: bite, swipe L/R, double_claw, pounce, tail_whip,
+spin (360°), jump_slam — hepsi rest'ten başlar rest'te biter.
 
 ## Teslimat
 
