@@ -56,19 +56,24 @@ def loc(bn, x=0.0, y=0.0, z=0.0):
     l = pb.location
     pb.location = (l[0] + x, l[1] + y, l[2] + z)
 
+def spine(rx=0.0, rz=0.0):
+    prof = (0.16, 0.21, 0.26, 0.21, 0.16)
+    for k in range(5):
+        rot(f"spine_{k+1:02d}", rx * prof[k], 0, rz * prof[k])
+
 def sq(x):   # tek yonlu sinus (0..1)
     return max(0.0, math.sin(x))
 
 # ---------------- IDLE (96f / 4s) ----------------
 def idle(p):
     br = math.sin(TAU * 2 * p)                       # 2 nefes / dongu
-    rot("spine_02", R(1.6) * br); rot("spine_03", R(1.4) * br)
+    spine(R(3.0) * br)
     rot("neck", R(0.8) * br)
     rot("head", R(2.0) * math.sin(TAU * p + 1.3), 0, R(3.0) * math.sin(TAU * p * 0.5 + 0.4))
     # kulak segirmeleri (iki kisa flick)
     f1 = math.exp(-((p - 0.22) / 0.025) ** 2)
     f2 = math.exp(-((p - 0.68) / 0.03) ** 2)
-    rot("ear.L", R(18) * f1); rot("ear_02.L", R(9) * f1)
+    rot("ear.L", R(12) * f1); rot("ear_02.L", R(6) * f1)
     rot("ear.R", R(14) * f2, R(6) * f2)
     # burun koklama patlamalari (biyiklar snout'u takip eder)
     sn = (math.exp(-((p - 0.35) / 0.06) ** 2) + math.exp(-((p - 0.85) / 0.05) ** 2))
@@ -98,9 +103,7 @@ def walk(p):
     leg_hind("R", p - 0.5); leg_front("R", p - 0.75)
     sway = math.sin(TAU * p)
     rot("hips", 0, 0, R(3.0) * sway)
-    rot("spine_01", 0, 0, R(-1.6) * sway)
-    rot("spine_02", 0, 0, R(-1.6) * sway)
-    rot("spine_03", R(1.2) * math.sin(TAU * 2 * p), 0, R(1.8) * sway)
+    spine(R(2.4) * math.sin(TAU * 2 * p), R(-3.2) * sway)
     rot("neck", R(2.0) * math.sin(TAU * 2 * p + 0.8))
     rot("head", R(-2.2) * math.sin(TAU * 2 * p + 0.8), 0, R(-2.0) * sway)
     for i in range(1, 7):
@@ -113,9 +116,9 @@ def run(p):
     leg_hind("L", p, 1.6); leg_hind("R", p + 0.04, 1.6)
     leg_front("L", p - 0.45, 1.5); leg_front("R", p - 0.41, 1.5)
     flex = math.sin(TAU * p + 0.6)
-    for bn, a in (("hips", 6), ("spine_01", 8), ("spine_02", 9), ("spine_03", 7)):
-        rot(bn, R(a) * flex)
-    rot("spine_03", R(-4))            # hafif one egim
+    rot("hips", R(6) * flex)
+    spine(R(24) * flex)
+    rot("spine_05", R(-4))            # hafif one egim
     rot("neck", R(-6) * flex - R(3)); rot("head", R(-4) * flex + R(2))
     for i in range(1, 7):
         rot(f"tail_{i:02d}", R(2.5) * math.sin(TAU * p - i * 0.5) - R(2.0), 0, 0)
@@ -126,7 +129,7 @@ def sniff(p):
     dip = 0.5 - 0.5 * math.cos(TAU * min(p / 0.18, 1.0)) if p < 0.18 else (1.0 if p < 0.72 else 0.5 - 0.5 * math.cos(TAU * (1 - (p - 0.72) / 0.28) / 2) if p < 1.0 else 0.0)
     dip = min(dip, 1.0)
     rot("neck", R(-16) * dip); rot("head", R(-18) * dip)
-    rot("spine_03", R(4) * dip)
+    spine(R(8) * dip)
     burst = 1.0 if 0.2 < p < 0.7 else 0.0
     rot("snout", R(4.2) * math.sin(TAU * 14 * p) * burst * dip)
     rot("ear.L", R(-8) * dip); rot("ear.R", R(-8) * dip)   # kulaklar one
@@ -155,9 +158,9 @@ def look(p):
     rot("head", R(-3) * abs(yaw), 0, R(26) * yaw)
     rot("ear.L", R(10) * max(yaw, 0) + R(4) * abs(yaw))
     rot("ear.R", R(10) * max(-yaw, 0) + R(4) * abs(yaw))
-    rot("spine_03", 0, 0, R(5) * yaw)
+    spine(0, R(10) * yaw)
     br = math.sin(TAU * 3 * p)
-    rot("spine_02", R(1.2) * br)
+    rot("spine_03", R(1.2) * br)
     for i in range(1, 7):
         rot(f"tail_{i:02d}", 0, 0, R(2.0) * math.sin(TAU * 1.5 * p - i * 0.5))
 
@@ -165,8 +168,7 @@ def look(p):
 def eat(p):
     sit = 1.0  # tum dongu oturur (giris/cikis oyun tarafinda blend)
     rot("hips", R(-4) * sit)
-    for bn, a in (("spine_01", 6), ("spine_02", 8), ("spine_03", 9)):
-        rot(bn, R(a) * sit)
+    spine(R(23) * sit)
     rot("neck", R(-8) * sit); rot("head", R(-26) * sit)
     rot("upper_arm.L", R(-28) * sit); rot("forearm.L", R(40) * sit); rot("hand.L", R(-16) * sit)
     rot("upper_arm.R", R(-28) * sit); rot("forearm.R", R(40) * sit); rot("hand.R", R(-16) * sit)
@@ -181,8 +183,7 @@ def eat(p):
 def alert(p):
     up = 1.0
     rot("hips", R(-3) * up)
-    for bn, a in (("spine_01", 4), ("spine_02", 6), ("spine_03", 6)):
-        rot(bn, R(-a) * up)          # govde dikles
+    spine(R(-16) * up)          # govde dikles
     rot("neck", R(8) * up); rot("head", R(4) * up)
     rot("ear.L", R(-14) * up); rot("ear.R", R(-14) * up)   # kulaklar dimdik
     tr = math.sin(TAU * 9 * p)

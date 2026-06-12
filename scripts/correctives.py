@@ -81,12 +81,10 @@ SPECS = [
     ("crv_ear_R",     [("ear.R", (R(40), 0, 0)), ("ear_02.R", (R(20), 0, 0))], "ear.R", "rot_x", 0.6981, "ear.R", "head", 0.055, ["ear_R"]),
     ("crv_neck_yawL", [("neck", (0, 0, R(25))), ("head", (0, 0, R(35)))], "head", "rot_z", 0.6109, "neck", "mid", 0.20, ["body"]),
     ("crv_neck_yawR", [("neck", (0, 0, -R(25))), ("head", (0, 0, -R(35)))], "head", "rot_z", -0.6109, "neck", "mid", 0.20, ["body"]),
-    ("crv_spine_curl", [("hips", (R(12), 0, 0)), ("spine_01", (R(17), 0, 0)),
-                        ("spine_02", (R(17), 0, 0)), ("spine_03", (R(17), 0, 0))],
-     "spine_02", "rot_x", 0.2967, "spine_02", "tail", 0.30, ["body"]),
-    ("crv_spine_arch", [("hips", (-R(10), 0, 0)), ("spine_01", (-R(14), 0, 0)),
-                        ("spine_02", (-R(14), 0, 0)), ("spine_03", (-R(12), 0, 0))],
-     "spine_02", "rot_x", -0.2443, "spine_02", "tail", 0.30, ["body"]),
+    ("crv_spine_curl", [("hips", (R(10), 0, 0))] + [(f"spine_{k:02d}", (R(11), 0, 0)) for k in range(1, 6)],
+     "spine_03", "rot_x", 0.1920, "spine_03", "mid", 0.30, ["body"]),
+    ("crv_spine_arch", [("hips", (-R(8), 0, 0))] + [(f"spine_{k:02d}", (-R(9), 0, 0)) for k in range(1, 6)],
+     "spine_03", "rot_x", -0.1571, "spine_03", "mid", 0.30, ["body"]),
 ]
 
 ID_BY = {n: i for i, n in enumerate(["whiskers_L", "whiskers_R", "paw_front_R", "paw_front_L",
