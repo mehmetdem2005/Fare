@@ -12,6 +12,33 @@ hassas ağırlıklandırma çalışması. Ortam: **Blender 5.1.2** (headless, Cy
 - [x] Stres testleri / QA (`qa/`)
 - [x] Temiz GLB + .blend teslimi (`deliver/`)
 
+## Skinning v3 — yırtılma kökten çözüldü
+
+1. **Sürekli iade dağıtımı**: sökülen ağırlıkların "en yakın 2 kemiğe" dağıtımı
+   Voronoi sınırlarında süreksizdi (19.2mm açılma!) → tüm core'a 1/d² sürekli
+   dağıtım + yumuşak neck uygunluğu → **0.03mm** (yapısal olarak yırtılamaz)
+2. **Tüp-torso**: çekirdek ağırlıklar omurga-ekseni arclength'inin saf fonksiyonu
+   (radyal sabit) → üst üste kürk kabukları aynı kesitte özdeş hareket eder
+3. **Dilate+trilinear voxel alanı**: gövde+pati+ayak tek sürekli 3B alandan örner
+4. **10 driver'lı düzeltici shape key** (dirsek/diz/omuz/kalça/kulak L-R):
+   pozda şindıl-köprülü delta-mush → rest'e ters-skin; GLB'de morph target +
+   her animasyonda örneklenmiş weight kanalı
+
+## Oyun animasyonları — 7 seamless loop (24fps, in-place)
+
+| Action | Süre | Senaryo |
+|---|---|---|
+| `idle` | 96f | nefes, kulak seğirmesi, koklama, kuyruk salınımı |
+| `walk` | 32f | 4-vuruş lateral yürüyüş, kalça salınımı, karşı-kuyruk |
+| `run` | 14f | sıçramalı koşu (bound), omurga flex/extend |
+| `sniff` | 72f | burun yerde koklama turu, kulaklar önde |
+| `look_around` | 120f | sola-tut-sağa tetikte tarama, kulak takibi |
+| `eat` | 60f | arka ayak üstü oturup patiden kemirme |
+| `alert` | 48f | donup dikleşme, kulaklar dimdik, mikro titreme |
+
+Faz-tabanlı örnekleme → ilk kare == son kare (kusursuz döngü). IK influence
+varsayılan **0** (FK animasyonlar aktif); Blender'da pozlama için slider'ı aç.
+
 ## Teslimat
 
 | Dosya | İçerik |
