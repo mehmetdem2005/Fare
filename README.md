@@ -1,70 +1,77 @@
 # Fare — 3D Fare Modeli Rig Projesi
 
 Tripo AI üretimi fare modelinin (`source/mouse3dmodel1k.glb`) sıfırdan temiz rig +
-ağırlıklandırma çalışması. Ortam: **Blender 5.1.2** (headless, Cycles CPU).
+hassas ağırlıklandırma çalışması. Ortam: **Blender 5.1.2** (headless, Cycles CPU).
 
 ## Durum
 
 - [x] Model analizi (geometri, mevcut rig, dokular)
 - [x] Rig planı + görseller (`rig_plan/`)
-- [ ] Plan onayı
-- [ ] İskelet kurulumu + ağırlıklandırma
-- [ ] Test pozları / QA
-- [ ] Temiz GLB + .blend teslimi
+- [x] Plan onayı + revizyon istekleri (bıyık kemiği yok, taşma yok, IK/FK, tek parça)
+- [x] İskelet kurulumu + ağırlıklandırma (`scripts/build_rig2.py`)
+- [x] Stres testleri / QA (`qa/`)
+- [x] Temiz GLB + .blend teslimi (`deliver/`)
 
-## Model
+## Teslimat
 
-| Özellik | Değer |
+| Dosya | İçerik |
 |---|---|
-| Boyut | ~0.58 × 1.0 × 0.45 m (burun −Y yönünde) |
-| Geometri | 10 parça, ~30.700 üçgen (gövde 22.846) |
-| Dokular | basecolor / normal / roughness-metallic, 1024² |
-| Mevcut rig | Tripo otomatik — bozuk, sıfırdan yenilenecek |
+| `deliver/mouse_rigged.glb` | Tek mesh + 39 joint iskelet + skin (4 etki/vertex), dokular gömülü |
+| `deliver/mouse_rig.blend` | Aynısı + IK kontrol katmanı (4 bacak IK + pole, FK/IK blend) |
 
-Parçalar: `body`, `ear_L/R`, `paw_front_L/R`, `foot_hind_L/R`, `whiskers_L/R`, `tail`
-(+ silinecek çöp `Icosphere`).
-
-## Mevcut rigin sorunları (`rig_plan/mevcut_rig_sorunlari.png`)
-
-- Asimetrik: sol arka bacak 5 kemik, sağ arka bacak 2 kemik
-- Ön bacaklar kafa kemiğine bağlı (yanlış hiyerarşi)
-- Anlamsız isimler (`bone_6`, `bone_17`, …), L/R simetri kuralı yok
-- Pati kemikleri zemin altına taşıyor, gövdeyi delen dev root kemiği
-- Model orta düzlemi X=0'da değil (−0.035 kaymış)
-
-## Planlanan iskelet — 35 kemik (34 deform + `root`)
+## İskelet — 38 deform kemik + `root`
 
 ```
-root  (zemin, origin — deform değil)
-└─ hips
-   ├─ spine_01 ─ spine_02
-   │            ├─ neck ─ head
-   │            │         ├─ snout ─ whisker.L / whisker.R
-   │            │         └─ ear.L / ear.R
-   │            ├─ shoulder.L ─ upper_arm.L ─ forearm.L ─ hand.L ─ front_toes.L
-   │            └─ shoulder.R ─ … (simetrik)
+root  (origin/zemin, deform değil — GLB'de hiyerarşi kökü)
+└─ hips  (sakrum → kuyruk kökü)
+   ├─ spine_01 ─ spine_02 ─ spine_03   (sırt kemerini takip eder)
+   │                        ├─ neck ─ head
+   │                        │         ├─ snout            (bıyıklar buna rijit)
+   │                        │         ├─ ear.L ─ ear_02.L ─ ear_03.L ─ ear_04.L
+   │                        │         └─ ear.R ─ ear_02.R ─ ear_03.R
+   │                        ├─ shoulder.L ─ upper_arm.L ─ forearm.L ─ hand.L ─ front_toes.L
+   │                        └─ shoulder.R ─ … (simetrik)
    ├─ thigh.L ─ shin.L ─ foot.L ─ toes.L
    ├─ thigh.R ─ … (simetrik)
-   └─ tail_01 ─ tail_02 ─ tail_03 ─ tail_04 ─ tail_05 ─ tail_06
+   └─ tail_01 … tail_06   (kuyruk eğrisini takip eder)
 ```
 
-Eklem koordinatları geometri analizinden çıkarıldı (omurga kemeri, dirsek/diz
-bükülme noktaları, kuyruk eğrisi, kulak/bıyık kökleri): `scripts/plan_data.py`.
+Kontrol katmanı (.blend, deform değil, GLB'ye gitmez): `ik_hand.L/R`, `ik_foot.L/R`,
+`pole_front.L/R`, `pole_hind.L/R`. IK constraint'leri `forearm.*` ve `shin.*`
+üzerinde; **influence slider = FK/IK geçişi** (1.0 = IK, 0.0 = FK, animasyonlanabilir).
+Pole açıları sayısal kalibre edildi (rest sapması ön: 0.26 mm, arka: ≤3.5 mm).
 
-## Ağırlıklandırma stratejisi
+## Ağırlıklandırma (bölge/zone YOK — sürekli alan)
 
-1. Mesh +0.035 m X kaydırılarak ortalanır, parçalar yeniden adlandırılır
-2. Her mesh **yalnız ilgili kemik alt kümesine** bone-heat (otomatik ağırlık) ile bağlanır
-   (ör. kulak → `ear.L + head`; kuyruk → `tail_01..06 + hips`)
-3. Temizlik: maks. **4 etki/vertex**, normalize, 0.01 altı temizliği
-4. Eklem bölgelerinde yumuşatma (dirsek, diz, boyun, kuyruk kökü)
-5. QA: test pozları render edilip deformasyon kontrol edilir
+1. Mesh **tek parçada birleştirildi** (10 ada `part_id` ile izlenir), X'te ortalandı (+0.035 m)
+2. **Bone heat** difüzyonu — çözücü kararlılığı için temiz kopyada (merge-by-distance)
+   çözülüp pozisyonla geri eşlendi; kulaklar ayrı çözüm (ear zinciri + head)
+3. **Kapsama garantisi**: ağırlıksız kalan vertex en yakın dolu vertexten doldurulur
+4. Yumuşatma (factor 0.4 × 3) → **sonra** dikiş kaynağı: pati/ayak/kuyruk/kulak
+   kenar vertexleri gövde alanından barycentrik örneklenir (kopukluk imkânsız)
+5. **Bıyıklar**: kemik yok; her tüp (388 bağlı bileşen) kökündeki yüz derisinin
+   ağırlık karışımını sabit alır → deriyle hareket eder, asla bükülmez
+6. **UV dikiş tutarlılığı**: aynı konumdaki duplike vertexler (10.359 vertex, 4.453
+   küme) birebir aynı ağırlığı paylaşır → pozda dikiş çatlaması imkânsız
+7. Hijyen: temizlik 0.004, **maks 4 etki/vertex**, normalize
+
+## Doğrulamalar
+
+- **Taşma**: 38 deform kemiğin head/¼/orta/¾/uç noktaları ışın-paritesi testiyle
+  mesh içinde doğrulandı (`CONTAINMENT ✓`) — kulaklar kabuk orta hattına
+  otomatik uydurulmuş zincir (L: 4, R: 3 segment)
+- **Ölü grup yok**, **ağırlıksız vertex yok** (0/22.703)
+- Stres pozları: baş 57° dönüş, bacak kaldırma ~50°, kuyruk kıvrımı, omurga kemeri —
+  çatlak/yarık yok (`qa/final_ik_stres.png`)
 
 ## Yeniden üretim
 
 ```bash
-blender -b -P scripts/inspect.py        # model envanteri
-blender -b -P scripts/analyze.py        # eklem yerleşim analizi
-blender -b -P scripts/plan_visual.py    # plan renderları
-python3 scripts/annotate.py             # etiketli plan sayfaları
+blender -b -P scripts/build_rig2.py    # rig + skin (mouse_imported.blend -> mouse_rig.blend)
+blender -b -P scripts/qa_render.py     # poz/ağırlık/iskelet QA renderları
+blender -b -P scripts/qa2_render.py    # yakın çekim stres testleri
+python3 scripts/assemble2.py           # QA sayfaları
+blender -b -P scripts/export_glb.py    # GLB + packed blend
 ```
+
+İlk plan aşaması görselleri `rig_plan/`, final QA sayfaları `qa/` klasöründe.
