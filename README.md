@@ -24,6 +24,11 @@ hassas ağırlıklandırma çalışması. Ortam: **Blender 5.1.2** (headless, Cy
    pozda şindıl-köprülü delta-mush → rest'e ters-skin; GLB'de morph target +
    her animasyonda örneklenmiş weight kanalı
 
+5. **Geometrik kaynak (tek parça)**: gövde panellerinin bitişik kenarları
+   1.5mm Merge-by-Distance ile kaynaklandı — 181 kopuk parça → **6 bileşen**
+   (ana kabuk + gözler), 22.703 → 20.060 vertex; UV/doku korunur. Kalan üst
+   üste şindıllar ±normal ışın eşlemesiyle özdeş ağırlık paylaşır.
+
 ## Oyun animasyonları — 7 seamless loop (24fps, in-place)
 
 | Action | Süre | Senaryo |
