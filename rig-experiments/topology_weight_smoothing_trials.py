@@ -102,7 +102,7 @@ def main():
     neighbors=[smoothed[j] for j in adj.get(i,()) if j in smoothed]
     nex[i]=.62*r+.38*(sum(neighbors)/len(neighbors)) if neighbors else r
    smoothed=nex
-  for strength in (.60,.95):
+  for strength in (.60,.85):
    # Every candidate starts from the original source weights.
    for name,arr in ws.items():
     g=groups[name]
@@ -113,7 +113,7 @@ def main():
     x,y,z=verts[i].co;side='L' if x>=0 else 'R'
     u='upper_arm.'+side;t='thigh.'+side
     wu=ws[u][i];wt=ws[t][i];total=wu+wt
-    gate=smooth(-.145,-.08,y)*(1-smooth(.035,.095,y))*smooth(.035,.06,z)*(1-smooth(.15,.195,z))*(1-smooth(.145,.17,abs(x)))
+    gate=smooth(-.145,-.09,y)*(1-smooth(-.035,.015,y))*smooth(.035,.06,z)*(1-smooth(.15,.195,z))*smooth(.045,.075,abs(x))*(1-smooth(.145,.17,abs(x)))
     fraction=min(.95,strength*gate)
     if fraction<.015:continue
     r0=wu/total;rnew=r0+(smoothed[i]-r0)*fraction
