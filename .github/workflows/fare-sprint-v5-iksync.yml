@@ -11,7 +11,7 @@ on:
 permissions:
   contents: read
 jobs:
-  sprint-v4:
+  sprint-v5:
     runs-on: ubuntu-24.04
     timeout-minutes: 65
     steps:
@@ -33,7 +33,7 @@ jobs:
         run: |
           set -euo pipefail
           B=blender_runtime/blender-5.1.2-linux-x64/blender
-          "$B" -b -P rig-experiments/animate_run_v3.py -- --source deliver/mouse_rig.blend --out OldRun
+          "$B" -b -P rig-experiments/animate_run_v4.py -- --source deliver/mouse_rig.blend --out OldRun
           "$B" -b -P rig-experiments/animate_run_v5.py -- --source deliver/mouse_rig.blend --out NewRun
           test -s NewRun/mouse_run_sprint_v5.glb
       - name: Compare actual mesh at 25 poses with fixed belly and chest indices
@@ -48,7 +48,7 @@ jobs:
           import json
           from pathlib import Path
           for part in ["belly","front"]:
-              d=json.loads(Path(f"Compare/v3_v4_{part}_comparison.json").read_text())
+              d=json.loads(Path(f"Compare/v4_v5_{part}_comparison.json").read_text())
               assert d["new"]["loop_seam_max"]<1e-4
               print(part,d["comparison"])
           PY
