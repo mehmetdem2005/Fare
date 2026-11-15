@@ -6,7 +6,7 @@ on:
       - rig-experiments/real-blender-ci
     paths:
       - rig-experiments/topology_weight_smoothing_trials.py
-      - .github/workflows/fare-ventral-skinning-trials.yml
+      - .github/workflows/fare-topology-smoothing-trials.yml
   workflow_dispatch:
 
 permissions:
