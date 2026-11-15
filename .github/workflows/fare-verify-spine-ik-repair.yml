@@ -1,0 +1,64 @@
+name: Fare independent baked spine and IK validation
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - rig-experiments/verify_phase_and_ik.py
+      - .github/workflows/fare-verify-spine-ik-repair.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 80
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate
+        run: |
+          set -euo pipefail
+          python3 -m py_compile rig-experiments/{animate_run_v4.py,v4_flank_weight_trials.py,optimize_spine_phase.py,verify_phase_and_ik.py}
+          mkdir -p Base Weight Optimization Verified
+      - name: Download Blender
+        run: |
+          curl -fL --retry 3 --retry-delay 4 -o blender.tar.xz https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+      - name: Rebuild baseline and optimize from audited single-bone poses
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          "$B" -b -P rig-experiments/animate_run_v4.py -- --source deliver/mouse_rig.blend --out Base
+          "$B" -b -P rig-experiments/v4_flank_weight_trials.py -- --source Base/mouse_run_sprint_v4.blend --out Weight
+          "$B" -b -P rig-experiments/optimize_spine_phase.py -- \
+            --source Weight/mouse_sprint_v4_flank_65_EXPERIMENT.blend --out Optimization
+          test -s Optimization/mouse_run_v6_spine_phase_REVIEW.blend
+      - name: Reopen and require baked action to match real manual poses before optional IK clamp
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          "$B" -b -P rig-experiments/verify_phase_and_ik.py -- \
+            --source Optimization/mouse_run_v6_spine_phase_REVIEW.blend \
+            --optimizer Optimization/spine_phase_optimization.json --out Verified
+          python3 - <<'PY'
+          import json
+          q=json.load(open('Verified/independent_baked_validation.json'))
+          assert q['status'] in ('BAKED_V7_PENDING_REOPEN_AND_RENDER','V6_BAKED_VERIFIED_CLAMP_NOT_ACCEPTED'),q.get('traceback')
+          assert q['saved_v6_crosscheck'].startswith('PASS'),q
+          print('Baked action verified',q['status'])
+          print('V4',q['v4'])
+          print('V6',q['v6'])
+          print('Clamp trials',q['clamped_candidates'])
+          PY
+      - name: Keep validated source plus all numerical evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-verified-phase-and-ik-baked-candidates
+          path: |
+            Verified/*.blend
+            Verified/*.json
+            Optimization/spine_phase_optimization.json
+            Optimization/*.blend
+          retention-days: 30
+          if-no-files-found: warn
