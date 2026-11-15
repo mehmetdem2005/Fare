@@ -1,0 +1,45 @@
+name: Rat Reference Shorts Motion Inspection
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - .github/workflows/rat-reference-motion.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect-short:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install yt-dlp and image tools
+        run: |
+          python3 -m pip install --user -U yt-dlp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+      - name: Extract ONLY metadata and sparse reference motion images
+        shell: bash
+        run: |
+          mkdir -p Reference
+          URL="https://www.youtube.com/watch?v=Q3Wtmw3E7uE"
+          python3 -m yt_dlp --no-playlist --skip-download --dump-single-json "$URL" > Reference/metadata.json 2> Reference/error.txt || true
+          python3 -m yt_dlp -f 'bv*[height<=360]+ba/b[height<=360]/best' --merge-output-format mp4 --no-playlist             --output "Reference/source.%(ext)s" "$URL" >>Reference/error.txt 2>&1 || true
+          if test -s Reference/source.mp4; then
+            ffprobe -v error -show_entries format=duration -of default=nw=1 Reference/source.mp4 > Reference/video_properties.txt
+            ffmpeg -hide_banner -loglevel error -y -i Reference/source.mp4               -vf "fps=1/1.5,scale=180:-2,tile=4x3" -frames:v 1 Reference/sparse_movement_sheet.jpg || true
+            rm Reference/source.mp4
+          fi
+          ls -lah Reference
+      - name: Upload inspection evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rat-reference-short-metadata-and-sparse-motion-sheet
+          path: |
+            Reference/metadata.json
+            Reference/sparse_movement_sheet.jpg
+            Reference/video_properties.txt
+            Reference/error.txt
+          retention-days: 7
+          if-no-files-found: warn
