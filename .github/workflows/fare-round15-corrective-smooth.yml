@@ -71,7 +71,8 @@ jobs:
           import json
           d=json.load(open("Round15/round15_corrective_smooth.json"))
           assert d["status"]=="PASS_DIAGNOSTIC_ONLY_NON_EXPORTABLE",d.get("traceback")
-          assert len(d["critical"])==2,d
+          assert len(d["trials"])==12,d
+          assert d["best_numeric_diagnostic"] is not None,d
           print("Non-exportability warning retained; no body-modifier candidate is production.")
           PY
       - name: Preserve only forensic evidence, no main or source edits
