@@ -1,0 +1,56 @@
+name: Fare inspect Blender action slots and per-bone baked pose mismatch
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - rig-experiments/debug_action_bake.py
+      - .github/workflows/fare-debug-baked-action.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  debug:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retrieve failed independent QA candidate, not source model
+        uses: actions/download-artifact@v4
+        with:
+          name: fare-verified-phase-and-ik-baked-candidates
+          run-id: 43756661238
+          github-token: ${{ github.token }}
+          path: Input
+      - name: Validate inputs
+        run: |
+          set -euo pipefail
+          find Input -type f | head
+          test -s Input/Optimization/mouse_run_v6_spine_phase_REVIEW.blend
+          test -s Input/Optimization/spine_phase_optimization.json
+          python3 -m py_compile rig-experiments/debug_action_bake.py
+          mkdir -p Debug
+      - name: Blender
+        run: |
+          curl -fL --retry 3 --retry-delay 4 -o blender.tar.xz https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+      - name: Compare same-frame controller rotations, action slots and 19k evaluated vertices
+        run: |
+          set -euo pipefail
+          blender_runtime/blender-5.1.2-linux-x64/blender -b -P rig-experiments/debug_action_bake.py -- \
+            --source Input/Optimization/mouse_run_v6_spine_phase_REVIEW.blend \
+            --opt Input/Optimization/spine_phase_optimization.json --out Debug
+          python3 - <<'PY'
+          import json
+          j=json.load(open('Debug/baked_action_debug.json'))
+          print('ACTION SLOTS:',j['src_actions'])
+          for f in j['frames']:
+              print('F',f['frame'],'max saved vs manual mesh delta',f['baked_vs_manual_max_disp'])
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fare-baked-action-per-bone-mismatch-diagnostic
+          path: Debug/*.json
+          if-no-files-found: warn
