@@ -4,6 +4,7 @@ on:
     branches: [rig-experiments/real-blender-ci]
     paths:
       - rig-experiments/verify_phase_and_ik.py
+      - rig-experiments/optimize_spine_phase.py
       - .github/workflows/fare-verify-spine-ik-repair.yml
   workflow_dispatch:
 permissions:
