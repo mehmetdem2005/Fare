@@ -1,0 +1,69 @@
+name: Fare V4 Torso and Belly Root Cause Forensics
+on:
+  push:
+    branches:
+      - rig-experiments/real-blender-ci
+    paths:
+      - rig-experiments/forensic_v4_torso.py
+      - .github/workflows/fare-v4-torso-forensics.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  root-cause:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 80
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check exact model identity and scripts
+        run: |
+          set -euo pipefail
+          test -s deliver/mouse_rig.blend
+          python3 -m py_compile rig-experiments/{animate_run_v4.py,v4_flank_weight_trials.py,forensic_v4_torso.py}
+          mkdir -p Baseline FlankTrials Forensic
+      - name: Install Blender 5.1.2
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 5 -o blender.tar.xz \
+            https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+          blender_runtime/blender-5.1.2-linux-x64/blender --version | head -2
+      - name: Rebuild exact selected v4 run and the protected 65% flank candidate
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          "$B" -b -P rig-experiments/animate_run_v4.py -- --source deliver/mouse_rig.blend --out Baseline
+          "$B" -b -P rig-experiments/v4_flank_weight_trials.py -- \
+            --source Baseline/mouse_run_sprint_v4.blend --out FlankTrials
+          test -s FlankTrials/mouse_sprint_v4_flank_65_EXPERIMENT.blend
+      - name: IK reach, shape-key activation, all six regions and independent morph ablations
+        run: |
+          set -euo pipefail
+          blender_runtime/blender-5.1.2-linux-x64/blender -b \
+            -P rig-experiments/forensic_v4_torso.py -- \
+            --source FlankTrials/mouse_sprint_v4_flank_65_EXPERIMENT.blend --out Forensic
+          python3 - <<'PY'
+          import json
+          f='Forensic/forensic_v4_torso.json'
+          d=json.load(open(f))
+          assert d['status']=='PASS',d.get('traceback')
+          assert len(d['frames'])==13
+          assert len(d['ik_reach'])==13
+          assert 'inner' in d['weight_summary'] and 'interleg' in d['weight_summary']
+          print('Region weights:',d['weight_summary'])
+          print('Morph peaks:',d['morph_peak'])
+          print('IK extension:',d['IK_max_extension_ratio'])
+          print('Causal ablations:',d['top_case_effects'])
+          PY
+      - name: Upload forensic evidence, including failure JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-v4-torso-forensic-root-causes
+          path: |
+            Forensic/*.json
+            FlankTrials/v4_flank_weight_trials.json
+            Baseline/run_qa.json
+          if-no-files-found: warn
+          retention-days: 30
