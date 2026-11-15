@@ -1,0 +1,66 @@
+name: Fare Sprint v5 Four-Leg Torso-Synchronized IK QA
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - rig-experiments/animate_run_v5.py
+      - rig-experiments/compare_v4_v5_belly.py
+      - rig-experiments/compare_v4_v5_front.py
+      - .github/workflows/fare-sprint-v5-iksync.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sprint-v4:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 65
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate inputs
+        run: |
+          set -euo pipefail
+          test -s deliver/mouse_rig.blend
+          python3 -m py_compile rig-experiments/{animate_run_v3.py,animate_run_v5.py,compare_v4_v5_belly.py,compare_v4_v5_front.py}
+          mkdir -p OldRun NewRun Compare
+      - name: Obtain Blender 5.1.2
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 5 -o blender.tar.xz \
+            https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+      - name: Generate old and new run with identical source mesh
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          "$B" -b -P rig-experiments/animate_run_v3.py -- --source deliver/mouse_rig.blend --out OldRun
+          "$B" -b -P rig-experiments/animate_run_v5.py -- --source deliver/mouse_rig.blend --out NewRun
+          test -s NewRun/mouse_run_sprint_v5.glb
+      - name: Compare actual mesh at 25 poses with fixed belly and chest indices
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          "$B" -b -P rig-experiments/compare_v4_v5_belly.py -- \
+            --old OldRun/mouse_run_sprint_v4.blend --new NewRun/mouse_run_sprint_v5.blend --out Compare
+          "$B" -b -P rig-experiments/compare_v4_v5_front.py -- \
+            --old OldRun/mouse_run_sprint_v4.blend --new NewRun/mouse_run_sprint_v5.blend --out Compare
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          for part in ["belly","front"]:
+              d=json.loads(Path(f"Compare/v3_v4_{part}_comparison.json").read_text())
+              assert d["new"]["loop_seam_max"]<1e-4
+              print(part,d["comparison"])
+          PY
+      - name: Keep new animation and evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-sprint-v5-iksync-diagnostics
+          path: |
+            Compare/*.json
+            NewRun/*.blend
+            NewRun/*.glb
+            NewRun/*.json
+          retention-days: 30
+          if-no-files-found: warn
