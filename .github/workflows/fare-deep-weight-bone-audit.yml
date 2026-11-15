@@ -1,0 +1,66 @@
+name: Fare Deep Weight And Multi-Bone Deformation Audit
+on:
+  push:
+    branches:
+      - rig-experiments/real-blender-ci
+    paths:
+      - rig-experiments/audit_weight_bone_interactions.py
+      - .github/workflows/fare-deep-weight-bone-audit.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audited-real-blender:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 65
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate and prepare outputs
+        run: |
+          set -euo pipefail
+          python3 -m py_compile rig-experiments/animate_run_v3.py rig-experiments/audit_weight_bone_interactions.py
+          test -s deliver/mouse_rig.blend
+          mkdir -p RunOutput WeightAudit
+      - name: Install real Blender 5.1.2
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 5 -o blender.tar.xz \
+            https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+          blender_runtime/blender-5.1.2-linux-x64/blender --version | head -3
+      - name: Reproduce exact v3 sprint
+        run: |
+          set -euo pipefail
+          blender_runtime/blender-5.1.2-linux-x64/blender -b \
+            -P rig-experiments/animate_run_v3.py -- \
+            --source deliver/mouse_rig.blend --out RunOutput
+          test -s RunOutput/mouse_run_sprint_v3.blend
+      - name: Analyze highest strain edges and every influencing bone
+        run: |
+          set -euo pipefail
+          blender_runtime/blender-5.1.2-linux-x64/blender -b \
+            -P rig-experiments/audit_weight_bone_interactions.py -- \
+            --source RunOutput/mouse_run_sprint_v3.blend --out WeightAudit
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          q=json.loads(Path("WeightAudit/bone_weight_root_cause.json").read_text())
+          assert q["status"]=="PASS",q.get("error")
+          assert q["state_crosscheck"].startswith("PASS")
+          print("ROOT CAUSE WEIGHT RANK", q["top_groups_in_worst_edges"])
+          print("ISOLATIONS",q["bone_isolation_mean_p95"])
+          print("SHORT EDGES",q["edge_length_distribution"])
+          PY
+      - name: Save all evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-deep-run-weight-bone-audit
+          path: |
+            WeightAudit/*.json
+            RunOutput/run_qa.json
+          retention-days: 30
+          if-no-files-found: warn
