@@ -49,7 +49,7 @@ def audit(arm,mesh,full=False):
     head=region(mesh,[["Head","Muzzle"],["head","snout"],["Head"],["head"]])
     names=[p.name for p in arm.pose.bones if any(s in p.name.lower() for s in ("shoulder","upperarm","upper_arm","forearm","wrist","hand","paw","spine"))]
     if not names:raise RuntimeError("No forelimb or spine pose bones identified")
-    if not full:names=names[:12]
+    if not full:names=names[:12]+[n for n in names[12:] if n.endswith("_Distal")]
     angles=[-45,-30,-15,15,30,45] if full else [-30,15,30]
     edges=[tuple(e.vertices) for e in mesh.data.edges][::2]
     results=[]
@@ -143,6 +143,8 @@ def main():
                     bpy.ops.wm.open_mainfile(filepath=str(source))
                     mesh=max((o for o in bpy.data.objects if o.type=="MESH" and any(m.type=="ARMATURE" for m in o.modifiers)),key=lambda o:len(o.data.vertices))
                     arm=next(m.object for m in mesh.modifiers if m.type=="ARMATURE" and m.object)
+                    saved_action=arm.animation_data.action if arm.animation_data else None
+                    saved_mutes=[(tr,tr.mute) for tr in arm.animation_data.nla_tracks] if arm.animation_data else []
                     if arm.animation_data:
                         arm.animation_data.action=None
                         for tr in arm.animation_data.nla_tracks:tr.mute=True
@@ -159,8 +161,22 @@ def main():
                     candidate["rest_max_deviation"]=deviation
                     if deviation>1e-5:raise RuntimeError("Rest changed by split")
                     candidate["tests"]=audit(arm,mesh,cfg.full)
+                    new_names=[n+"_Distal" for n in targets]
+                    tested={r["bone"] for r in candidate["tests"]["poses"]}
+                    candidate["added_bones_tested"]=sorted(set(new_names)&tested)
+                    if len(candidate["added_bones_tested"])!=len(new_names):raise RuntimeError("New distal bone not individually tested")
+                    reset(arm)
+                    if arm.animation_data:
+                        arm.animation_data.action=saved_action
+                        for track,old_state in saved_mutes:track.mute=old_state
                     path=out/(label+"_EXPERIMENT.blend")
                     bpy.ops.wm.save_as_mainfile(filepath=str(path),compress=True)
+                    # Blender must be able to reopen the artifact, not just write bytes
+                    bpy.ops.wm.open_mainfile(filepath=str(path))
+                    check_arm=next(o for o in bpy.data.objects if o.type=="ARMATURE")
+                    if len(check_arm.data.bones)!=base_bone_count+len(targets):raise RuntimeError("Reopened model has wrong bone count")
+                    if any(n not in check_arm.data.bones for n in new_names):raise RuntimeError("Reopened file missing new distal bone")
+                    candidate["saved_reopen_verified"]=True
                     candidate["output"]=path.name
                     candidate["sha256"]=sha(path)
                     candidate["status"]="L3_TESTED_CANDIDATE"
