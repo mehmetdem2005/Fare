@@ -131,8 +131,8 @@ def main():
                 "critical_edge_count_gt0_5":sum(1 for r in worst if r[0]>.5)}
             rankings.append(frame_score)
             rotations={}
-            for bn in ['hips']+[f'spine_{j:02d}' for j in range(1,6)]+
-                      ['shoulder.L','upper_arm.L','forearm.L','hand.L','shoulder.R','upper_arm.R','forearm.R','hand.R','neck','head']:
+            for bn in (['hips']+[f'spine_{j:02d}' for j in range(1,6)]+
+                      ['shoulder.L','upper_arm.L','forearm.L','hand.L','shoulder.R','upper_arm.R','forearm.R','hand.R','neck','head']):
                 if bn not in arm.pose.bones:continue
                 pb=arm.pose.bones[bn]
                 # Evaluated local transform relative to parent; include IK solution
