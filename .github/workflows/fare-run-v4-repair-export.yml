@@ -1,0 +1,106 @@
+name: Fare Run v4 Protected Abdomen Final Candidate Export
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - rig-experiments/animate_run_v4.py
+      - rig-experiments/v4_flank_weight_trials.py
+      - rig-experiments/export_v4_abdomen_candidate.py
+      - rig-experiments/render_run_v4.py
+      - .github/workflows/fare-run-v4-repair-export.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  generate-model-animation-and-qa:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      LIBGL_ALWAYS_SOFTWARE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify input and Python
+        run: |
+          set -euo pipefail
+          python3 -m py_compile rig-experiments/{animate_run_v4.py,v4_flank_weight_trials.py,export_v4_abdomen_candidate.py,render_run_v4.py}
+          test -s deliver/mouse_rig.blend
+          mkdir -p Baseline WeightTrials Release
+      - name: Install Blender 5.1.2, virtual display, FFmpeg
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 5 -o blender.tar.xz \
+            https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libegl1 libgl1 libgl1-mesa-dri libxi6 xvfb libxrender1 ffmpeg
+      - name: Generate shoulder-synchronized run-v4
+        run: |
+          set -euo pipefail
+          blender_runtime/blender-5.1.2-linux-x64/blender -b \
+            -P rig-experiments/animate_run_v4.py -- \
+            --source deliver/mouse_rig.blend --out Baseline
+      - name: Test and select conservative flank weights
+        run: |
+          set -euo pipefail
+          blender_runtime/blender-5.1.2-linux-x64/blender -b \
+            -P rig-experiments/v4_flank_weight_trials.py -- \
+            --source Baseline/mouse_run_sprint_v4.blend --out WeightTrials
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path('WeightTrials/v4_flank_weight_trials.json').read_text())
+          assert data['status']=='MEASURED_V4_FLANK_EXPERIMENTS_NEED_VISUAL_ACCEPTANCE'
+          selected=next(c for c in data['candidates'] if c['strength']==.65)
+          assert selected['roi_improvements_pct']['interleg']['max']>5
+          assert selected['roi_improvements_pct']['chest']['mean']>=0
+          for key in ('rear','core','fore_leg_distal'):
+              assert abs(selected['roi_improvements_pct'][key]['mean'])<.00001
+              assert abs(selected['roi_improvements_pct'][key]['max'])<.00001
+          assert selected['max_weight_sum_difference']<1e-6
+          print('SELECTED',selected['candidate_blend'])
+          PY
+      - name: Export real animated GLB and repack BLEND without changing source
+        run: |
+          set -euo pipefail
+          blender_runtime/blender-5.1.2-linux-x64/blender -b \
+            -P rig-experiments/export_v4_abdomen_candidate.py -- \
+            --source WeightTrials/mouse_sprint_v4_flank_65_EXPERIMENT.blend --out Release
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('Release/export_qa.json').read_text())
+          assert d['status']=='PASS',d.get('error')
+          assert d['action_channels']>=50
+          assert d['bones']==49
+          print(d)
+          PY
+      - name: Render 12-frame GIF source and 8-angle Blender quality inspection
+        run: |
+          set -euo pipefail
+          xvfb-run -a -s "-screen 0 1280x1024x24" \
+            blender_runtime/blender-5.1.2-linux-x64/blender -b \
+              -P rig-experiments/render_run_v4.py -- \
+              --source Release/fare_run_v4_abdomen_repaired_EXPERIMENT.blend --out Release
+          ffmpeg -hide_banner -loglevel error -y -framerate 12 \
+            -i Release/preview_frames/frame_%02d.png \
+            -filter_complex "[0:v]split[a][b];[a]palettegen[p];[b][p]paletteuse=dither=bayer" \
+            -loop 0 Release/fare_run_v4_abdomen_preview.gif
+          test -s Release/fare_run_v4_abdomen_preview.gif
+          test "$(find Release/multiview -name '*.png' | wc -l)" -eq 32
+          ls -lh Release/*.blend Release/*.glb Release/*.gif
+      - name: Keep all deliverables and reports (experiment status)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-v4-protected-abdomen-animated-model
+          path: |
+            Release/*.blend
+            Release/*.glb
+            Release/*.gif
+            Release/*.json
+            Release/multiview/*.png
+            WeightTrials/v4_flank_weight_trials.json
+            Baseline/run_qa.json
+          if-no-files-found: warn
+          retention-days: 30
