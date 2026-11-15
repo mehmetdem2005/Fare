@@ -1,0 +1,76 @@
+name: Fare Real Blender Sprint Animation
+
+on:
+  push:
+    branches:
+      - rig-experiments/real-blender-ci
+    paths:
+      - rig-experiments/animate_run.py
+      - .github/workflows/fare-run-sprint.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate-running-animation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate source rig and script
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s deliver/mouse_rig.blend
+          python3 -m py_compile rig-experiments/animate_run.py
+          mkdir -p RunOutput
+      - name: Install official Blender 5.1.2
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 5 -o blender.tar.xz \
+            https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+          blender_runtime/blender-5.1.2-linux-x64/blender --version | head -3
+      - name: Animate run using Blender IK and validate actual posed mesh
+        shell: bash
+        run: |
+          set -euo pipefail
+          blender_runtime/blender-5.1.2-linux-x64/blender -b \
+            -P rig-experiments/animate_run.py -- \
+            --source deliver/mouse_rig.blend --out RunOutput
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("RunOutput/run_qa.json")
+          q=json.loads(p.read_text())
+          assert q["status"]=="PASS",q
+          assert q["qa"]["evaluated_frames"]==25,q
+          assert Path("RunOutput/mouse_run_sprint_v2.blend").stat().st_size>100_000
+          assert Path("RunOutput/mouse_run_sprint_v2.glb").stat().st_size>100_000
+          print(q["qa"])
+          print("Animations:",q["glb_animations"])
+          PY
+      - name: Assemble GIF from Blender-rendered frames
+        run: |
+          set -euo pipefail
+          ffmpeg -hide_banner -loglevel error -y \
+            -framerate 12 -i RunOutput/preview_frames/frame_%02d.png \
+            -filter_complex "[0:v]split[v0][v1];[v0]palettegen=stats_mode=full[p];[v1][p]paletteuse=dither=bayer" \
+            -loop 0 RunOutput/mouse_run_sprint_preview.gif
+          test -s RunOutput/mouse_run_sprint_preview.gif
+          ls -lh RunOutput/*.blend RunOutput/*.glb RunOutput/*.gif
+      - name: Upload sprint animation and real-Blender QA
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-run-sprint-blender-animations
+          path: |
+            RunOutput/*.blend
+            RunOutput/*.glb
+            RunOutput/*.gif
+            RunOutput/*.json
+          retention-days: 30
+          if-no-files-found: warn
