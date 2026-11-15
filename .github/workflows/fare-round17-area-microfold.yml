@@ -4,6 +4,7 @@ on:
     branches: [rig-experiments/real-blender-ci]
     paths:
       - rig-experiments/round17_area_microfold.py
+      - rig-experiments/round17_reopen_surface.py
       - .github/workflows/fare-round17-area-microfold.yml
   workflow_dispatch:
 permissions:
@@ -20,7 +21,7 @@ jobs:
         run: |
           set -euo pipefail
           echo '173ca67a372f5c04f27d922ef02f37921bbaf184cff0094976df326b4ec095b6  deliver/mouse_rig.blend' | sha256sum -c
-          python3 -m py_compile rig-experiments/{round17_area_microfold.py,round11_rootcause.py,round13_combined_ik.py,animate_run_v4.py,v4_flank_weight_trials.py,optimize_spine_phase.py,verify_phase_and_ik.py,reopen_verify_v7.py}
+          python3 -m py_compile rig-experiments/{round17_area_microfold.py,round17_reopen_surface.py,round11_rootcause.py,round13_combined_ik.py,animate_run_v4.py,v4_flank_weight_trials.py,optimize_spine_phase.py,verify_phase_and_ik.py,reopen_verify_v7.py}
           mkdir -p Base Weight Optimization Verified Reopen Round13 Round17
       - name: Official Blender 5.1.2 and virtual renderer
         run: |
@@ -72,6 +73,27 @@ jobs:
           else:
             print('No acceptable area-constrained morph, correctly rejected')
           PYTHON
+      - name: Fresh Blender reopen plus face-normal and BVH overlap differential
+        run: |
+          set -euo pipefail
+          if [ -s Round17/round17_area_constrained_GAIT_ONLY_REVIEW.blend ]; then
+            mkdir -p Round17Reopen
+            B=blender_runtime/blender-5.1.2-linux-x64/blender
+            "$B" -b -P rig-experiments/round17_reopen_surface.py -- \
+              --source Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend \
+              --candidate Round17/round17_area_constrained_GAIT_ONLY_REVIEW.blend \
+              --expected Round17/round17_area_microfold.json --out Round17Reopen
+            python3 - <<'PYTHON'
+          import json
+          r=json.load(open('Round17Reopen/round17_independent_reopen_surface.json'))
+          assert r['status'] in ('PASS_REOPEN_SURFACE_SCREEN_ONLY_NOT_PRODUCTION','PASS_REOPEN_BUT_FAIL_SURFACE_GEOMETRY'),r.get('traceback')
+          assert r['max_original_drift']<2e-4
+          assert r['max_candidate_drift']<2e-4
+          print('Validated only L3/save-reopen, quality gate:',r['status'])
+          PYTHON
+          else
+            echo "No numerically valid area candidate; no independent reopen"
+          fi
       - name: Preserve test JSON, not main/production assets
         if: always()
         uses: actions/upload-artifact@v4
@@ -79,6 +101,7 @@ jobs:
           name: fare-round17-triangle-area-constrained-pose-tests
           path: |
             Round17/
+            Round17Reopen/
             Reopen/reopened_v7_test.json
             Round13/round13_combined_ik.json
           retention-days: 30
