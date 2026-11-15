@@ -1,0 +1,80 @@
+name: Fare Sprint v3 vs v2 Abdomen Regression QA
+on:
+  push:
+    branches:
+      - rig-experiments/real-blender-ci
+    paths:
+      - rig-experiments/animate_run_v3.py
+      - rig-experiments/compare_run_belly.py
+      - rig-experiments/render_run_v3.py
+      - .github/workflows/fare-sprint-v3-qa.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare-and-render:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    env:
+      LIBGL_ALWAYS_SOFTWARE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check sources
+        run: |
+          set -euo pipefail
+          python3 -m py_compile rig-experiments/{animate_run.py,animate_run_v3.py,compare_run_belly.py,render_run_v3.py}
+          test -s deliver/mouse_rig.blend
+          mkdir -p OldRun NewRun Compare
+      - name: Blender 5.1.2 headless and software preview
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 5 -o blender.tar.xz \
+            https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libegl1 libgl1 libgl1-mesa-dri libxi6 xvfb libxrender1 ffmpeg
+      - name: Build identical-source v2 and revised v3 sprint
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          "$B" -b -P rig-experiments/animate_run.py -- --source deliver/mouse_rig.blend --out OldRun
+          "$B" -b -P rig-experiments/animate_run_v3.py -- --source deliver/mouse_rig.blend --out NewRun
+          test -s NewRun/mouse_run_sprint_v3.blend
+          test -s NewRun/mouse_run_sprint_v3.glb
+      - name: Blender evaluated mesh fixed-ROI 25-frame comparison
+        run: |
+          set -euo pipefail
+          blender_runtime/blender-5.1.2-linux-x64/blender -b \
+            -P rig-experiments/compare_run_belly.py -- \
+            --old OldRun/mouse_run_sprint_v2.blend \
+            --new NewRun/mouse_run_sprint_v3.blend --out Compare
+          cat Compare/sprint_comparison.json | tail -25
+      - name: Visualize candidate in Blender software viewport
+        run: |
+          set -euo pipefail
+          xvfb-run -a -s "-screen 0 1280x1024x24" \
+            blender_runtime/blender-5.1.2-linux-x64/blender -b \
+              -P rig-experiments/render_run_v3.py -- \
+              --source NewRun/mouse_run_sprint_v3.blend --out NewRun
+          ffmpeg -y -hide_banner -loglevel error -framerate 12 \
+            -i NewRun/preview_frames/frame_%02d.png \
+            -filter_complex "[0:v]split[v0][v1];[v0]palettegen[p];[v1][p]paletteuse=dither=bayer" \
+            -loop 0 NewRun/mouse_run_sprint_v3_preview.gif
+          test -s NewRun/mouse_run_sprint_v3_preview.gif
+      - name: Retain evaluated metrics and experimental outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-sprint-v3-abdomen-regression
+          path: |
+            NewRun/*.blend
+            NewRun/*.glb
+            NewRun/*.gif
+            NewRun/*.json
+            Compare/*.json
+            OldRun/run_qa.json
+          retention-days: 30
+          if-no-files-found: warn
