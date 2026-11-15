@@ -1,0 +1,56 @@
+name: Fare v6 spine phase from single-bone pose sweep
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - rig-experiments/optimize_spine_phase.py
+      - .github/workflows/fare-spine-phase-optimization.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  optimize:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check
+        run: |
+          set -euo pipefail
+          python3 -m py_compile rig-experiments/{animate_run_v4.py,v4_flank_weight_trials.py,optimize_spine_phase.py}
+          mkdir -p Base WeightTests Optimization
+      - name: Blender 5.1.2
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 4 -o blender.tar.xz https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+      - name: Recreate identical source
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          "$B" -b -P rig-experiments/animate_run_v4.py -- --source deliver/mouse_rig.blend --out Base
+          "$B" -b -P rig-experiments/v4_flank_weight_trials.py -- --source Base/mouse_run_sprint_v4.blend --out WeightTests
+      - name: Test 60 bone timing/rotation profiles across 24 frames and six ROIs
+        run: |
+          set -euo pipefail
+          blender_runtime/blender-5.1.2-linux-x64/blender -b \
+            -P rig-experiments/optimize_spine_phase.py -- \
+            --source WeightTests/mouse_sprint_v4_flank_65_EXPERIMENT.blend --out Optimization
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          q=json.load(open('Optimization/spine_phase_optimization.json'))
+          assert q['trial_count']==60,q.get('error')
+          assert q['status'] in ('CANDIDATE_MEASUREMENT_PASS_PENDING_REAL_REOPEN_EXPORT_VISUAL','NO_ACCEPTABLE_PHASE_PROFILE'),q
+          print('Profile tests',q['trial_count'],'Selected:',q['selected'])
+          print('Top 8',[(p['pattern'],p['amplitude'],p['hip'],round(p['score'],3),p['passes_guards']) for p in q['trials'][:8]])
+          PY
+      - name: Store candidate and full measurements, never overwrite production
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-single-bone-informed-spine-optimization
+          path: Optimization/*
+          retention-days: 30
+          if-no-files-found: warn
