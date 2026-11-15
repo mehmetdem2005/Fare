@@ -1,0 +1,65 @@
+name: Fare Combined Elbow and Abdomen Weight Regression
+
+on:
+  push:
+    branches:
+      - rig-experiments/real-blender-ci
+    paths:
+      - rig-experiments/joint_weight_smoothing_trials.py
+      - .github/workflows/fare-joint-weight-trials.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  run-controlled-weights:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 65
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate scripts and input
+        run: |
+          set -euo pipefail
+          python3 -m py_compile rig-experiments/{animate_run_v3.py,joint_weight_smoothing_trials.py}
+          test -s deliver/mouse_rig.blend
+          mkdir -p RunOutput JointTrials
+      - name: Install Blender 5.1.2
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 5 -o blender.tar.xz \
+            https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+      - name: Rebuild sprint v3 source without editing base rig
+        run: |
+          set -euo pipefail
+          blender_runtime/blender-5.1.2-linux-x64/blender -b \
+            -P rig-experiments/animate_run_v3.py -- \
+            --source deliver/mouse_rig.blend --out RunOutput
+      - name: Build two conservative weight transfer variants and compare 24 frames
+        run: |
+          set -euo pipefail
+          blender_runtime/blender-5.1.2-linux-x64/blender -b \
+            -P rig-experiments/joint_weight_smoothing_trials.py -- \
+            --source RunOutput/mouse_run_sprint_v3.blend --out JointTrials
+          python3 - <<'PY'
+          import json,glob
+          j=json.load(open('JointTrials/joint_weight_trials.json'))
+          assert j['status']=='MEASURED_JOINT_EXPERIMENTS_NEED_VISUAL_ACCEPTANCE',j.get('error')
+          assert len(j['candidates'])==3
+          for c in j['candidates']:
+              assert c['max_weight_sum_difference']<2e-5
+              print('TRIAL',c['strength'],c['changed_vertices'],c['roi_improvements_pct'])
+          print('candidate models',glob.glob('JointTrials/*.blend'))
+          PY
+      - name: Upload experiment only (no production merge)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-joint-weight-experiments
+          path: |
+            JointTrials/*.blend
+            JointTrials/*.json
+          if-no-files-found: warn
+          retention-days: 30
