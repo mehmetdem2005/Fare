@@ -72,6 +72,13 @@ jobs:
           print("Front ROI:",r["ROI"])
           print("Front ablations:",r["ablation_mean_delta_fixed_belly_roi"])
           print("Front v2/v3:",c["comparison"])
+          # Independent code paths must agree for every sampled full pose.
+          for item in r["frames"]:
+            f=item["frame"]
+            observed=item["ablations"]["full"]["metrics"]["edge_p95"]
+            expected=c["old"]["frames"][f-1]["edge_p95"]
+            assert abs(observed-expected)<1e-5,(f,observed,expected)
+          print("Independent full-pose crosscheck PASS")
           PY
       - name: Visualize candidate in Blender software viewport
         run: |
