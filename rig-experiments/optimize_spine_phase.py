@@ -134,24 +134,43 @@ def main():
   if rep['selected']:
    win=rep['selected'];pattern,amp,hip=win['pattern'],win['amplitude'],win['hip']
    orig=action
-   clone=orig.copy()
-   clone.name='run_sprint_v6_spine_phase_repaired'
-   clone.use_fake_user=True
-   arm.animation_data.action=clone
+   # Blender 5.1 action copies can carry incompatible cloned action slots.
+   # Rebuild an independent action from all source animated controller poses.
+   # This preserves IK control keys and makes each frame unambiguous.
+   bones_to_key=['hips','neck','head']+[pb.name for pb in B if pb.name.startswith(('spine_','tail_','ear'))]
+   bones_to_key += ['ik_hand.L','ik_hand.R','ik_foot.L','ik_foot.R']
+   bones_to_key += [pb.name for pb in B if pb.name.startswith(('front_toes.','toes.'))]
+   bones_to_key=list(dict.fromkeys(bones_to_key))
+   sampled=[]
    for f in range(1,26):
     arm.animation_data.action=orig;framepos(f)
     wave=math.cos(TAU*((f-1)%24-2)/24)
-    saved={}
-    for bone,part in zip(spines,patterns[pattern]):
-     if bone in B:
-      pb=B[bone];vec=list(pb.rotation_euler);vec[0]-=math.radians(amp*part*wave)
-      saved[bone]=vec
-    if 'hips' in B:
-     pb=B['hips'];vec=list(pb.rotation_euler);vec[0]+=math.radians(hip*wave);saved['hips']=vec
-    arm.animation_data.action=clone
-    for bone,vec in saved.items():
-     pb=B[bone];pb.rotation_mode='XYZ';pb.rotation_euler=vec
+    entries={}
+    for bone in bones_to_key:
+     pb=B[bone]
+     rot=tuple(pb.rotation_euler)
+     loc=tuple(pb.location)
+     if bone in spines:
+      k=patterns[pattern][spines.index(bone)]
+      rot=(rot[0]-math.radians(amp*k*wave),rot[1],rot[2])
+     if bone=='hips':
+      rot=(rot[0]+math.radians(hip*wave),rot[1],rot[2])
+     entries[bone]=(rot,loc)
+    sampled.append((f,entries))
+   old=bpy.data.actions.get('run_sprint_v6_spine_phase_repaired')
+   if old:bpy.data.actions.remove(old)
+   clone=bpy.data.actions.new('run_sprint_v6_spine_phase_repaired')
+   clone.use_fake_user=True
+   arm.animation_data.action=clone
+   for f,entries in sampled:
+    sc.frame_set(f)
+    for bone,(rot,loc) in entries.items():
+     pb=B[bone]
+     pb.rotation_mode='XYZ'
+     pb.rotation_euler=rot
+     pb.location=loc
      pb.keyframe_insert(data_path='rotation_euler',frame=f,group=bone)
+     pb.keyframe_insert(data_path='location',frame=f,group=bone)
    arm.animation_data.action=clone;sc.frame_set(1);bpy.context.view_layer.update()
    path=out/'mouse_run_v6_spine_phase_REVIEW.blend'
    bpy.ops.wm.save_as_mainfile(filepath=str(path),compress=True)
