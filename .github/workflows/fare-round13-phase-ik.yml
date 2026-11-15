@@ -1,0 +1,72 @@
+name: Fare Round 13 phase-synced fore hind IK candidate
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - rig-experiments/round13_combined_ik.py
+      - .github/workflows/fare-round13-phase-ik.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  candidate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 130
+    env:
+      LIBGL_ALWAYS_SOFTWARE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate source, scripts, and baseline identity
+        run: |
+          set -euo pipefail
+          test -s deliver/mouse_rig.blend
+          python3 -m py_compile rig-experiments/{round11_rootcause.py,round13_combined_ik.py,animate_run_v4.py,v4_flank_weight_trials.py,optimize_spine_phase.py,verify_phase_and_ik.py,reopen_verify_v7.py}
+          mkdir -p Base Weight Optimization Verified Reopen Round13
+          sha256sum deliver/mouse_rig.blend > Round13/original_source.sha256
+      - name: Official Blender 5.1.2, headless software rendering
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 5 -o blender.tar.xz https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libegl1 libgl1 libgl1-mesa-dri libxi6 xvfb libxrender1
+      - name: Produce independently reopened 49-bone v7 checkpoint
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          "$B" -b -P rig-experiments/animate_run_v4.py -- --source deliver/mouse_rig.blend --out Base
+          "$B" -b -P rig-experiments/v4_flank_weight_trials.py -- --source Base/mouse_run_sprint_v4.blend --out Weight
+          "$B" -b -P rig-experiments/optimize_spine_phase.py -- --source Weight/mouse_sprint_v4_flank_65_EXPERIMENT.blend --out Optimization
+          "$B" -b -P rig-experiments/verify_phase_and_ik.py -- --source Optimization/mouse_run_v6_spine_phase_REVIEW.blend --optimizer Optimization/spine_phase_optimization.json --out Verified
+          "$B" -b -P rig-experiments/reopen_verify_v7.py -- --source Verified/fare_run_v7_verified_candidate.blend --expected Verified/independent_baked_validation.json --out Reopen
+          python3 - <<'PY'
+          import json
+          r=json.load(open('Reopen/reopened_v7_test.json'))
+          assert r['status']=='PASS_TRUE_BAKED_SAME_AS_MANUAL',r
+          PY
+      - name: Screen ten controlled IK combos across 24 full frames and optionally bake and render
+        run: |
+          set -euo pipefail
+          xvfb-run -a -s "-screen 0 1280x1024x24" \
+            blender_runtime/blender-5.1.2-linux-x64/blender -b -P rig-experiments/round13_combined_ik.py -- \
+              --source Verified/fare_run_v7_verified_candidate.blend --out Round13
+          python3 - <<'PY'
+          import json
+          d=json.load(open('Round13/round13_combined_ik.json'))
+          assert d['status']=='PASS_NUMERIC_REVIEW_ONLY',d.get('traceback')
+          assert len(d['trials'])==10
+          if d.get('candidate'):
+             assert d['baked_manual_max_vertex_distance'] < 1e-4
+          print('Numerical review only:',d.get('selected_profile'))
+          PY
+      - name: Retain independent test logs and true render images
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-round13-ik-phase-combined-review
+          path: |
+            Round13/
+            Reopen/reopened_v7_test.json
+          retention-days: 30
+          if-no-files-found: warn
