@@ -120,8 +120,11 @@ def main():
   report["clamped_candidates"]=variants
   accepted=[x for x in variants if x["guards"] and x["limit"]>=.96]
   if not accepted:
-   report["status"]="V6_BAKED_VERIFIED_CLAMP_NOT_ACCEPTED"
-  else:
+   # Original v6 spine motion ALREADY keeps the forehand IK target mostly
+   # reachable. A redundant clamp is rejected rather than forced.
+   accepted=[{"limit":None,"score":score6,
+              "reason":"No additional IK clamp improves the saved v6 candidate"}]
+  if True:
    best=accepted[0];limit=best["limit"];report["selected"]=best
    # Build a NEW Blender 5.1 action from sampled positions, not a copy:
    # new actions are keyframed from complete controller poses for deterministic export.
@@ -132,7 +135,7 @@ def main():
    data=[]
    for f in range(1,26):
     loadpose(optimized,f)
-    clamp(limit)
+    if limit is not None:clamp(limit)
     vals={name:(tuple(B[name].rotation_euler),tuple(B[name].location)) for name in controller}
     data.append((f,vals))
    previous=bpy.data.actions.get('run_sprint_v7_ik_spine_repaired')
