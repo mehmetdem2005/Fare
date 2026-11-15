@@ -47,7 +47,7 @@ def audit(arm,mesh,full=False):
     rest=eval_mesh(mesh)
     if len(rest)!=len(mesh.data.vertices):raise RuntimeError("Evaluated mesh vertex count changed; cannot compare vertex IDs")
     head=region(mesh,[["Head","Muzzle"],["head","snout"],["Head"],["head"]])
-    names=[p.name for p in arm.pose.bones if any(s in p.name.lower() for s in ("shoulder","upperarm","upper_arm","forearm","wrist","hand","paw","toes","spine"))]
+    names=[p.name for p in arm.pose.bones if p.bone.use_deform and (p.name.lower().startswith("spine") or p.name.lower().startswith("fore_") or p.name.lower().startswith(("shoulder.","upper_arm.","forearm.","hand.","front_toes.")))]
     if not names:raise RuntimeError("No forelimb or spine pose bones identified")
     # Never truncate the bone list: distal spine bones must not replace forelimb tests.
     angles=[-45,-30,-15,15,30,45] if full else [-30,15,30]
@@ -72,6 +72,42 @@ def audit(arm,mesh,full=False):
                                     edge_p95=strains[int(.95*(len(strains)-1))] if strains else None))
     reset(arm)
     return dict(engine="ACTUAL_BLENDER_DEPSGRAPH",head_roi_count=len(head),test_count=len(results),poses=results)
+
+
+
+def distributed_spine_tests(arm,mesh):
+    """Apply the SAME total intended bending angle across available spine segments."""
+    reset(arm)
+    baseline=eval_mesh(mesh)
+    segments=[p.name for p in arm.pose.bones if p.bone.use_deform and p.name.lower().startswith("spine")]
+    if len(segments)<3:raise RuntimeError("Not enough deform spine segments")
+    edges=[tuple(e.vertices) for e in mesh.data.edges][::2]
+    groups=[mesh.vertex_groups.get(n) for n in segments]
+    groups=[g for g in groups if g]
+    core=[v.index for v in mesh.data.vertices if sum(groupweight(g,v.index) for g in groups)>.50]
+    output=[]
+    for axis in ("X","Z"):
+        for bend in (-30,-15,15,30):
+            reset(arm)
+            for name in segments:
+                pb=arm.pose.bones[name]
+                pb.rotation_mode="XYZ"
+                pb.rotation_euler["XYZ".index(axis)]=math.radians(bend/len(segments))
+            bpy.context.view_layer.update()
+            moved=eval_mesh(mesh)
+            strains=[]
+            for a,b in edges:
+                old=math.dist(baseline[a],baseline[b])
+                if old>1e-7:strains.append(abs(math.dist(moved[a],moved[b])/old-1))
+            strains.sort()
+            center_disp=[math.dist(baseline[i],moved[i]) for i in core]
+            output.append({"axis":axis,"intended_total_degrees":bend,"segment_count":len(segments),
+                           "spine_core_count":len(core),
+                           "edge_p95":strains[int(.95*(len(strains)-1))] if strains else None,
+                           "edge_p99":strains[int(.99*(len(strains)-1))] if strains else None,
+                           "spine_core_mean_displacement":sum(center_disp)/len(center_disp) if center_disp else 0})
+    reset(arm)
+    return output
 
 
 def combined_pose_tests(arm,mesh):
@@ -184,6 +220,7 @@ def main():
                                  names=[b.name for b in arm.data.bones if "spine" in b.name.lower()])
         report["baseline"]=audit(arm,mesh,cfg.full)
         report["baseline_combined"]=combined_pose_tests(arm,mesh)
+        report["baseline_distributed_spine"]=distributed_spine_tests(arm,mesh)
         is_v6=all(n in arm.data.bones for n in ["Spine_01","Spine_02","Spine_03","Spine_04","Spine_05"])
         repo_schema=all(n in arm.data.bones for n in ["spine_01","spine_02","spine_03","spine_04","spine_05"])
         report["input_kind"]="v6_conversation_schema" if is_v6 else "DIFFERENT_GITHUB_FARE_RIG"
@@ -217,6 +254,7 @@ def main():
                     if deviation>1e-5:raise RuntimeError("Rest changed by split")
                     candidate["tests"]=audit(arm,mesh,cfg.full)
                     candidate["combined_tests"]=combined_pose_tests(arm,mesh)
+                    candidate["distributed_spine_tests"]=distributed_spine_tests(arm,mesh)
                     new_names=[n+"_Distal" for n in targets]
                     tested={r["bone"] for r in candidate["tests"]["poses"]}
                     candidate["added_bones_tested"]=sorted(set(new_names)&tested)
