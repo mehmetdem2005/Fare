@@ -295,7 +295,7 @@ def main():
                         sweeps.append({
                             "frame": f,"bone":name,"axis":axis,
                             "command_deg":angle,
-                            "evaluated_angle_deg":math.degrees(old.to_quaternion().rotation_difference(rotated.to_quaternion()).angle),
+                            "evaluated_angle_deg":min((lambda a:a if a<=180 else 360-a)(math.degrees(old.to_quaternion().rotation_difference(rotated.to_quaternion()).angle)),180),
                             "evaluated_head_displacement":(pb.head-old_head).length,
                             "delta_p95":{r:value[r]["p95"]-original_metrics[r]["p95"] for r in REGIONS},
                             "delta_max":{r:value[r]["max"]-original_metrics[r]["max"] for r in REGIONS},
