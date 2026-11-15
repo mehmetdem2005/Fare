@@ -91,7 +91,7 @@ def main():
   report["mask"]={"verts":len(ww),"min_weight":min(ww.values()),"mean_weight":statistics.mean(ww.values()),"max_weight":max(ww.values())}
   original_mods=[m.name for m in ob.modifiers]
   tests=[]
-  for ty in ("LENGTH_WEIGHT","SIMPLE"):
+  for ty in ("LENGTH_WEIGHTED","SIMPLE"):
    for factor in (.12,.25,.4):
     for iterations in (2,5):
      mod=ob.modifiers.new(name="R15_TEMP_CORRECTIVE_SMOOTH",type="CORRECTIVE_SMOOTH")
