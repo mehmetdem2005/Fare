@@ -108,7 +108,7 @@ def bone_map(ob, arm, rois):
         mapping.append({
             "bone": b.name, "parent": b.parent.name if b.parent else None,
             "use_deform": bool(b.use_deform), "head_local": list(b.head_local),
-            "tail_local": list(b.tail_local), "roll_rad": float(b.roll),
+            "tail_local": list(b.tail_local), "roll_rad": None, "rest_matrix_local": [list(row) for row in b.matrix_local],
             "length": float(b.length), "influence_count": influence,
             "weight_sum": wsum,
             "constraints": [
