@@ -1,0 +1,51 @@
+name: Fare fore-IK reach-clamp causal experiments
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - rig-experiments/front_ik_reach_trials.py
+      - .github/workflows/fare-ik-reach-clamp.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  reach:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 65
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate
+        run: |
+          python3 -m py_compile rig-experiments/{animate_run_v4.py,v4_flank_weight_trials.py,front_ik_reach_trials.py}
+          mkdir -p Base Flank Reach
+      - name: Install Blender 5.1.2
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 4 -o blender.tar.xz https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+      - name: Rebuild original v4 65pct flank
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          "$B" -b -P rig-experiments/animate_run_v4.py -- --source deliver/mouse_rig.blend --out Base
+          "$B" -b -P rig-experiments/v4_flank_weight_trials.py -- --source Base/mouse_run_sprint_v4.blend --out Flank
+      - name: Sweep 5 reach thresholds on real 24-frame deformed mesh
+        run: |
+          set -euo pipefail
+          blender_runtime/blender-5.1.2-linux-x64/blender -b -P rig-experiments/front_ik_reach_trials.py -- \
+            --source Flank/mouse_sprint_v4_flank_65_EXPERIMENT.blend --out Reach
+          python3 - <<'PY'
+          import json
+          q=json.load(open('Reach/per_limb_target_clamp.json'))
+          assert q['status'] in ('MEASURED_VALID_IK_CLAMP_PENDING_EXPORT','NO_ACCEPTABLE_IK_CLAMP'),q.get('error')
+          print('Selected IK limit',q['selected'])
+          print('All candidates',q['trials'])
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fare-ik-reach-clamp-measurements
+          path: Reach/*.json
+          retention-days: 30
+          if-no-files-found: warn
