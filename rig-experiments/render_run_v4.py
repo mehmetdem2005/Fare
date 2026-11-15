@@ -49,7 +49,26 @@ def main():
         scene.frame_set(f)
         scene.render.filepath=str(frame_folder/("frame_%02d.png"%i))
         bpy.ops.render.render(write_still=True)
-    (root/"preview_qa.json").write_text(json.dumps({"status":"PASS","frames_rendered":12,"engine":"BLENDER_WORKBENCH","source":str(c.source)},indent=2))
+    # Additional anatomical checks from multiple cameras, same fixed frames.
+    views={
+        "left":(1.9,0,.18),
+        "right":(-1.9,0,.18),
+        "front":(0,-1.9,.2),
+        "rear":(0,1.9,.2),
+        "top":(0,0,1.9),
+        "bottom":(0,0,-1.9),
+        "left_threequarter":(1.5,-1.1,.7),
+        "right_threequarter":(-1.5,-1.1,.7),
+    }
+    multi=root/"multiview";multi.mkdir(exist_ok=True)
+    for view,direction in views.items():
+        camera.location=mid+Vector(direction)*width
+        camera.rotation_euler=(mid-camera.location).to_track_quat("-Z","Y").to_euler()
+        for frame in (1,7,13,19):
+            scene.frame_set(frame)
+            scene.render.filepath=str(multi/("frame_%02d_%s.png"%(frame,view)))
+            bpy.ops.render.render(write_still=True)
+    (root/"preview_qa.json").write_text(json.dumps({"status":"PASS","frames_rendered":12,"multiview_renders":32,"engine":"BLENDER_WORKBENCH","source":str(c.source)},indent=2))
     print("SPRINT_PREVIEW_RENDERED=12")
 
 if __name__=="__main__":
