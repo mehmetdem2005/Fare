@@ -53,7 +53,7 @@ def main():
    scene.frame_set(frame-1 if frame>1 else 2);scene.frame_set(frame)
    bpy.context.view_layer.update()
   def score(rows):
-   return {n:{"mean":sum(x["metrics"][n] for x in rows)/24,"worst":max(x["metrics"][n] for x in rows[:24])} for n in rois}
+   return {n:{"mean":sum(x["metrics"][n] for x in rows[:24])/24,"worst":max(x["metrics"][n] for x in rows[:24])} for n in rois}
   def clamp(limit):
    changes=[];maxdelta=0.;conversion_error=0.
    for side in 'LR':
