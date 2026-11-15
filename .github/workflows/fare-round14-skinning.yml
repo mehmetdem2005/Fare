@@ -1,0 +1,86 @@
+name: Fare Round 14 evaluated-skin root-cause decomposition
+
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - rig-experiments/round14_skinning_forensics.py
+      - .github/workflows/fare-round14-skinning.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  forensic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 110
+    env:
+      LIBGL_ALWAYS_SOFTWARE: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify source provenance and syntax
+        run: |
+          set -euo pipefail
+          test -s deliver/mouse_rig.blend
+          echo "173ca67a372f5c04f27d922ef02f37921bbaf184cff0094976df326b4ec095b6  deliver/mouse_rig.blend" | sha256sum -c
+          python3 -m py_compile rig-experiments/{round14_skinning_forensics.py,round13_combined_ik.py,round11_rootcause.py,animate_run_v4.py,v4_flank_weight_trials.py,optimize_spine_phase.py,verify_phase_and_ik.py,reopen_verify_v7.py}
+          mkdir -p Base Weight Optimization Verified Reopen Round13 Round14
+      - name: Download official Blender 5.1.2 and Mesa
+        run: |
+          set -euo pipefail
+          curl --fail -L --retry 3 -o blender.tar.xz https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libegl1 libgl1 libgl1-mesa-dri libxi6 xvfb libxrender1
+      - name: Rebuild known 49-bone verified v7 from untouched production source
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          "$B" -b -P rig-experiments/animate_run_v4.py -- --source deliver/mouse_rig.blend --out Base
+          "$B" -b -P rig-experiments/v4_flank_weight_trials.py -- --source Base/mouse_run_sprint_v4.blend --out Weight
+          "$B" -b -P rig-experiments/optimize_spine_phase.py -- --source Weight/mouse_sprint_v4_flank_65_EXPERIMENT.blend --out Optimization
+          "$B" -b -P rig-experiments/verify_phase_and_ik.py -- --source Optimization/mouse_run_v6_spine_phase_REVIEW.blend --optimizer Optimization/spine_phase_optimization.json --out Verified
+          "$B" -b -P rig-experiments/reopen_verify_v7.py -- --source Verified/fare_run_v7_verified_candidate.blend --expected Verified/independent_baked_validation.json --out Reopen
+          python3 - <<'PY'
+          import json
+          d=json.load(open("Reopen/reopened_v7_test.json"))
+          assert d["status"]=="PASS_TRUE_BAKED_SAME_AS_MANUAL",d
+          PY
+      - name: Rebuild v8 candidate with same ten independent profiles
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          xvfb-run -a -s "-screen 0 1280x1024x24" "$B" -b -P rig-experiments/round13_combined_ik.py -- --source Verified/fare_run_v7_verified_candidate.blend --out Round13
+          python3 - <<'PY'
+          import json
+          d=json.load(open("Round13/round13_combined_ik.json"))
+          assert d["status"]=="PASS_NUMERIC_REVIEW_ONLY",d
+          assert d["selected_profile"]=="front_and_hind_006",d
+          assert d["candidate"]["sha256"]=="984a21447c0217bc8ff91d02f9af1509324aa94dfaf29c543abd3d92f9b12c70",d
+          PY
+      - name: Determine actual weighted-bone versus pose-space causes, all evidence recorded
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          "$B" -b -P rig-experiments/round14_skinning_forensics.py -- \
+            --source Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend --out Round14
+          python3 - <<'PY'
+          import json
+          d=json.load(open("Round14/round14_skinning_decomposition.json"))
+          assert d["status"]=="PASS_L3_FORENSICS_NO_REPAIR",d.get("traceback")
+          assert len(d["critical"])==2,d
+          print("Actual LBS proxy caveat retained for both frames.")
+          PY
+      - name: Preserve only forensic evidence, no main or source edits
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fare-round14-blender-evaluated-skinning-rootcause
+          path: |
+            Round14/
+            Reopen/reopened_v7_test.json
+            Round13/round13_combined_ik.json
+          retention-days: 30
+          if-no-files-found: warn
