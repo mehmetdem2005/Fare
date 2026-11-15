@@ -1,0 +1,55 @@
+name: Fare one-bone-at-a-time IK and spine pose audit
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - rig-experiments/individual_bone_ik_sweep.py
+      - .github/workflows/fare-individual-bone-ik-audit.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate code and base model
+        run: |
+          set -euo pipefail
+          python3 -m py_compile rig-experiments/{animate_run_v4.py,v4_flank_weight_trials.py,individual_bone_ik_sweep.py}
+          test -s deliver/mouse_rig.blend
+          mkdir -p Baseline FlankTrials BoneAudit
+      - name: Blender 5.1.2
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 4 -o blender.tar.xz https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+      - name: Reproduce last tested model
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          "$B" -b -P rig-experiments/animate_run_v4.py -- --source deliver/mouse_rig.blend --out Baseline
+          "$B" -b -P rig-experiments/v4_flank_weight_trials.py -- --source Baseline/mouse_run_sprint_v4.blend --out FlankTrials
+      - name: Bone-by-bone IK stretch, spine and hips pose sweep
+        run: |
+          set -euo pipefail
+          blender_runtime/blender-5.1.2-linux-x64/blender -b -P rig-experiments/individual_bone_ik_sweep.py -- \
+            --source FlankTrials/mouse_sprint_v4_flank_65_EXPERIMENT.blend --out BoneAudit
+          python3 - <<'PY'
+          import json
+          q=json.load(open('BoneAudit/individual_bone_ik_sweep.json'))
+          assert q['status']=='PASS',q.get('traceback')
+          assert len(q['per_bone_pose_sweep'])>=200
+          print('Bones tested',sorted(set(x['bone'] for x in q['per_bone_pose_sweep'])))
+          print('IK cases',list(q['ik_stretch_ablation']))
+          PY
+      - name: Save evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-individual-bone-ik-sweep-report
+          path: BoneAudit/*.json
+          retention-days: 30
+          if-no-files-found: warn
