@@ -1,0 +1,176 @@
+"""Headless Blender runtime QA for mouse rig; NO automatic weights."""
+import bpy, json, math, argparse, sys, traceback, hashlib
+from pathlib import Path
+
+def args():
+    p=argparse.ArgumentParser()
+    p.add_argument("--source", required=True)
+    p.add_argument("--out", required=True)
+    p.add_argument("--full", action="store_true")
+    return p.parse_args(sys.argv[sys.argv.index("--")+1:])
+
+def sha(path):
+    h=hashlib.sha256()
+    with open(path,"rb") as f:
+        for x in iter(lambda:f.read(1024*1024),b""):h.update(x)
+    return h.hexdigest()
+
+def reset(arm):
+    for p in arm.pose.bones:
+        p.rotation_mode="QUATERNION"
+        p.matrix_basis.identity()
+    bpy.context.view_layer.update()
+
+def eval_mesh(obj):
+    deps=bpy.context.evaluated_depsgraph_get()
+    ev=obj.evaluated_get(deps)
+    mesh=ev.to_mesh(preserve_all_data_layers=False,depsgraph=deps)
+    try:
+        mat=ev.matrix_world.copy()
+        return [tuple(mat@v.co) for v in mesh.vertices]
+    finally:ev.to_mesh_clear()
+
+def groupweight(group,index):
+    try:return group.weight(index)
+    except RuntimeError:return 0.0
+
+def region(mesh,options):
+    for parts in options:
+        groups=[mesh.vertex_groups.get(name) for name in parts]
+        if any(g is None for g in groups):continue
+        ids=[v.index for v in mesh.data.vertices if sum(groupweight(g,v.index) for g in groups)>.6]
+        if len(ids)>100:return ids
+    return []
+
+def audit(arm,mesh,full=False):
+    reset(arm)
+    rest=eval_mesh(mesh)
+    if len(rest)!=len(mesh.data.vertices):raise RuntimeError("Evaluated mesh vertex count changed; cannot compare vertex IDs")
+    head=region(mesh,[["Head","Muzzle"],["head","snout"],["Head"],["head"]])
+    names=[p.name for p in arm.pose.bones if any(s in p.name.lower() for s in ("shoulder","upperarm","upper_arm","forearm","wrist","hand","paw","spine"))]
+    if not names:raise RuntimeError("No forelimb or spine pose bones identified")
+    if not full:names=names[:12]
+    angles=[-45,-30,-15,15,30,45] if full else [-30,15,30]
+    edges=[tuple(e.vertices) for e in mesh.data.edges][::2]
+    results=[]
+    for name in names:
+        for axis in ("X","Z"):
+            for degree in angles:
+                reset(arm)
+                pb=arm.pose.bones[name]
+                pb.rotation_mode="XYZ"
+                pb.rotation_euler["XYZ".index(axis)]=math.radians(degree)
+                bpy.context.view_layer.update()
+                moved=eval_mesh(mesh)
+                strains=[]
+                for a,b in edges:
+                    before=math.dist(rest[a],rest[b])
+                    if before>1e-7:strains.append(abs(math.dist(moved[a],moved[b])/before-1))
+                strains.sort()
+                hmax=max((math.dist(rest[i],moved[i]) for i in head),default=0.0)
+                results.append(dict(bone=name,axis=axis,degree=degree,head_max_displacement=hmax,
+                                    edge_p95=strains[int(.95*(len(strains)-1))] if strains else None))
+    reset(arm)
+    return dict(engine="ACTUAL_BLENDER_DEPSGRAPH",head_roi_count=len(head),test_count=len(results),poses=results)
+
+def spine_split(arm,mesh,targets):
+    before=[sum(x.weight for x in v.groups) for v in mesh.data.vertices]
+    map_to_arm=arm.matrix_world.inverted()@mesh.matrix_world
+    data={name:(arm.data.bones[name].head_local.copy(),arm.data.bones[name].tail_local.copy()) for name in targets}
+    bpy.context.view_layer.objects.active=arm
+    if bpy.context.object.mode!="OBJECT":bpy.ops.object.mode_set(mode="OBJECT")
+    bpy.ops.object.mode_set(mode="EDIT")
+    try:
+        eb=arm.data.edit_bones
+        for name in targets:
+            old=eb[name]
+            h,t=data[name];m=h.lerp(t,.5)
+            children=[(c,c.head.copy(),c.tail.copy(),c.roll,c.use_connect) for c in old.children]
+            for child,*_ in children:child.use_connect=False
+            old.tail=m
+            new=eb.new(name+"_Distal")
+            new.head=m;new.tail=t;new.roll=old.roll
+            new.parent=old;new.use_connect=True;new.use_deform=True
+            for child,ch,ct,roll,connected in children:
+                child.parent=new;child.use_connect=False
+                child.head=ch;child.tail=ct;child.roll=roll
+                if connected and (ch-t).length<1e-5:child.use_connect=True
+    finally:bpy.ops.object.mode_set(mode="OBJECT")
+    for name,(h,t) in data.items():
+        old=mesh.vertex_groups[name];new=mesh.vertex_groups.new(name=name+"_Distal")
+        u=t-h;den=u.length_squared
+        for vert in mesh.data.vertices:
+            w=groupweight(old,vert.index)
+            if w<=1e-8:continue
+            f=max(0.,min(1.,(((map_to_arm@vert.co)-h).dot(u)/den-.33)/.34))
+            smooth=f*f*(3-2*f)
+            old.add([vert.index],w*(1-smooth),"REPLACE")
+            if smooth>1e-8:new.add([vert.index],w*smooth,"REPLACE")
+    after=[sum(x.weight for x in v.groups) for v in mesh.data.vertices]
+    delta=max(abs(x-y) for x,y in zip(before,after))
+    if delta>1e-5:raise RuntimeError("Vertex weight total not conserved: "+str(delta))
+    return delta
+
+def main():
+    cfg=args();out=Path(cfg.out);out.mkdir(parents=True,exist_ok=True)
+    source=Path(cfg.source).resolve()
+    report=dict(source=str(source),sha256=sha(source),blender=bpy.app.version_string,status="STARTED")
+    try:
+        bpy.ops.wm.open_mainfile(filepath=str(source))
+        meshes=[o for o in bpy.data.objects if o.type=="MESH" and any(m.type=="ARMATURE" and m.object for m in o.modifiers)]
+        if not meshes:raise RuntimeError("No skinned mesh")
+        mesh=max(meshes,key=lambda o:len(o.data.vertices))
+        arm=next(m.object for m in mesh.modifiers if m.type=="ARMATURE" and m.object)
+        if arm.animation_data:
+            arm.animation_data.action=None
+            for tr in arm.animation_data.nla_tracks:tr.mute=True
+        arm.data.pose_position="POSE"
+        reset(arm)
+        report["structure"]=dict(vertices=len(mesh.data.vertices),bones=len(arm.data.bones),groups=len(mesh.vertex_groups),
+                                 names=[b.name for b in arm.data.bones if "spine" in b.name.lower()])
+        report["baseline"]=audit(arm,mesh,cfg.full)
+        is_v6=all(n in arm.data.bones for n in ["Spine_01","Spine_02","Spine_03","Spine_04","Spine_05"])
+        report["input_kind"]="v6_conversation_schema" if is_v6 else "DIFFERENT_GITHUB_FARE_RIG"
+        if is_v6:
+            report["candidates"]=[]
+            for label,targets in [("spine7",["Spine_04","Spine_05"]),("spine9",["Spine_02","Spine_03","Spine_04","Spine_05"])]:
+                candidate=dict(name=label,status="FAILED")
+                try:
+                    bpy.ops.wm.open_mainfile(filepath=str(source))
+                    mesh=max((o for o in bpy.data.objects if o.type=="MESH" and any(m.type=="ARMATURE" for m in o.modifiers)),key=lambda o:len(o.data.vertices))
+                    arm=next(m.object for m in mesh.modifiers if m.type=="ARMATURE" and m.object)
+                    if arm.animation_data:
+                        arm.animation_data.action=None
+                        for tr in arm.animation_data.nla_tracks:tr.mute=True
+                    arm.data.pose_position="POSE";reset(arm)
+                    rest=eval_mesh(mesh)
+                    candidate["weight_sum_delta"]=spine_split(arm,mesh,targets)
+                    if len(arm.data.bones)!=41+len(targets):raise RuntimeError("Invalid post-split bone count")
+                    for side in ("L","R"):
+                        if arm.data.bones["Fore_Shoulder."+side].parent.name!="Spine_04_Distal":
+                            raise RuntimeError("Wrong shoulder parent "+side)
+                    actual=eval_mesh(mesh)
+                    deviation=max(math.dist(a,b) for a,b in zip(rest,actual))
+                    candidate["rest_max_deviation"]=deviation
+                    if deviation>1e-5:raise RuntimeError("Rest changed by split")
+                    candidate["tests"]=audit(arm,mesh,cfg.full)
+                    path=out/(label+"_EXPERIMENT.blend")
+                    bpy.ops.wm.save_as_mainfile(filepath=str(path),compress=True)
+                    candidate["output"]=path.name
+                    candidate["sha256"]=sha(path)
+                    candidate["status"]="L3_TESTED_CANDIDATE"
+                except Exception as exc:
+                    candidate["error"]=str(exc);candidate["traceback"]=traceback.format_exc()
+                report["candidates"].append(candidate)
+                (out/(label+".json")).write_text(json.dumps(candidate,indent=2),encoding="utf8")
+            report["status"]="CANDIDATES_EVALUATED"
+        else:report["status"]="L3_BASELINE_ONLY_NOT_V6"
+    except Exception as exc:
+        report["status"]="FAILED";report["error"]=str(exc);report["traceback"]=traceback.format_exc()
+    finally:
+        (out/"qa_summary.json").write_text(json.dumps(report,indent=2),encoding="utf8")
+        print("FINAL_STATUS",report["status"])
+    if report["status"]=="FAILED":raise SystemExit(2)
+    if report["status"]=="CANDIDATES_EVALUATED" and not any(c["status"]=="L3_TESTED_CANDIDATE" for c in report["candidates"]):raise SystemExit(3)
+
+if __name__=="__main__":main()
