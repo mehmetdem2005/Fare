@@ -1,0 +1,64 @@
+name: Real Blender Rig QA (isolated experiment)
+
+on:
+  push:
+    branches:
+      - rig-experiments/real-blender-ci
+    paths:
+      - 'rig-experiments/**'
+      - '.github/workflows/rig-real-blender-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  blender-deformation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 95
+    steps:
+      - name: Checkout isolated experiment branch
+        uses: actions/checkout@v4
+      - name: Validate inputs
+        run: |
+          set -euo pipefail
+          test -s deliver/mouse_rig.blend
+          python3 -m py_compile rig-experiments/qa_blender.py
+          mkdir -p RigCandidates
+      - name: Download official Blender 5.1.2
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --retry-delay 5 --output blender.tar.xz \
+            https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir -p blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+          ./blender_runtime/blender-5.1.2-linux-x64/blender --version | head -4
+      - name: Blender evaluated mesh tests
+        run: |
+          set -euo pipefail
+          SOURCE=rig-experiments/input/FareModeli_v6_HeadEar_Refined_CANDIDATE.blend
+          if [ ! -s "$SOURCE" ]; then
+            echo '::warning::Latest conversation v6 model not in repo: test different repo rig only'
+            SOURCE=deliver/mouse_rig.blend
+          fi
+          ./blender_runtime/blender-5.1.2-linux-x64/blender \
+            --background --factory-startup \
+            --python rig-experiments/qa_blender.py -- \
+            --source "$SOURCE" --out RigCandidates
+          test -s RigCandidates/qa_summary.json
+          python3 - <<'PYTHON'
+          import json
+          d=json.load(open('RigCandidates/qa_summary.json'))
+          print('Blender runtime:',d.get('blender'))
+          print('Status:',d.get('status'))
+          print('Actual evaluated mesh test count:',d.get('baseline',{}).get('test_count'))
+          if d.get('status')=='FAILED': raise SystemExit(1)
+          PYTHON
+      - name: Save actual Blender QA artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-real-blender-evaluated-mesh
+          path: RigCandidates/
+          if-no-files-found: warn
+          retention-days: 30
