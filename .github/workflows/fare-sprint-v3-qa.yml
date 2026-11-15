@@ -6,6 +6,8 @@ on:
     paths:
       - rig-experiments/animate_run_v3.py
       - rig-experiments/compare_run_belly.py
+      - rig-experiments/compare_run_front.py
+      - rig-experiments/diagnose_run_front.py
       - rig-experiments/render_run_v3.py
       - .github/workflows/fare-sprint-v3-qa.yml
   workflow_dispatch:
@@ -24,9 +26,9 @@ jobs:
       - name: Check sources
         run: |
           set -euo pipefail
-          python3 -m py_compile rig-experiments/{animate_run.py,animate_run_v3.py,compare_run_belly.py,render_run_v3.py}
+          python3 -m py_compile rig-experiments/{animate_run.py,animate_run_v3.py,compare_run_belly.py,compare_run_front.py,diagnose_run_front.py,render_run_v3.py}
           test -s deliver/mouse_rig.blend
-          mkdir -p OldRun NewRun Compare
+          mkdir -p OldRun NewRun Compare FrontAudit
       - name: Blender 5.1.2 headless and software preview
         run: |
           set -euo pipefail
@@ -52,6 +54,25 @@ jobs:
             --old OldRun/mouse_run_sprint_v2.blend \
             --new NewRun/mouse_run_sprint_v3.blend --out Compare
           cat Compare/sprint_comparison.json | tail -25
+      - name: Fixed anterior-chest ROI regression and isolated rig ablations
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          "$B" -b -P rig-experiments/compare_run_front.py -- \
+            --old OldRun/mouse_run_sprint_v2.blend \
+            --new NewRun/mouse_run_sprint_v3.blend --out Compare
+          xvfb-run -a -s "-screen 0 1280x1024x24" \
+            "$B" -b -P rig-experiments/diagnose_run_front.py -- \
+              --source OldRun/mouse_run_sprint_v2.blend --out FrontAudit
+          python3 - <<'PY'
+          import json
+          r=json.load(open('FrontAudit/front_diagnosis.json'))
+          assert r['status']=='PASS',r.get('error')
+          c=json.load(open('Compare/front_comparison.json'))
+          print("Front ROI:",r["ROI"])
+          print("Front ablations:",r["ablation_mean_delta_fixed_belly_roi"])
+          print("Front v2/v3:",c["comparison"])
+          PY
       - name: Visualize candidate in Blender software viewport
         run: |
           set -euo pipefail
@@ -75,6 +96,8 @@ jobs:
             NewRun/*.gif
             NewRun/*.json
             Compare/*.json
+            FrontAudit/*.json
+            FrontAudit/frames/*.png
             OldRun/run_qa.json
           retention-days: 30
           if-no-files-found: warn
