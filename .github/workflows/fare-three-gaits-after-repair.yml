@@ -3,6 +3,7 @@ on:
   push:
     branches: [rig-experiments/real-blender-ci]
     paths:
+      - rig-experiments/verify_phase_and_ik.py
       - rig-experiments/add_walk_run2.py
       - rig-experiments/reopen_verify_v7.py
       - rig-experiments/export_3_gaits.py
