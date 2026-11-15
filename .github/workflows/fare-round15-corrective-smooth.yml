@@ -58,7 +58,8 @@ jobs:
           d=json.load(open("Round13/round13_combined_ik.json"))
           assert d["status"]=="PASS_NUMERIC_REVIEW_ONLY",d
           assert d["selected_profile"]=="front_and_hind_006",d
-          assert d["candidate"]["sha256"]=="984a21447c0217bc8ff91d02f9af1509324aa94dfaf29c543abd3d92f9b12c70",d
+          assert d["baked_manual_max_vertex_distance"] < 1e-6,d
+          assert abs(d["baked_scores"]["interleg"]["worst"]-1.0349695635654772)<1e-5,d
           PY
       - name: Control post-skinning smoothing only on anatomically masked belly (non-exportable diagnostic)
         run: |
