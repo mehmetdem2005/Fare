@@ -105,7 +105,7 @@ def main():
    bpy.context.view_layer.update()
   report['actions']=[]
   for mode,name,period in [('walk','walk_provisional',36),('run2','run2_provisional',24)]:
-   new=base.copy();new.name=name;new.use_fake_user=True
+   new=bpy.data.actions.new(name);new.use_fake_user=True
    arm.animation_data.action=new
    coords=[]
    for f in range(1,period+2):
