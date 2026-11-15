@@ -116,14 +116,29 @@ def main():
    report["status"]="V6_BAKED_VERIFIED_CLAMP_NOT_ACCEPTED"
   else:
    best=accepted[0];limit=best["limit"];report["selected"]=best
-   repaired=optimized.copy();repaired.name="run_sprint_v7_ik_spine_repaired";repaired.use_fake_user=True
+   # Build a NEW Blender 5.1 action from sampled positions, not a copy:
+   # cloned action slots previously failed the independent saved-pose test.
+   controller=['hips','neck','head']+[pb.name for pb in B if pb.name.startswith(('spine_','tail_','ear'))]
+   controller+=['ik_hand.L','ik_hand.R','ik_foot.L','ik_foot.R']
+   controller+=[pb.name for pb in B if pb.name.startswith(('front_toes.','toes.'))]
+   controller=list(dict.fromkeys(controller))
+   data=[]
    for f in range(1,26):
     loadpose(optimized,f)
     clamp(limit)
-    locs={nm:tuple(B[nm].location) for nm in ['ik_hand.L','ik_hand.R']}
-    arm.animation_data.action=repaired
-    for nm,loc in locs.items():
-     pb=B[nm];pb.location=loc;pb.keyframe_insert("location",frame=f,group=nm)
+    vals={name:(tuple(B[name].rotation_euler),tuple(B[name].location)) for name in controller}
+    data.append((f,vals))
+   previous=bpy.data.actions.get('run_sprint_v7_ik_spine_repaired')
+   if previous:bpy.data.actions.remove(previous)
+   repaired=bpy.data.actions.new('run_sprint_v7_ik_spine_repaired')
+   repaired.use_fake_user=True
+   arm.animation_data.action=repaired
+   for f,entries in data:
+    scene.frame_set(f)
+    for nm,(rot,loc) in entries.items():
+     pb=B[nm];pb.rotation_mode='XYZ';pb.rotation_euler=rot;pb.location=loc
+     pb.keyframe_insert("rotation_euler",frame=f,group=nm)
+     pb.keyframe_insert("location",frame=f,group=nm)
    arm.animation_data.action=repaired
    scene.frame_set(1);bpy.context.view_layer.update()
    path=out/"fare_run_v7_verified_candidate.blend"
