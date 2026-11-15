@@ -58,7 +58,7 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq libegl1 libgl1 libgl1-mesa-dri xvfb libxi6 libxrender1
+          sudo apt-get install -y -qq libegl1 libgl1 libgl1-mesa-dri xvfb libxi6 libxrender1 ffmpeg
       - name: Render sprint preview in virtual display
         shell: bash
         env:
@@ -89,5 +89,6 @@ jobs:
             RunOutput/*.glb
             RunOutput/*.gif
             RunOutput/*.json
+            RunOutput/preview_frames/*.png
           retention-days: 30
           if-no-files-found: warn
