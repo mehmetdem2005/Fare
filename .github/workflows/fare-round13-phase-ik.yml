@@ -4,6 +4,7 @@ on:
     branches: [rig-experiments/real-blender-ci]
     paths:
       - rig-experiments/round13_combined_ik.py
+      - rig-experiments/round13_reopen.py
       - .github/workflows/fare-round13-phase-ik.yml
   workflow_dispatch:
 permissions:
@@ -20,7 +21,7 @@ jobs:
         run: |
           set -euo pipefail
           test -s deliver/mouse_rig.blend
-          python3 -m py_compile rig-experiments/{round11_rootcause.py,round13_combined_ik.py,animate_run_v4.py,v4_flank_weight_trials.py,optimize_spine_phase.py,verify_phase_and_ik.py,reopen_verify_v7.py}
+          python3 -m py_compile rig-experiments/{round11_rootcause.py,round13_combined_ik.py,round13_reopen.py,animate_run_v4.py,v4_flank_weight_trials.py,optimize_spine_phase.py,verify_phase_and_ik.py,reopen_verify_v7.py}
           mkdir -p Base Weight Optimization Verified Reopen Round13
           sha256sum deliver/mouse_rig.blend > Round13/original_source.sha256
       - name: Official Blender 5.1.2, headless software rendering
@@ -60,6 +61,24 @@ jobs:
              assert d['baked_manual_max_vertex_distance'] < 1e-4
           print('Numerical review only:',d.get('selected_profile'))
           PY
+      - name: Independent save-reopen check of new action, rest weights, constraints and all 24 frames
+        run: |
+          set -euo pipefail
+          if test -s Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend; then
+            mkdir -p Round13Reopen
+            blender_runtime/blender-5.1.2-linux-x64/blender -b -P rig-experiments/round13_reopen.py -- \
+              --baseline Verified/fare_run_v7_verified_candidate.blend \
+              --candidate Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend \
+              --expected Round13/round13_combined_ik.json --out Round13Reopen
+            python3 - <<'PY'
+          import json
+          d=json.load(open('Round13Reopen/round13_independent_reopen.json'))
+          assert d['status']=='PASS_L3_REOPEN_NUMERIC_ONLY_NOT_PRODUCTION',d.get('traceback')
+          assert d['max_new_score_abs_delta']<3e-5
+          PY
+          else
+            echo "No numerical shortlist, no new action created (legitimate experimental outcome)"
+          fi
       - name: Retain independent test logs and true render images
         if: always()
         uses: actions/upload-artifact@v4
@@ -68,5 +87,6 @@ jobs:
           path: |
             Round13/
             Reopen/reopened_v7_test.json
+            Round13Reopen/
           retention-days: 30
           if-no-files-found: warn
