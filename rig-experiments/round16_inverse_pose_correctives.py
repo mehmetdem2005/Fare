@@ -7,7 +7,7 @@ import bpy,sys,argparse,math,json,statistics,hashlib,traceback,runpy
 from pathlib import Path
 from mathutils import Vector,Matrix
 H=runpy.run_path("rig-experiments/round11_rootcause.py",run_name="r16helper")
-getpts=H["points"];pose=H["pose"];roi_fn=H["collect"];render=H["render_pose"]
+getpts=lambda ob:[Vector(p) for p in H["points"](ob)];pose=H["pose"];roi_fn=H["collect"];render=H["render_pose"]
 W=runpy.run_path("rig-experiments/round15_corrective_smooth_trial.py",run_name="r16mask")
 smoothstep=W["smoothstep"]
 A="run_sprint_v8_ik_phase_NUMERIC_REVIEW"
