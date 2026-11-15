@@ -1,0 +1,100 @@
+name: Fare Round 16 inverse skin pose-specific belly morph research
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - rig-experiments/round16_inverse_pose_correctives.py
+      - .github/workflows/fare-round16-inverse-correctives.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  morph:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 130
+    env:
+      LIBGL_ALWAYS_SOFTWARE: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate exact original 49 bone source
+        run: |
+          set -euo pipefail
+          echo '173ca67a372f5c04f27d922ef02f37921bbaf184cff0094976df326b4ec095b6  deliver/mouse_rig.blend' | sha256sum -c
+          python3 -m py_compile rig-experiments/{round16_inverse_pose_correctives.py,round15_corrective_smooth_trial.py,round11_rootcause.py,round13_combined_ik.py,animate_run_v4.py,v4_flank_weight_trials.py,optimize_spine_phase.py,verify_phase_and_ik.py,reopen_verify_v7.py}
+          mkdir -p Base Weight Optimization Verified Reopen Round13 Round15 Round16
+      - name: Official Blender 5.1.2 plus headless Mesa renderer
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 5 -o blender.tar.xz https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libegl1 libgl1 libgl1-mesa-dri libxi6 xvfb libxrender1
+      - name: Rebuild untouched 49 bone v7 and verify independent saved action
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          "$B" -b -P rig-experiments/animate_run_v4.py -- --source deliver/mouse_rig.blend --out Base
+          "$B" -b -P rig-experiments/v4_flank_weight_trials.py -- --source Base/mouse_run_sprint_v4.blend --out Weight
+          "$B" -b -P rig-experiments/optimize_spine_phase.py -- --source Weight/mouse_sprint_v4_flank_65_EXPERIMENT.blend --out Optimization
+          "$B" -b -P rig-experiments/verify_phase_and_ik.py -- --source Optimization/mouse_run_v6_spine_phase_REVIEW.blend --optimizer Optimization/spine_phase_optimization.json --out Verified
+          "$B" -b -P rig-experiments/reopen_verify_v7.py -- --source Verified/fare_run_v7_verified_candidate.blend --expected Verified/independent_baked_validation.json --out Reopen
+          python3 - <<'PYTHON'
+          import json
+          d=json.load(open('Reopen/reopened_v7_test.json'))
+          assert d['status']=='PASS_TRUE_BAKED_SAME_AS_MANUAL',d
+          PYTHON
+      - name: Reproduce exact v8 numerical pose evaluation from independent baseline
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          xvfb-run -a -s "-screen 0 1280x1024x24" "$B" -b -P rig-experiments/round13_combined_ik.py -- --source Verified/fare_run_v7_verified_candidate.blend --out Round13
+          python3 - <<'PYTHON'
+          import json
+          d=json.load(open('Round13/round13_combined_ik.json'))
+          assert d['status']=='PASS_NUMERIC_REVIEW_ONLY' and d['selected_profile']=='front_and_hind_006',d
+          assert abs(d['baked_scores']['interleg']['worst']-1.0349695635654772)<1e-5,d
+          PYTHON
+      - name: Select controlled locally masked real Blender post-skin target
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          "$B" -b -P rig-experiments/round15_corrective_smooth_trial.py -- \
+            --source Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend --out Round15
+          python3 - <<'PYTHON'
+          import json
+          d=json.load(open('Round15/round15_corrective_smooth.json'))
+          assert d['status']=='PASS_DIAGNOSTIC_ONLY_NON_EXPORTABLE',d.get('traceback')
+          assert len(d['trials'])==12,d
+          print('Safe postskin target',d['best_numeric_diagnostic']['type'] if d.get('best_numeric_diagnostic') else None)
+          PYTHON
+      - name: Inverse LBS author two morph targets and perform 9 full-cycle controlled trials
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          xvfb-run -a -s "-screen 0 1280x1024x24" "$B" -b -P rig-experiments/round16_inverse_pose_correctives.py -- \
+            --source Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend \
+            --smoothing-report Round15/round15_corrective_smooth.json --out Round16
+          python3 - <<'PYTHON'
+          import json
+          d=json.load(open('Round16/round16_inverse_pose_correctives.json'))
+          assert d['status'] in ('PASS_L3_MORPH_NUMERIC_REVIEW_ONLY','PASS_L3_NO_SAFE_MORPH_CANDIDATE','SKIPPED_NO_SAFE_POSTSKIN_TARGET'),d.get('traceback')
+          if d['status']=='PASS_L3_MORPH_NUMERIC_REVIEW_ONLY':
+             assert len(d['trials'])==9
+             assert d['manual_vs_baked_max_error']<1e-4
+             print('Inverse morph candidate numeric-only',d['candidate'])
+          else:
+             print('No safe inverse pose morph, no candidate release')
+          PYTHON
+      - name: Preserve all trial errors and assets, never merge to production
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-round16-inverse-blender-posed-belly-correctives
+          path: |
+            Round16/
+            Round15/round15_corrective_smooth.json
+            Round13/round13_combined_ik.json
+            Reopen/reopened_v7_test.json
+          retention-days: 30
+          if-no-files-found: warn
