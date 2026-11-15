@@ -130,11 +130,15 @@ def main():
                                  names=[b.name for b in arm.data.bones if "spine" in b.name.lower()])
         report["baseline"]=audit(arm,mesh,cfg.full)
         is_v6=all(n in arm.data.bones for n in ["Spine_01","Spine_02","Spine_03","Spine_04","Spine_05"])
+        repo_schema=all(n in arm.data.bones for n in ["spine_01","spine_02","spine_03","spine_04","spine_05"])
         report["input_kind"]="v6_conversation_schema" if is_v6 else "DIFFERENT_GITHUB_FARE_RIG"
-        if is_v6:
+        report["production_approval"]=False
+        base_bone_count=len(arm.data.bones)
+        if is_v6 or repo_schema:
+            prefix="Spine_" if is_v6 else "spine_"
             report["candidates"]=[]
-            for label,targets in [("spine7",["Spine_04","Spine_05"]),("spine9",["Spine_02","Spine_03","Spine_04","Spine_05"])]:
-                candidate=dict(name=label,status="FAILED")
+            for label,targets in [("spine7",[prefix+"04",prefix+"05"]),("spine9",[prefix+"02",prefix+"03",prefix+"04",prefix+"05"])]:
+                candidate=dict(name=label,status="FAILED",input_kind=report["input_kind"],production_approval=False)
                 try:
                     bpy.ops.wm.open_mainfile(filepath=str(source))
                     mesh=max((o for o in bpy.data.objects if o.type=="MESH" and any(m.type=="ARMATURE" for m in o.modifiers)),key=lambda o:len(o.data.vertices))
@@ -145,10 +149,11 @@ def main():
                     arm.data.pose_position="POSE";reset(arm)
                     rest=eval_mesh(mesh)
                     candidate["weight_sum_delta"]=spine_split(arm,mesh,targets)
-                    if len(arm.data.bones)!=41+len(targets):raise RuntimeError("Invalid post-split bone count")
-                    for side in ("L","R"):
-                        if arm.data.bones["Fore_Shoulder."+side].parent.name!="Spine_04_Distal":
-                            raise RuntimeError("Wrong shoulder parent "+side)
+                    if len(arm.data.bones)!=base_bone_count+len(targets):raise RuntimeError("Invalid post-split bone count")
+                    if is_v6:
+                        for side in ("L","R"):
+                            if arm.data.bones["Fore_Shoulder."+side].parent.name!="Spine_04_Distal":
+                                raise RuntimeError("Wrong shoulder parent "+side)
                     actual=eval_mesh(mesh)
                     deviation=max(math.dist(a,b) for a,b in zip(rest,actual))
                     candidate["rest_max_deviation"]=deviation
