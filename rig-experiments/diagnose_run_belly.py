@@ -102,6 +102,10 @@ def main():
                        "belly_edges":len(edges),"bounds_local":{"min":[min(mesh.data.vertices[i].co[j] for i in belly) for j in range(3)],
                                                                   "max":[max(mesh.data.vertices[i].co[j] for i in belly) for j in range(3)]}}
         def original(frame):
+            # Force genuine action reevaluation: same-frame set can preserve
+            # manually ablated pose bones and shape-driver state.
+            restore_modes()
+            scene.frame_set(frame + 1 if frame <= 24 else frame - 1)
             scene.frame_set(frame)
             bpy.context.view_layer.update()
         def ablate(kind):
@@ -129,11 +133,14 @@ def main():
             if kind=="other_skinning":
                 for mod in mods:mod.use_deform_preserve_volume=not mod.use_deform_preserve_volume
             bpy.context.view_layer.update()
-        def restore_modes():
-            if keys and keys.animation_data:
-                for fc in keys.animation_data.drivers:fc.mute=False
-            for mod,s in zip(mods,modifier_states):mod.use_deform_preserve_volume=s
         modifier_states=[mod.use_deform_preserve_volume for mod in mods]
+        constraint_states=[(c,float(c.influence)) for p in arm.pose.bones for c in p.constraints
+                           if c.type=="IK" or c.name=="IKROT"]
+        driver_states=[(fc,fc.mute) for fc in keys.animation_data.drivers] if keys and keys.animation_data else []
+        def restore_modes():
+            for c,w in constraint_states:c.influence=w
+            for fc,m in driver_states:fc.mute=m
+            for mod,state in zip(mods,modifier_states):mod.use_deform_preserve_volume=state
         original(1)
         # Temporarily disable action for rest, then reset all bones.
         arm.animation_data.action=None
