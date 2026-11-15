@@ -60,9 +60,13 @@ def metric(m,arm,muted=False):
  for pb in arm.pose.bones:pb.matrix_basis.identity()
  for name in KE:
   key=m.data.shape_keys.key_blocks.get(name)
-  if key:key.mute=muted
+  if key:key.mute=True
  bpy.context.scene.frame_set(1);bpy.context.view_layer.update()
  reference=points(m)
+ for name in KE:
+  key=m.data.shape_keys.key_blocks.get(name)
+  if key:key.mute=muted
+ bpy.context.view_layer.update()
  part=m.data.attributes.get("part_id")
  vv=m.data.vertices
  roi={
@@ -73,7 +77,7 @@ def metric(m,arm,muted=False):
   "foreleg":{i for i,v in enumerate(vv) if v.co.y<-.18 and v.co.z<.15 and abs(v.co.x)>.09},
   "head":{i for i,v in enumerate(vv) if v.co.y<-.30 and v.co.z>.22},
  }
- E={n:[(i,j,d) for e in vv[0].id_data.edges for i,j in [tuple(e.vertices)]
+ E={n:[(i,j,d) for e in m.data.edges for i,j in [tuple(e.vertices)]
           if i in I and j in I for d in [(reference[j]-reference[i]).length] if d>.001] for n,I in roi.items()}
  rows=[];start=None
  for f in range(1,26):
