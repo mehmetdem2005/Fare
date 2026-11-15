@@ -4,6 +4,7 @@ on:
     branches: [rig-experiments/real-blender-ci]
     paths:
       - rig-experiments/round16_inverse_pose_correctives.py
+      - rig-experiments/round16_reopen.py
       - .github/workflows/fare-round16-inverse-correctives.yml
   workflow_dispatch:
 permissions:
@@ -20,7 +21,7 @@ jobs:
         run: |
           set -euo pipefail
           echo '173ca67a372f5c04f27d922ef02f37921bbaf184cff0094976df326b4ec095b6  deliver/mouse_rig.blend' | sha256sum -c
-          python3 -m py_compile rig-experiments/{round16_inverse_pose_correctives.py,round15_corrective_smooth_trial.py,round11_rootcause.py,round13_combined_ik.py,animate_run_v4.py,v4_flank_weight_trials.py,optimize_spine_phase.py,verify_phase_and_ik.py,reopen_verify_v7.py}
+          python3 -m py_compile rig-experiments/{round16_inverse_pose_correctives.py,round16_reopen.py,round15_corrective_smooth_trial.py,round11_rootcause.py,round13_combined_ik.py,animate_run_v4.py,v4_flank_weight_trials.py,optimize_spine_phase.py,verify_phase_and_ik.py,reopen_verify_v7.py}
           mkdir -p Base Weight Optimization Verified Reopen Round13 Round15 Round16
       - name: Official Blender 5.1.2 plus headless Mesa renderer
         run: |
@@ -86,6 +87,25 @@ jobs:
           else:
              print('No safe inverse pose morph, no candidate release')
           PYTHON
+      - name: Independent saved Blender reopened v9 morph and unchanged rest/skin/old morphs
+        run: |
+          set -euo pipefail
+          if [ -s Round16/round16_pre_skin_corrective_GAIT_ONLY_REVIEW.blend ]; then
+            mkdir -p Round16Reopen
+            B=blender_runtime/blender-5.1.2-linux-x64/blender
+            "$B" -b -P rig-experiments/round16_reopen.py -- \
+              --source Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend \
+              --candidate Round16/round16_pre_skin_corrective_GAIT_ONLY_REVIEW.blend \
+              --expected Round16/round16_inverse_pose_correctives.json --out Round16Reopen
+            python3 - <<'PYTHON'
+          import json
+          d=json.load(open('Round16Reopen/round16_reopen.json'))
+          assert d["status"]=="PASS_L3_REOPEN_GAIT_SPECIFIC_NOT_PRODUCTION",d.get("traceback")
+          assert d["new_drift"]<1e-4 and d["baseline_drift"]<1e-4,d
+          PYTHON
+          else
+            echo "No safe candidate generated, no independent reopen to run"
+          fi
       - name: Preserve all trial errors and assets, never merge to production
         if: always()
         uses: actions/upload-artifact@v4
@@ -93,6 +113,7 @@ jobs:
           name: fare-round16-inverse-blender-posed-belly-correctives
           path: |
             Round16/
+            Round16Reopen/
             Round15/round15_corrective_smooth.json
             Round13/round13_combined_ik.json
             Reopen/reopened_v7_test.json
