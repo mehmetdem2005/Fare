@@ -47,9 +47,9 @@ def audit(arm,mesh,full=False):
     rest=eval_mesh(mesh)
     if len(rest)!=len(mesh.data.vertices):raise RuntimeError("Evaluated mesh vertex count changed; cannot compare vertex IDs")
     head=region(mesh,[["Head","Muzzle"],["head","snout"],["Head"],["head"]])
-    names=[p.name for p in arm.pose.bones if any(s in p.name.lower() for s in ("shoulder","upperarm","upper_arm","forearm","wrist","hand","paw","spine"))]
+    names=[p.name for p in arm.pose.bones if any(s in p.name.lower() for s in ("shoulder","upperarm","upper_arm","forearm","wrist","hand","paw","toes","spine"))]
     if not names:raise RuntimeError("No forelimb or spine pose bones identified")
-    if not full:names=names[:12]+[n for n in names[12:] if n.endswith("_Distal")]
+    # Never truncate the bone list: distal spine bones must not replace forelimb tests.
     angles=[-45,-30,-15,15,30,45] if full else [-30,15,30]
     edges=[tuple(e.vertices) for e in mesh.data.edges][::2]
     results=[]
@@ -72,6 +72,60 @@ def audit(arm,mesh,full=False):
                                     edge_p95=strains[int(.95*(len(strains)-1))] if strains else None))
     reset(arm)
     return dict(engine="ACTUAL_BLENDER_DEPSGRAPH",head_roi_count=len(head),test_count=len(results),poses=results)
+
+
+def combined_pose_tests(arm,mesh):
+    """Real depsgraph check of 8 controlled multi-joint examples."""
+    reset(arm)
+    baseline=eval_mesh(mesh)
+    head=region(mesh,[["Head","Muzzle"],["head","snout"],["Head"],["head"]])
+    edges=[tuple(e.vertices) for e in mesh.data.edges][::2]
+    def find(*names):
+        return next((n for n in names if n in arm.pose.bones),None)
+    Ls=find("Fore_Shoulder.L","shoulder.L")
+    Rs=find("Fore_Shoulder.R","shoulder.R")
+    Lu=find("Fore_UpperArm.L","upper_arm.L")
+    Ru=find("Fore_UpperArm.R","upper_arm.R")
+    Lf=find("Fore_Forearm.L","forearm.L")
+    Rf=find("Fore_Forearm.R","forearm.R")
+    Lw=find("Fore_Wrist.L","hand.L")
+    Rw=find("Fore_Wrist.R","hand.R")
+    s2=find("Spine_02","spine_02")
+    s3=find("Spine_03","spine_03")
+    s4=find("Spine_04","spine_04")
+    s5=find("Spine_05","spine_05")
+    def form(*motions):
+        return [(b,axis,angle) for b,axis,angle in motions if b is not None]
+    cases=[
+        ("left_shoulder_elbow", form((Ls,"X",15),(Lu,"X",-25))),
+        ("right_shoulder_elbow",form((Rs,"X",-15),(Ru,"X",25))),
+        ("left_elbow_wrist",form((Lf,"X",30),(Lw,"X",-20))),
+        ("right_elbow_wrist",form((Rf,"X",-30),(Rw,"X",20))),
+        ("both_shoulders",form((Ls,"Z",15),(Rs,"Z",-15))),
+        ("spine_shoulder",form((s4,"X",15),(Ls,"X",15))),
+        ("spine_wave",form((s2,"X",8),(s3,"X",-12),(s4,"X",12),(s5,"X",-8))),
+        ("spine_lateral",form((s3,"Z",12),(s5,"Z",-12)))
+    ]
+    results=[]
+    for label,motions in cases:
+        reset(arm)
+        for bone,axis,degree in motions:
+            pose=arm.pose.bones[bone]
+            pose.rotation_mode="XYZ"
+            pose.rotation_euler["XYZ".index(axis)]=math.radians(degree)
+        bpy.context.view_layer.update()
+        coordinates=eval_mesh(mesh)
+        lengths=[]
+        for a,b in edges:
+            old=math.dist(baseline[a],baseline[b])
+            if old>1e-7:lengths.append(abs(math.dist(coordinates[a],coordinates[b])/old-1))
+        lengths.sort()
+        hmax=max((math.dist(baseline[i],coordinates[i]) for i in head),default=0.0)
+        results.append({"case":label,"bones":motions,"head_max":hmax,
+                        "edge_p95":lengths[int(.95*(len(lengths)-1))] if lengths else None})
+    reset(arm)
+    return results
+
 
 def spine_split(arm,mesh,targets):
     before=[sum(x.weight for x in v.groups) for v in mesh.data.vertices]
@@ -129,6 +183,7 @@ def main():
         report["structure"]=dict(vertices=len(mesh.data.vertices),bones=len(arm.data.bones),groups=len(mesh.vertex_groups),
                                  names=[b.name for b in arm.data.bones if "spine" in b.name.lower()])
         report["baseline"]=audit(arm,mesh,cfg.full)
+        report["baseline_combined"]=combined_pose_tests(arm,mesh)
         is_v6=all(n in arm.data.bones for n in ["Spine_01","Spine_02","Spine_03","Spine_04","Spine_05"])
         repo_schema=all(n in arm.data.bones for n in ["spine_01","spine_02","spine_03","spine_04","spine_05"])
         report["input_kind"]="v6_conversation_schema" if is_v6 else "DIFFERENT_GITHUB_FARE_RIG"
@@ -161,6 +216,7 @@ def main():
                     candidate["rest_max_deviation"]=deviation
                     if deviation>1e-5:raise RuntimeError("Rest changed by split")
                     candidate["tests"]=audit(arm,mesh,cfg.full)
+                    candidate["combined_tests"]=combined_pose_tests(arm,mesh)
                     new_names=[n+"_Distal" for n in targets]
                     tested={r["bone"] for r in candidate["tests"]["poses"]}
                     candidate["added_bones_tested"]=sorted(set(new_names)&tested)
