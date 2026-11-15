@@ -91,11 +91,11 @@ def main():
         # then convert through its rest matrix to pose-bone location.
         inverses={nm:arm.data.bones[nm].matrix_local.to_3x3().inverted()
                   for nm in ["hips","ik_hand.L","ik_hand.R","ik_foot.L","ik_foot.R"]}
-        pose_bones=["hips","neck","head"]+[name for name in B if name.startswith("spine_")]
-        pose_bones += [name for name in B if name.startswith("tail_")]
-        pose_bones += [name for name in B if name.startswith("ear")]
+        pose_bones=["hips","neck","head"]+[pb.name for pb in B if pb.name.startswith("spine_")]
+        pose_bones += [pb.name for pb in B if pb.name.startswith("tail_")]
+        pose_bones += [pb.name for pb in B if pb.name.startswith("ear")]
         pose_bones += ["ik_hand.L","ik_hand.R","ik_foot.L","ik_foot.R"]
-        pose_bones += [name for name in B if name.startswith(("toes.","front_toes."))]
+        pose_bones += [pb.name for pb in B if pb.name.startswith(("toes.","front_toes."))]
         pose_bones=list(dict.fromkeys(pose_bones))
         def rotate(name,x=0.0,y=0.0,z=0.0):
             if name not in B:return
