@@ -141,9 +141,9 @@ def main():
             pb.rotation_mode="QUATERNION";pb.matrix_basis.identity()
         scene.frame_set(1)
         base=evalpts(mesh)
+        for pb in arm.pose.bones:
+            pb.rotation_mode="XYZ"
         arm.animation_data.action=action
-        for name in ["run_sprint_v2"]:
-            pass
         modes=["full","no_spine","no_hips_rotation","no_hips_translation",
                "no_spine_or_hips","no_shape_keys","no_front_ik","other_skinning"]
         records=[]
