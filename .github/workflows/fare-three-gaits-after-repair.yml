@@ -1,0 +1,124 @@
+name: Fare verified repaired run plus walk and second run
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - rig-experiments/add_walk_run2.py
+      - rig-experiments/reopen_verify_v7.py
+      - rig-experiments/export_3_gaits.py
+      - rig-experiments/render_three_gaits.py
+      - .github/workflows/fare-three-gaits-after-repair.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 95
+    env:
+      LIBGL_ALWAYS_SOFTWARE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate all scripts and do not alter production source
+        run: |
+          set -euo pipefail
+          python3 -m py_compile rig-experiments/{animate_run_v4.py,v4_flank_weight_trials.py,optimize_spine_phase.py,verify_phase_and_ik.py,reopen_verify_v7.py,add_walk_run2.py,export_3_gaits.py,render_three_gaits.py}
+          test -s deliver/mouse_rig.blend
+          mkdir -p Base Weight Optimization Verified Reopen NewActions Final
+      - name: Blender 5.1.2, Mesa, FFmpeg
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 4 -o blender.tar.xz https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libegl1 libgl1 libgl1-mesa-dri libxi6 xvfb libxrender1 ffmpeg
+      - name: Rebuild previous running model from original 49-bone rig
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          "$B" -b -P rig-experiments/animate_run_v4.py -- --source deliver/mouse_rig.blend --out Base
+          "$B" -b -P rig-experiments/v4_flank_weight_trials.py -- --source Base/mouse_run_sprint_v4.blend --out Weight
+      - name: Anatomical single-bone derived phase optimization
+        run: |
+          set -euo pipefail
+          blender_runtime/blender-5.1.2-linux-x64/blender -b -P rig-experiments/optimize_spine_phase.py -- \
+            --source Weight/mouse_sprint_v4_flank_65_EXPERIMENT.blend --out Optimization
+          test -s Optimization/mouse_run_v6_spine_phase_REVIEW.blend
+      - name: Repair IK reach and independently test all 24 Blender frames
+        run: |
+          set -euo pipefail
+          blender_runtime/blender-5.1.2-linux-x64/blender -b -P rig-experiments/verify_phase_and_ik.py -- \
+            --source Optimization/mouse_run_v6_spine_phase_REVIEW.blend \
+            --optimizer Optimization/spine_phase_optimization.json --out Verified
+          test -s Verified/fare_run_v7_verified_candidate.blend
+      - name: Reopen saved model and compare original to baked 49-bone repaired action
+        run: |
+          set -euo pipefail
+          blender_runtime/blender-5.1.2-linux-x64/blender -b -P rig-experiments/reopen_verify_v7.py -- \
+            --source Verified/fare_run_v7_verified_candidate.blend \
+            --expected Verified/independent_baked_validation.json --out Reopen
+          python3 - <<'PY'
+          import json
+          d=json.load(open('Reopen/reopened_v7_test.json'))
+          assert d['status']=='PASS_TRUE_BAKED_SAME_AS_MANUAL',d
+          print('Accepted baked run deformation:',d['metrics'])
+          PY
+      - name: Only after repair gate, author provisional run2 and walk actions
+        run: |
+          set -euo pipefail
+          blender_runtime/blender-5.1.2-linux-x64/blender -b -P rig-experiments/add_walk_run2.py -- \
+            --source Verified/fare_run_v7_verified_candidate.blend --out NewActions
+          python3 - <<'PY'
+          import json
+          d=json.load(open('NewActions/additional_gaits_qa.json'))
+          assert d['status']=='PROVISIONAL_ACTIONS_BUILT_LOOP_CHECKED',d
+          for action in d['actions']:
+              m=action['region_metrics']
+              assert action['loop_seam']<0.0002
+              assert m['interleg']['worst']<2.2 and m['front']['worst']<1.55
+              assert m['rear']['worst']<.7 and m['foreleg']['worst']<.9
+          print('Gait candidates PASSED limited deformation gates')
+          PY
+      - name: Export three individual glTF skin animations and combined editable BLEND
+        run: |
+          set -euo pipefail
+          blender_runtime/blender-5.1.2-linux-x64/blender -b -P rig-experiments/export_3_gaits.py -- \
+            --source NewActions/fare_v7_with_walk_and_run2_PROVISIONAL.blend --out Final
+          python3 - <<'PY'
+          import json
+          d=json.load(open('Final/glb_export_report.json'))
+          assert d['status']=='PASS_THREE_VALID_ANIMATED_GLBS',d
+          assert len(d['clips'])==3
+          PY
+      - name: Blender 12-frame GIFs and multiangle body fold inspection
+        run: |
+          set -euo pipefail
+          xvfb-run -a -s "-screen 0 1280x1024x24" \
+            blender_runtime/blender-5.1.2-linux-x64/blender -b -P rig-experiments/render_three_gaits.py -- \
+              --source Final/fare_body_repaired_with_three_actions_EXPERIMENT.blend --out Final
+          for name in run_sprint_v7_ik_spine_repaired walk_provisional run2_provisional; do
+            ffmpeg -hide_banner -loglevel error -y -framerate 12 -i "Final/$name/frame_%02d.png" \
+              -filter_complex '[0:v]split[a][b];[a]palettegen[p];[b][p]paletteuse=dither=bayer' -loop 0 "Final/$name.gif"
+          done
+          test -s Final/run_sprint_v7_ik_spine_repaired.gif
+          test -s Final/walk_provisional.gif
+          test -s Final/run2_provisional.gif
+          find Final -name 'diagnostic_*' | wc -l
+      - name: Deliver all with QA, no write to production deliver folder
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-verified-repair-plus-two-provisional-gaits
+          path: |
+            Final/*.blend
+            Final/*.glb
+            Final/*.gif
+            Final/*.json
+            Final/run_sprint_v7_ik_spine_repaired/diagnostic_*.png
+            Verified/*.json
+            Reopen/*.json
+            NewActions/*.json
+            Optimization/spine_phase_optimization.json
+          retention-days: 30
+          if-no-files-found: warn
