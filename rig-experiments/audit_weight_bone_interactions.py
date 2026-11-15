@@ -146,6 +146,48 @@ def main():
         report["pose_frames"]=rankings
         report["bone_kinematics"]=bone_xforms
         report["top_groups_in_worst_edges"]=freq.most_common(30)
+        # Anatomical subregions and individual mesh islands: distinguish flank,
+        # inter-leg belly and forelimb skin from the generic rectangular chest ROI.
+        attr=mesh.data.attributes.get("part_id")
+        part_ids={i:int(attr.data[i].value) if attr else -1 for i in ROI}
+        report["mesh_island_attribute"]={"present":bool(attr),
+            "roi_counts":dict(collections.Counter(part_ids.values())),
+            "example_id_6":"body in this repository (check canonical mapping)"}
+        subsets={
+            "central_torso":[i for i in ROI if abs(verts[i].co.x)<.060],
+            "inner_flank":[i for i in ROI if .060<=abs(verts[i].co.x)<.105],
+            "outer_flank":[i for i in ROI if abs(verts[i].co.x)>=.105],
+            "interleg_lower_abdomen":[i for i in ROI if -.100<=verts[i].co.y<=.055 and .045<=verts[i].co.z<=.16],
+            "anterior_foreleg_skin":[i for i in ROI if verts[i].co.y<-.190 and abs(verts[i].co.x)>.09],
+            "body_part_id6":[i for i in ROI if part_ids[i]==6],
+        }
+        spatial={}
+        for label,inds in subsets.items():
+            localset=set(inds)
+            EE=[e for e in E if e[0] in localset and e[1] in localset]
+            ws=collections.defaultdict(float)
+            for i in inds:
+                for g,w in WV[i].items():ws[g]+=w
+            both=sum(1 for i in inds if max(WV[i].get('upper_arm.L',0),WV[i].get('upper_arm.R',0))>.1 and
+                     max(WV[i].get('thigh.L',0),WV[i].get('thigh.R',0))>.1)
+            spineonly=sum(1 for i in inds if sum(WV[i].get('spine_%02d'%k,0) for k in range(1,6))>.50)
+            frm={}
+            for f in rankings:
+                poses=[x for x in f['worst_edges_0_001'] if x['edge'][0] in localset and x['edge'][1] in localset]
+                frm[f['frame']]={"top60_global_count":len(poses)}
+            spatial[label]={"vertices":len(inds),"internal_edges":len(EE),
+                "high_weight_upperarm_and_thigh_vertices":both,"spine_dominated_vertices":spineonly,
+                "mass_top12":sorted(ws.items(),key=lambda x:-x[1])[:12],"examples":frm}
+        report["anatomical_subregions"]=spatial
+        report["joint_weight_mixing"]={
+            "upper_arm_thigh_same_vertex":sum(1 for i in ROI if max(WV[i].get('upper_arm.L',0),WV[i].get('upper_arm.R',0))>.1 and
+                                                 max(WV[i].get('thigh.L',0),WV[i].get('thigh.R',0))>.1),
+            "upper_arm_forearm_hand":sum(1 for i in ROI if max(WV[i].get('upper_arm.L',0),WV[i].get('upper_arm.R',0))>.2 and
+                                            max(WV[i].get('hand.L',0),WV[i].get('hand.R',0))>.1),
+            "spine_under_0_1_and_any_two_limbs_over_0_2":sum(
+                1 for i in ROI if sum(WV[i].get('spine_%02d'%k,0) for k in range(1,6))<.1 and
+                sum(max(WV[i].get('upper_arm.'+side,0),WV[i].get('thigh.'+side,0))>.2 for side in ('L','R'))>=2)
+        }
         # Map worst edges' group variation and identify same coordinates / seam proximity
         selected=set()
         for sample in rankings:
