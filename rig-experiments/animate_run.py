@@ -230,31 +230,7 @@ def main():
         report["glb_channel_count"]=len(gltf["animations"][0]["channels"])
         report["glb"]=glb.name
         report["glb_sha256"]=sha(glb)
-        # Fast Workbench previews; no unrelated meshes are modified.
-        from mathutils import Vector as V
-        box=[mesh.matrix_world@V(v) for v in mesh.bound_box]
-        center=sum(box,V((0,0,0)))/8
-        size=max(max(v.y for v in box)-min(v.y for v in box),max(v.z for v in box)-min(v.z for v in box))
-        data=bpy.data.cameras.new("SprintPreviewCamera")
-        cam=bpy.data.objects.new("SprintPreviewCamera",data)
-        bpy.context.scene.collection.objects.link(cam)
-        cam.location=center+V((size*1.45,-size*.85,size*.75))
-        direction=center-cam.location
-        cam.rotation_euler=direction.to_track_quat("-Z","Y").to_euler()
-        data.type="ORTHO";data.ortho_scale=size*1.65
-        scene=bpy.context.scene;scene.camera=cam
-        scene.render.engine="BLENDER_WORKBENCH"
-        scene.display.shading.light="STUDIO"
-        scene.display.shading.color_type="MATERIAL"
-        scene.render.resolution_x=640;scene.render.resolution_y=420;scene.render.resolution_percentage=100
-        scene.render.image_settings.file_format="PNG"
-        preview=out/"preview_frames";preview.mkdir(exist_ok=True)
-        for k,f in enumerate(range(1,CYCLE+1,2)):
-            scene.frame_set(f)
-            scene.render.filepath=str(preview/("frame_%02d.png"%k))
-            bpy.ops.render.render(write_still=True)
-        scene.frame_set(1)
-        report["preview_frames"]=12
+        report["preview_frames"]=0
         report["status"]="PASS"
     except Exception as ex:
         report["status"]="FAIL"
