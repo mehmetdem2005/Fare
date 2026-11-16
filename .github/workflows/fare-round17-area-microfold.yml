@@ -66,8 +66,8 @@ jobs:
           python3 - <<'PYTHON'
           import json
           r=json.load(open('Round17/round17_area_microfold.json'))
-          assert r['status'] in ('PASS_TESTED_18_TRIALS_NO_VALID_AREA_REPAIR','PASS_NUMERIC_AREA_REVIEW_ONLY'),r.get('traceback')
-          assert len(r['trials'])==18
+          assert r['status'] in ('PASS_TESTED_30_TRIALS_NO_VALID_AREA_REPAIR','PASS_NUMERIC_AREA_REVIEW_ONLY'),r.get('traceback')
+          assert len(r['trials'])==30
           if r['status']=='PASS_NUMERIC_AREA_REVIEW_ONLY':
             assert r['manual_vs_baked_max_error']<1e-4
           else:
