@@ -1,0 +1,86 @@
+name: Fare Round 19E independent clean 0.170 weight QA and anatomical rendering
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - rig-experiments/round19e_clean_candidate_qa.py
+      - .github/workflows/fare-round19e-clean-independent.yml
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  independent-fare-weight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 85
+    env:
+      LIBGL_ALWAYS_SOFTWARE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pin immutable original rig and compile QA Python
+        run: |
+          set -euo pipefail
+          echo '173ca67a372f5c04f27d922ef02f37921bbaf184cff0094976df326b4ec095b6  deliver/mouse_rig.blend' | sha256sum -c
+          python3 -m py_compile rig-experiments/{round19e_clean_candidate_qa.py,round11_rootcause.py,round17_reopen_surface.py}
+          mkdir -p Round19E
+      - name: Download original v8 verified saved Blender file
+        uses: actions/download-artifact@v4
+        with:
+          repository: mehmetdem2005/Fare
+          run-id: 43767152372
+          name: fare-round13-ik-phase-combined-review
+          path: OriginalV8
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download actual one-shot 0.170 Blender source after isolated readback
+        uses: actions/download-artifact@v4
+        with:
+          repository: mehmetdem2005/Fare
+          run-id: 43867305596
+          name: fare-round19d-clean-weight-readback-science
+          path: Clean
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Confirm original and candidate bytes, no inferred paths
+        run: |
+          set -euo pipefail
+          echo '984a21447c0217bc8ff91d02f9af1509324aa94dfaf29c543abd3d92f9b12c70  OriginalV8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend' | sha256sum -c
+          echo 'cb67f61b9a1a771366df53b10b89e1bec827c81450e2bac300be2c96b52e85bc  Clean/Round19D_170/round19d_clean_0.170_REVIEW_ONLY.blend' | sha256sum -c
+          test -s Clean/Round19D_170/round19d_clean_weight_readback.json
+      - name: Install Blender 5.1.2 with software Workbench renderer
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 5 -o blender.tar.xz https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libegl1 libgl1 libgl1-mesa-dri libxi6 xvfb libxrender1
+      - name: Independent render/readback - exact 24 frames and fixed 1069 triangles
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          xvfb-run -a -s "-screen 0 1280x1024x24" "$B" -b -P rig-experiments/round19e_clean_candidate_qa.py -- \
+            --baseline OriginalV8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend \
+            --candidate Clean/Round19D_170/round19d_clean_0.170_REVIEW_ONLY.blend \
+            --expected Clean/Round19D_170/round19d_clean_weight_readback.json \
+            --out Round19E
+          python3 - <<'PY'
+          import json,glob
+          r=json.load(open('Round19E/round19e_clean_independent_qa.json'))
+          assert r['status']=='PASS_L3_INDEPENDENT_REOPEN_RENDERED_L4_REVIEW_PENDING',r.get('traceback')
+          assert r['source_unchanged'] and r['area_readback_drift']<4e-5
+          assert r['candidate_score_readback_drift']<4e-5 and r['source_score_readback_drift']<4e-5
+          assert r['corotated_rest_orientation']['new_reference_inversions']==0
+          assert r['normal_and_BVH']['candidate_nonadjacent_overlaps']<=r['normal_and_BVH']['baseline_nonadjacent_overlaps']
+          assert len(glob.glob('Round19E/*_views/*.png'))==16
+          print('L3 SAVED FACE AND WEIGHT SCOPE PASS',r['changes'])
+          print('L4 imagery only - no subjective anatomy acceptance claimed')
+          PY
+      - name: Preserve 16 side/bottom/oblique render comparisons and independent audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-round19e-0p170-fresh-process-weight-and-anatomy-review
+          path: |
+            Round19E/
+            Clean/Round19D_170/round19d_clean_weight_readback.json
+          retention-days: 30
+          if-no-files-found: warn
