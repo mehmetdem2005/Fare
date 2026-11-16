@@ -64,6 +64,16 @@ def select_hotspots(base,can,tris,restareas,frame):
   selected=set(sorted(selected,key=lambda i:(
        rows[i]["new_rest_normal_flip"],rows[i]["new_BVH_pair_member"],
        rows[i]["area_loss"],-rows[i]["area_after"]),reverse=True)[:40])
+ # A scientific before-vs-after gradient must compare the SAME mesh edge.
+ # Determine one canonical, maximally strained edge using the unchanged
+ # baseline evaluated geometry, not each candidate's independent ranking.
+ for ti in selected:
+  vids=rows[ti]["vertices"]
+  edge_set=((vids[0],vids[1]),(vids[1],vids[2]),(vids[2],vids[0]))
+  edge=max(edge_set,key=lambda ab:abs(
+      (b[ab[1]]-b[ab[0]]).length/
+      max((base["rest"][ab[1]]-base["rest"][ab[0]]).length,1e-8)-1.))
+  rows[ti]["canonical_baseline_edge"]=list(edge)
  return {"frame":frame,"baseline_overlaps":len(bpair),"candidate_overlaps":len(cpair),
          "new_overlap_pairs":[list(x) for x in sorted(newpair)[:50]],
          "new_reference_flips":sum(r["new_rest_normal_flip"] for r in rows),
@@ -96,9 +106,9 @@ def proxy_and_gradient(ob,before,actual,local_mats,vids,faces,helper):
  pairs=[]
  for h in faces:
   vid=h["vertices"]
-  edge_list=[(vid[0],vid[1]),(vid[1],vid[2]),(vid[2],vid[0])]
-  a,b=max(edge_list,key=lambda edge:(actual[edge[1]]-actual[edge[0]]).length/
-          max((before[edge[1]]-before[edge[0]]).length,1e-7))
+  a,b=h["canonical_baseline_edge"]
+  if a not in vid or b not in vid or a==b:
+   raise RuntimeError("Canonical hotspot edge is not an edge of the selected face")
   w0=clean[a];w1=clean[b]
   names=set(w0)|set(w1)
   smooth=Vector((0,0,0));grad=Vector((0,0,0));causes=[]
