@@ -134,8 +134,13 @@ def main():
                   for n in c["scores"] for got,target in (("worst","worst_p95"),("mean","mean_p95")))
   original_drift=max(abs(b["scores"][n][got]-expected["baseline"]["regions"][n][target])
                      for n in b["scores"] for got,target in (("worst","worst_p95"),("mean","mean_p95")))
+  report["preliminary_score_drift"]={"candidate":worst_drift,"baseline":original_drift,
+      "actual_candidate":c["scores"],"expected_candidate":expected_scores["regions"],
+      "actual_baseline":b["scores"],"expected_baseline":expected["baseline"]["regions"]}
+  print("ROUND19_REOPEN_EARLY_DRIFT",worst_drift,original_drift,
+        "candidate belly",c["scores"]["interleg"],"expected",expected_scores["regions"]["interleg"])
   if worst_drift>4e-5 or original_drift>4e-5:
-   raise RuntimeError("Independent evaluated mesh diverged from original screen")
+   raise RuntimeError("Independent evaluated mesh diverged: candidate %.8g baseline %.8g"%(worst_drift,original_drift))
   area_drift=max(abs(c["area15"][got]-expected_scores["f15_area"][target])
                  for got,target in (("under_half","fraction_under_half"),("p05","p05"),("min","minimum")))
   if area_drift>4e-5 or max(c["seam"],b["seam"])>1e-5:
