@@ -1,0 +1,87 @@
+name: Fare Round 19 independent saved anatomy-weight rig verification
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - rig-experiments/round19_independent_reopen.py
+      - .github/workflows/fare-round19-independent-qa.yml
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  saved-weight-rig:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 70
+    env:
+      LIBGL_ALWAYS_SOFTWARE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify source provenance and syntax
+        run: |
+          set -euo pipefail
+          echo '173ca67a372f5c04f27d922ef02f37921bbaf184cff0094976df326b4ec095b6  deliver/mouse_rig.blend' | sha256sum -c
+          python3 -m py_compile rig-experiments/{round19_independent_reopen.py,round11_rootcause.py,round17_reopen_surface.py}
+          mkdir -p Round19QA
+      - name: Retrieve previously verified Blender v8 immutable artifact
+        uses: actions/download-artifact@v4
+        with:
+          repository: mehmetdem2005/Fare
+          run-id: 43767152372
+          name: fare-round13-ik-phase-combined-review
+          path: InputsBase
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Retrieve actual Round19 saved candidate - not a rebuilt approximation
+        uses: actions/download-artifact@v4
+        with:
+          repository: mehmetdem2005/Fare
+          run-id: 43864023703
+          name: fare-round19-corotated-anatomical-weight-screen
+          path: InputsCandidate
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Verify exact independent BLEND bytes and immutable input checkpoint
+        run: |
+          set -euo pipefail
+          find InputsBase InputsCandidate -type f | sort | head -40
+          test -s InputsBase/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend
+          test -s InputsCandidate/Round19/round19_weight_topology_NUMERIC_REVIEW_ONLY.blend
+          echo '984a21447c0217bc8ff91d02f9af1509324aa94dfaf29c543abd3d92f9b12c70  InputsBase/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend' | sha256sum -c
+          echo 'a54aab25ce34263b894ca9f31c411f528d69fe0620285760c686c16f87aee245  InputsCandidate/Round19/round19_weight_topology_NUMERIC_REVIEW_ONLY.blend' | sha256sum -c
+      - name: Install Blender 5.1.2 and headless renderer
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 5 -o blender.tar.xz https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libegl1 libgl1 libgl1-mesa-dri libxi6 xvfb libxrender1
+      - name: Fresh Blender load two saved files - 49 bones, skin weight scope, 24 frames, render 16 images
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          xvfb-run -a -s "-screen 0 1280x1024x24" "$B" -b -P rig-experiments/round19_independent_reopen.py -- \
+            --baseline InputsBase/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend \
+            --candidate InputsCandidate/Round19/round19_weight_topology_NUMERIC_REVIEW_ONLY.blend \
+            --expected InputsCandidate/Round19/round19_anatomical_weights.json --out Round19QA
+          python3 - <<'PY'
+          import json,glob
+          r=json.load(open('Round19QA/round19_independent_reopen.json'))
+          assert r['status']=='PASS_L3_INDEPENDENT_REOPEN_RENDERED_L4_REVIEW_PENDING',r.get('traceback')
+          assert r['source_unchanged']
+          assert r['candidate_score_readback_drift']<4e-5
+          assert r['area_readback_drift']<4e-5
+          assert r['corotated_rest_orientation']['new_reference_inversions']==0
+          assert r['normal_and_BVH']['candidate_nonadjacent_overlaps']<=r['normal_and_BVH']['baseline_nonadjacent_overlaps']
+          assert len(glob.glob('Round19QA/*_views/*.png'))>=16
+          print('Independent saved rig L3 PASS; L4 human anatomy pending',r['changes'])
+          PY
+      - name: Store actual multiangle images, QA and source report, never merge main
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-round19-independent-saved-weights-and-multiangle-qa
+          path: |
+            Round19QA/
+            InputsCandidate/Round19/round19_anatomical_weights.json
+          retention-days: 30
+          if-no-files-found: warn
