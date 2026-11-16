@@ -125,6 +125,27 @@ def main():
    same_noneditable=all(d<=2e-6 for name,d in deltas.items() if name not in ALLOWED)
    if not anatom or not same_noneditable or totaldiff>2e-6:
     if len(suspicious)<20:suspicious.append({"id":i,"anatom":anatom,"diff":deltas,"mass_drift":totaldiff})
+  # Reconstruction of the exact selected longitudinal-only recipe from the
+  # ORIGINAL 49-bone vertex weights. This separates file-save errors from
+  # Blender mesh evaluation / target-action or cache errors.
+  strength=expected["numeric_shortlist"]["strength"]
+  weight_residuals=[]
+  for i in changed:
+   ori=before[i];now=after[i];Y=ob.data.vertices[i].co.y
+   xx=max(0.,min(1.,(Y-(-.11))/(+.065-(-.11))))
+   xx=xx*xx*(3.-2.*xx)
+   target=1.-xx
+   for side in ("L","R"):
+    u="upper_arm."+side;th="thigh."+side
+    a0=ori.get(u,0.);b0=ori.get(th,0.);mass=a0+b0
+    if a0<=.012 or b0<=.012 or mass<=.08:continue
+    exp_u=mass*((1-strength)*(a0/mass)+strength*target)
+    exp_th=mass-exp_u
+    weight_residuals.append((abs(now.get(u,0.)-exp_u),i,u,a0,now.get(u,0.),exp_u))
+    weight_residuals.append((abs(now.get(th,0.)-exp_th),i,th,b0,now.get(th,0.),exp_th))
+  weight_residuals.sort(reverse=True)
+  report["selected_weight_formula_max_drift"]=weight_residuals[:8]
+  print("ROUND19_WEIGHT_FORMULA",weight_residuals[:5])
   if suspicious:raise RuntimeError("Weights changed outside anatomical editable groups/belt: "+str(suspicious[:4]))
   if not 1<=len(changed)<=287:raise RuntimeError("Wrong number of changed vertices "+str(len(changed)))
   if max_entry_delta>.24:raise RuntimeError("Excessively large local weight edit")
