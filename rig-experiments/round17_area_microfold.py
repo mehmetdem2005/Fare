@@ -189,6 +189,7 @@ def main():
     keys[keyname].value=strength*cyc(f,15,width)
     bpy.context.view_layer.update()
     co=pts(ob)
+    if f==15:posed15=co
     if f==1:first=co
     if f==25:loop=max((x-y).length for x,y in zip(first,co))
     else:rows.append({"scores":check(co),"area15":arstats(co) if f==15 else None})
@@ -196,6 +197,7 @@ def main():
    values={n:{"worst":max(x["scores"][n]["p95"] for x in rows),
               "mean":statistics.mean(x["scores"][n]["p95"] for x in rows)} for n in rois}
    ar=rows[14]["area15"]
+   surface=surface_fn(face_indices,original,posed15)
    delta={n:{"worst":values[n]["worst"]-r["baseline"][n]["worst"],
              "mean":values[n]["mean"]-r["baseline"][n]["mean"]} for n in rois}
    # Separate actual area and surface strain guards. No arbitrary promotion.
@@ -204,17 +206,23 @@ def main():
      delta["interleg"]["worst"]<=.02 and
      delta["front"]["worst"]<=.01 and delta["central"]["worst"]<=.01 and
      delta["rear"]["worst"]<=.003 and delta["foreleg"]["worst"]<=.003 and
-     delta["head"]["worst"]<=.0001)
+     delta["head"]["worst"]<=.0001 and
+     surface["relative_normal_flips"]==0 and
+     surface["candidate_nonadjacent_overlaps"]<=surface["baseline_nonadjacent_overlaps"])
    return {"key":keyname,"strength":strength,"width":width,"score":values,"delta":delta,
-           "area15":ar,"seam":loop,"numeric_quality_gate":approved},saved
+           "area15":ar,"surface_screen":surface,"seam":loop,"numeric_quality_gate":approved},saved
+  from runpy import run_path
+  surface_fn=run_path("rig-experiments/round17_reopen_surface.py",run_name="r17_geometry_helper")["normals_overlap"]
+  face_indices=[(i,j,k) for i,j,k,_ in triangles]
   for recipe in recipes:
-   for strength,width in ((.5,1.75),(1.0,1.75),(1.0,2.75)):
+   for strength,width in ((.25,1.75),(.25,2.75),(.5,1.75),(1.0,1.75),(1.0,2.75)):
     z,_=test(recipe["name"],strength,width)
     variants.append(z)
   r["trials"]=variants
+  r["surface_rejected_count"]=sum(not x["numeric_quality_gate"] and x["area15"]["under_half"]<r["baseline_area15"]["under_half"] for x in variants)
   candidates=[x for x in variants if x["numeric_quality_gate"]]
   if not candidates:
-   r["status"]="PASS_TESTED_18_TRIALS_NO_VALID_AREA_REPAIR"
+   r["status"]="PASS_TESTED_30_TRIALS_NO_VALID_AREA_REPAIR"
   else:
    best=min(candidates,key=lambda x:(x["area15"]["under_half"]+.04*x["score"]["interleg"]["worst"]))
    r["selection"]=best
@@ -253,6 +261,6 @@ def main():
  print("ROUND17",r["status"],"AREA_BASELINE",r.get("baseline_area15"))
  if r["status"]!="FAIL":
   print("ROUND17_TRIALS",len(r.get("trials",[])))
-  print("ROUND17_BEST",json.dumps(sorted([{"key":x["key"],"strength":x["strength"],"width":x["width"],"underhalf":x["area15"]["under_half"],"belly":x["score"]["interleg"]["worst"],"gate":x["numeric_quality_gate"]} for x in r["trials"]],key=lambda x:x["underhalf"])[:5]))
+  print("ROUND17_BEST",json.dumps(sorted([{"key":x["key"],"strength":x["strength"],"width":x["width"],"underhalf":x["area15"]["under_half"],"belly":x["score"]["interleg"]["worst"],"gate":x["numeric_quality_gate"],"normal_flips":x["surface_screen"]["relative_normal_flips"],"overlaps":x["surface_screen"]["candidate_nonadjacent_overlaps"]} for x in r["trials"]],key=lambda x:x["underhalf"])[:5]))
  else:print(r["error"]);raise SystemExit(1)
 if __name__=="__main__":main()
