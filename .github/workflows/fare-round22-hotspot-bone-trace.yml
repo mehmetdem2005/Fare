@@ -1,0 +1,79 @@
+name: Fare Round 22 deterministic triangle-to-bone LBS gradient investigation
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - rig-experiments/round22_failure_face_bone_trace.py
+      - .github/workflows/fare-round22-hotspot-bone-trace.yml
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  precise-bone-gradient-forensics:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 80
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preserve source rig checksum and compile deterministic Blender diagnostics
+        run: |
+          set -euo pipefail
+          echo '173ca67a372f5c04f27d922ef02f37921bbaf184cff0094976df326b4ec095b6  deliver/mouse_rig.blend' | sha256sum -c
+          python3 -m py_compile rig-experiments/{round22_failure_face_bone_trace.py,round19e_clean_candidate_qa.py,round20_full_cycle_geometry.py,round11_rootcause.py,round14_skinning_forensics.py}
+          mkdir -p Round22
+      - name: Download original independently reopened v8
+        uses: actions/download-artifact@v4
+        with:
+          repository: mehmetdem2005/Fare
+          run-id: 43767152372
+          name: fare-round13-ik-phase-combined-review
+          path: OriginalV8
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download saved independent 0.170 model, NOT a scratch mesh
+        uses: actions/download-artifact@v4
+        with:
+          repository: mehmetdem2005/Fare
+          run-id: 43867305596
+          name: fare-round19d-clean-weight-readback-science
+          path: Clean
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Verify exact immutable input SHA256
+        run: |
+          set -euo pipefail
+          echo '984a21447c0217bc8ff91d02f9af1509324aa94dfaf29c543abd3d92f9b12c70  OriginalV8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend' | sha256sum -c
+          echo 'cb67f61b9a1a771366df53b10b89e1bec827c81450e2bac300be2c96b52e85bc  Clean/Round19D_170/round19d_clean_0.170_REVIEW_ONLY.blend' | sha256sum -c
+      - name: Install real Blender 5.1.2
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 5 -o blender.tar.xz https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libegl1 libgl1 libgl1-mesa-dri libxi6 xvfb libxrender1
+      - name: Identify triangles, original weights, bone matrices and exact Blender LBS per failed frame
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          "$B" -b -P rig-experiments/round22_failure_face_bone_trace.py -- \
+            --baseline OriginalV8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend \
+            --candidate Clean/Round19D_170/round19d_clean_0.170_REVIEW_ONLY.blend \
+            --out Round22
+          python3 - <<'PY'
+          import json,pathlib
+          r=json.loads(pathlib.Path('Round22/round22_mechanism_trace.json').read_text())
+          assert r['status']=='PASS_L3_HOTSPOT_MECHANISM_AUDIT_NO_REPAIR',r.get('traceback')
+          assert r['selected_face_samples']>=9,r
+          assert r['evaluated_LBS_max_error_original']<1e-4,r
+          assert r['evaluated_LBS_max_error_candidate']<1e-4,r
+          assert pathlib.Path('Round22/round22_hotspots.csv').is_file()
+          assert set(map(int,r['frame_hotspots']))=={7,8,9,10,11,14,15,16,17}
+          print('L3 verified weight-gradient mechanism - NOT a fix',r['top_aggregate_gradient_bones'][:10])
+          PY
+      - name: Preserve exact failed-frame geometry, bone attribution and negative evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-round22-selected-face-bone-gradient-LBS-audit
+          path: Round22/
+          if-no-files-found: warn
+          retention-days: 30
