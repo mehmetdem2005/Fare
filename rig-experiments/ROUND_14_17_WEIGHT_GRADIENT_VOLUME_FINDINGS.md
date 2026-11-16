@@ -1,0 +1,47 @@
+# Rounds 14–17 — 49-bone Fare, evaluated LBS failure and explicit belly-area repair trials
+**Date:** 16 November 2026 (Europe/Istanbul). **Status: ÇÖZÜLMEDİ — experimental only.**
+**Source:** `mehmetdem2005/Fare`, branch `rig-experiments/real-blender-ci`; original `deliver/mouse_rig.blend`, 49 bones, 19,466 vertices, SHA256 `173ca67a372f5c04f27d922ef02f37921bbaf184cff0094976df326b4ec095b6`. The separate 41-bone rig was never used. No Automatic Weights; original BLEND, source topology, and production/default branches untouched.
+
+## Research and exact mechanism
+
+Skinning is modeled as `posed_vertex_i = sum(weight_i,b * bone_transform_b * undeformed_vertex_i)`. For an adjacent edge (i,j), its posed difference separates into (a) average weights times each bone's transform of the original edge and (b) **different bone weights at the two endpoints times their transformed positions**. The second component is a weight-gradient motion term; it can amplify an edge or counteract the baseline transformed edge and collapse it. A vertex's weight sum being 1 is **not** sufficient to preserve coherent skin.
+
+[Round14 real Blender CI](https://github.com/mehmetdem2005/Fare/actions/runs/43775373776), source `round14_skinning_forensics.py`: independently computed Blender LBS vertex positions matched actual depsgraph evaluated mesh at frames 1/15 with max error **4.03382e-8** and **4.71216e-8** model units. The worst frame1 belly edge 154–270 (rest 0.0140881) reaches **3.030535× rest**. Its common-transform component is **0.0140532** (≈0.998× rest), whereas the gradient component alone is **0.0299654** (≈2.127× rest). Thus the abrupt spatial blend of distinct IK-driven transformations, **not a globally unnormalized vertex**, is a major mechanically identified cause. Other worst edges include 731–774 and 3369–3377. At frame15, distinct weighted translations counteract and fold the same body belt. Matrices at worst edge endpoints were well-conditioned (condition numbers ≈1.04 and 1.025), so local matrix singularity alone is **not** the root. Anatomical identity must still be checked before removing cross-limb weights; rodent limb roots naturally blend into the torso.
+
+**New mandatory surface metric:** 1,069 immutable interleg-body triangles measured for area relative to rest. On frame1, area p95 = **2.667×** rest (overstretch), and on frame15 **193/1,069 triangles (18.0543%)** have posed area <50% rest, p05 area ratio **0.226397**, min **0.034689**. Triangle areas alone do not measure enclosed tissue volume; face normal flips, self-penetration and gameplay contact must also be examined. Turning original corrective shapes off worsened frame15 interleg p95 by **+0.02174**, central +0.01844: they provide some help but are insufficient.
+
+## Round15 — post-armature smoothing hypothesis
+
+[Blender5.1.2 CI](https://github.com/mehmetdem2005/Fare/actions/runs/43776231560); source `round15_corrective_smooth_trial.py`. Twelve isolated `Corrective Smooth` variants (SIMPLE/LENGTH_WEIGHTED, factor 0.12/0.25/0.40, iterations 2/5), anatomically restricted part_id=6, real 24-frame evaluated mesh and closure. Best SIMPLE factor0.40 iterations5: interleg worst p95 **1.03496956→0.88079926**, front **0.60572495→0.55521269**, central **0.85130465→0.63521558**. Distal foreleg worst slightly worse by +0.001693. **Not a GLB deployment fix**: Blender post-armature mesh modifiers are not automatically supported by exported real-time skin animation, and smoothing can still lose local volume. The code/API errors in early workflows were fixed; only the final successful run is evidence.
+
+## Round16 — inverse-LBS reconstruction of pose-specific shape keys
+
+[Initial real v9 renders](https://github.com/mehmetdem2005/Fare/actions/runs/43776592378) and [independent saved/reopen/checksum CI](https://github.com/mehmetdem2005/Fare/actions/runs/43777060331), script `round16_inverse_pose_correctives.py`, independent `round16_reopen.py`. The f1 extension and f15 compression actual post-armature target displacements were inverted through locally nonsingular blended 3×3 skin matrices to produce two true **pre-armature** relative shape keys, with gait-time (not general pose-space) curves. Nine controlled strength/width profiles ran over unique 24 frames and 25th seam. Selected numerical profile `1.0 / width 2.75`: belly worst p95 **1.03496956→0.89935539**, central **0.85130465→0.64947533**; original rest, all deform weights and old morph data preserved, baked/manual difference 0, saved/reopened score difference 0, closure 0.
+
+**REJECTED as anatomical solution:** Although lower strain, frame15 area-collapse fraction **worsened 18.0543%→18.8962%** (202/1,069), area p05 **0.22640→0.22498**, and full-body images still show unnatural compression. Every one of nine profile candidates worsened the collapse fraction. Worst interleg p99 stays **1.439748**. F1 inverse target had nine clamped verts and max inversion residual 0.005588 model units. Shape-key mathematical reproducibility does not prove healthy skin.
+
+Experimental BLEND `round16_pre_skin_corrective_GAIT_ONLY_REVIEW.blend`, SHA256 `a29f302af2ae90d966d2ad6f5dce82b7d4c32b857e0c80eda04f2e9cd9cab081`, remains experiment-only and never goes to `deliver/`.
+
+## Round17 — explicitly constrained local triangle-area rescue from INDEPENDENT v8
+
+[Real 18-variant CI](https://github.com/mehmetdem2005/Fare/actions/runs/43777268156), script `round17_area_microfold.py`. **Not chained from rejected v9**: restores independent verified v8. Optimize a fixed set of 1,069 compressed-body triangles at f15 with analytical area gradients and 467-vertex local anatomical mask. Invert original v8 LBS at f15 to pre-armature corrective shape keys. Six controlled geometry recipes: target ratios 0.55/0.70/0.85 and movement caps 0.003/0.006 model units; three time-strength profiles each = 18 candidates, all checked 24+1 frames and six ROI scores. Selected `R17_AREA_0.85_0.006`, strength1, Gaussian width1.75.
+
+**Result:** frame15 below-half-area triangles **193→7/1,069** (18.0543%→0.6548%); area p05 **0.22640→0.66558**, min **0.03469→0.39204**. Interleg worst p95 across the entire cycle remains **1.03496959** (practically equal to v8; frame1 extension is not cured); interleg mean p95 decreases ~0.023915. Other ROI worst p95 matched baseline to rounding; 0 seam and manual/baked scored as equal in initial Blender. Saved experimental-only candidate `round17_area_constrained_GAIT_ONLY_REVIEW.blend`, SHA256 `f4a07253eec4c676c0dfa08aad5ab20b62a0601c5e8cbfe26e69be289d481aff`. Real four-angle closeup render before/after was visually inspected. Local underbody folds remain, so **not visually/anatomically approved** despite enormous unsigned-area gain.
+
+**Further quality gate:** a separate workflow `round17_reopen_surface.py` does *fresh saved BLEND read-back*, old rest/skin/morph checks, face-normal reversal relative to identical frame baseline, and non-adjacent triangle BVH overlaps. This tests whether restoring positive area magnitude was achieved by reversing topology or adding intersections. Its output is decisive and must be read before any approval or GLB exports.
+
+## Validated independent methods and remaining problems
+
+- Previous false diagnostic state contamination (IK ablation not restored) and duplicate frame25 averaging have been repaired in source workflows; no results accepted solely because CI is green.
+- Source always rebuilt from unchanged original and validated via 49-bone identity; no blind smoothing, no mass transfer to spine, no Automatic Weights, no main merge.
+- Current unresolved P0: compressed belly silhouette and local fold near limb roots, extreme f1 extension strain, potential inward overlaps, near-surface self intersection; production-level volumetric preservation and right/left gait anatomy not yet proven.
+- P1: new corrective morph is timed to this one gait, not driven by evaluated joint-space parameters across arbitrary animations; actual ground contact, sliding, Godot4 Android L5, and GLB playback remain untested. No new production walk/run2 release.
+- **Next controlled experiment after surface verification:** only if normals and BVH overlaps pass, combine the *extension-only* R16 correction (do not use failed compression key) with the *compression-specific* R17 area key, independently from v8. Require both strong edge/area improvements and no normal, self-intersection or forelimb regression; then verify Blender save/reopen and mobile glTF morphology. If any gates fail, reject and return to anatomical/topological body-limb weight reassignment.
+
+## External specialist evidence
+- Lewis, Cordner & Fong, *Pose Space Deformation: A Unified Approach to Shape Interpolation and Skeleton-Driven Deformation* (SIGGRAPH 2000): https://doi.org/10.1145/344779.344862.
+- Rohmer et al., *Local Volume Preservation for Skinned Characters* (2009): https://doi.org/10.1111/j.1467-8659.2008.01340.x.
+- Blender 5.1 official Corrective Smooth: https://docs.blender.org/manual/sl/5.1/modeling/modifiers/deform/corrective_smooth.html
+- Blender 5.1 glTF (shape keys and animated morph targets): https://docs.blender.org/manual/en/5.1/addons/import_export/scene_gltf2.html
+
+**Quality decision as of this report:** ÇÖZÜLMEDİ. Never claim production complete based solely on 193→7 faces; normals and BVH and full anatomical geometry are independent required checks.
