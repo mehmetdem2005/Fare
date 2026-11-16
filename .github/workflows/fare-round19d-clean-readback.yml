@@ -22,7 +22,7 @@ jobs:
           set -euo pipefail
           echo '173ca67a372f5c04f27d922ef02f37921bbaf184cff0094976df326b4ec095b6  deliver/mouse_rig.blend' | sha256sum -c
           python3 -m py_compile rig-experiments/{round19d_clean_weight_readback.py,round17_reopen_surface.py,round11_rootcause.py}
-          mkdir -p Round19D_175 Round19D_200
+          mkdir -p Round19D_168 Round19D_170 Round19D_175 Round19D_200
       - name: Fetch strictly identified independently verified original v8
         uses: actions/download-artifact@v4
         with:
@@ -43,6 +43,20 @@ jobs:
           tar -xJf blender.tar.xz -C blender_runtime
           sudo apt-get update -qq
           sudo apt-get install -y -qq libegl1 libgl1 libgl1-mesa-dri libxi6 xvfb libxrender1
+      - name: Independent clean strength 0.168 - near-baseline single-triangle area
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          "$B" -b -P rig-experiments/round19d_clean_weight_readback.py -- \
+            --source OriginalV8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend \
+            --out Round19D_168 --strength 0.168
+      - name: Independent clean strength 0.170 - preferred conservative anatomy profile
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          "$B" -b -P rig-experiments/round19d_clean_weight_readback.py -- \
+            --source OriginalV8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend \
+            --out Round19D_170 --strength 0.170
       - name: Independent clean strength 0.175 - one update and Blender save/reopen
         run: |
           set -euo pipefail
@@ -62,7 +76,7 @@ jobs:
           set -euo pipefail
           python3 - <<'PY'
           import json
-          for folder in ('Round19D_175','Round19D_200'):
+          for folder in ('Round19D_168','Round19D_170','Round19D_175','Round19D_200'):
               x=json.load(open(folder+'/round19d_clean_weight_readback.json'))
               assert x['status']=='PASS_TRUE_SAVED_WEIGHT_DEFORMATION_REVIEW_ONLY',x.get('traceback',x)
               assert x['save_reopen_score_drift']<3e-5,x
@@ -75,6 +89,8 @@ jobs:
         with:
           name: fare-round19d-clean-weight-readback-science
           path: |
+            Round19D_168/
+            Round19D_170/
             Round19D_175/
             Round19D_200/
           retention-days: 30
