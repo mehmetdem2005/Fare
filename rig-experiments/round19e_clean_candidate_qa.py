@@ -147,7 +147,50 @@ def main():
   report["selected_weight_formula_max_drift"]=weight_residuals[:8]
   print("ROUND19_WEIGHT_FORMULA",weight_residuals[:5])
   if suspicious:raise RuntimeError("Weights changed outside anatomical editable groups/belt: "+str(suspicious[:4]))
-  if not 1<=len(changed)<=287:raise RuntimeError("Wrong number of changed vertices "+str(len(changed)))
+  # Do not guess a fixed edit count. Round19D reports the exact number of
+  # eligible vertices; independent re-derivation from ORIGINAL weights is
+  # the source of truth (not a len(changed) ceiling from an earlier trial).
+  expected_count=int(expected["modified_candidate_count"])
+  recipe_scope=set()
+  max_formula_error=0.
+  formula_error_samples=[]
+  for i,(original,saved_weights) in enumerate(zip(before,after)):
+   v=ob.data.vertices[i]
+   editable=(part.data[i].value==6 and -.1<=v.co.y<=.055
+             and abs(v.co.x)<=.165 and .045<=v.co.z<=.16)
+   reconstructed=dict(original)
+   if editable:
+    t=max(0.,min(1.,(v.co.y+.11)/(.065+.11)))
+    target=1.-t*t*(3.-2.*t)
+    for side in ("L","R"):
+     upper="upper_arm."+side
+     rear="thigh."+side
+     a0=original.get(upper,0.);b0=original.get(rear,0.)
+     mass=a0+b0
+     if a0<=.012 or b0<=.012 or mass<=.08:continue
+     recipe_scope.add(i)
+     new_upper=mass*((1.-strength)*(a0/mass)+strength*target)
+     reconstructed[upper]=new_upper
+     reconstructed[rear]=mass-new_upper
+   for name in set(reconstructed)|set(saved_weights):
+    err=abs(reconstructed.get(name,0.)-saved_weights.get(name,0.))
+    max_formula_error=max(max_formula_error,err)
+    if err>2e-6 and len(formula_error_samples)<12:
+     formula_error_samples.append({"vertex":i,"group":name,
+                                   "expected":reconstructed.get(name,0.),
+                                   "saved":saved_weights.get(name,0.),"error":err})
+  report["independent_recipe_reconstruction"]={
+      "eligible_vertices":len(recipe_scope),
+      "producer_reported_eligible_vertices":expected_count,
+      "changed_vertices":len(changed),
+      "max_abs_weight_error":max_formula_error,
+      "error_examples":formula_error_samples}
+  if len(recipe_scope)!=expected_count:
+   raise RuntimeError("Producer's eligible vertex count differs from independent reconstruction: %d vs %d"%(expected_count,len(recipe_scope)))
+  if not 1<=len(changed)<=len(recipe_scope) or set(changed)-recipe_scope:
+   raise RuntimeError("Changed vertices are outside independently reconstructed anatomical eligibility: %d changed, %d eligible"%(len(changed),len(recipe_scope)))
+  if formula_error_samples:
+   raise RuntimeError("Saved Blender weights diverge from the exact original-weight recipe: "+str(formula_error_samples[:3]))
   if max_entry_delta>.24:raise RuntimeError("Excessively large local weight edit")
   c=root["metrics"](ob,arm,disable=False,collect=True)
   expected_scores=expected["after_reopen_score"]
