@@ -45,3 +45,10 @@ Experimental BLEND `round16_pre_skin_corrective_GAIT_ONLY_REVIEW.blend`, SHA256 
 - Blender 5.1 glTF (shape keys and animated morph targets): https://docs.blender.org/manual/en/5.1/addons/import_export/scene_gltf2.html
 
 **Quality decision as of this report:** ÇÖZÜLMEDİ. Never claim production complete based solely on 193→7 faces; normals and BVH and full anatomical geometry are independent required checks.
+
+
+### Round17 independent geometry result — decisive negative finding
+
+[Independent Blender save/reopen + signed-normal/BVH screening](https://github.com/mehmetdem2005/Fare/actions/runs/43777721356) completed. Source rest/weights/old morph signatures unchanged, 24-frame numerical metric drift **0.0**, and 0 loop seam. **BUT the seemingly excellent unsigned face-area improvement was a geometric false positive:** **11 of 1,069 body ROI triangle normals flip** compared with the equivalent v8 baseline at frame15; local non-adjacent BVH overlap pairs increased **66→188**. The maximum per-face normal angle divergence reaches **144.25°** (p95 angle **49.33°**). A triangle can regain unsigned area by folding through another surface, so the 193→7 area result **DOES NOT signify a real torso repair**. Its original selected candidate is **REJECTED FOR ANATOMICAL ACCEPTANCE**. The comparison uses the same actual Blender 5.1.2 evaluated mesh and fixed vertex topology; this is a true check, not a static image assumption.
+
+Follow-up CI `fare-round17-area-microfold.yml` now independently retests **30** area-gradient/gain/phase variants (six recipes × five controlled profiles, including low-gain variants) with `round17_reopen_surface.py` signed normal and BVH interpenetration acceptance gates applied BEFORE selecting any replacement candidate. A numerically improved area with any newly reversed normal or increased non-adjacent overlaps will be rejected and shall NOT be saved as a qualified fix. Do not describe the initial unsigned-area-only shortlist as passed L4.
