@@ -130,14 +130,14 @@ def main():
   if max_entry_delta>.24:raise RuntimeError("Excessively large local weight edit")
   c=root["metrics"](ob,arm,disable=False,collect=True)
   expected_scores=expected["numeric_shortlist"]["metrics"]
-  worst_drift=max(abs(c["scores"][n][key]-expected_scores["regions"][n][key])
-                  for n in c["scores"] for key in ("worst_p95","mean_p95"))
-  original_drift=max(abs(b["scores"][n][k]-expected["baseline"]["regions"][n][k])
-                     for n in b["scores"] for k in ("worst_p95","mean_p95"))
+  worst_drift=max(abs(c["scores"][n][got]-expected_scores["regions"][n][target])
+                  for n in c["scores"] for got,target in (("worst","worst_p95"),("mean","mean_p95")))
+  original_drift=max(abs(b["scores"][n][got]-expected["baseline"]["regions"][n][target])
+                     for n in b["scores"] for got,target in (("worst","worst_p95"),("mean","mean_p95")))
   if worst_drift>4e-5 or original_drift>4e-5:
    raise RuntimeError("Independent evaluated mesh diverged from original screen")
-  area_drift=max(abs(c["area15"][k]-expected_scores["f15_area"][k])
-                 for k in ("fraction_under_half","p05","minimum"))
+  area_drift=max(abs(c["area15"][got]-expected_scores["f15_area"][target])
+                 for got,target in (("under_half","fraction_under_half"),("p05","p05"),("min","minimum")))
   if area_drift>4e-5 or max(c["seam"],b["seam"])>1e-5:
    raise RuntimeError("Area score / animation seam mismatch after reopening")
   act=bpy.data.actions.get(ACT)
