@@ -1,0 +1,127 @@
+name: Fare Round 21 independent four-strength full-cycle anatomical screen
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - .github/workflows/fare-round21-strength-screen.yml
+      - rig-experiments/round20_full_cycle_geometry.py
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  four-strength-screen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 100
+    env:
+      LIBGL_ALWAYS_SOFTWARE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify baseline and Python compiler
+        run: |
+          set -euo pipefail
+          echo '173ca67a372f5c04f27d922ef02f37921bbaf184cff0094976df326b4ec095b6  deliver/mouse_rig.blend' | sha256sum -c
+          python3 -m py_compile rig-experiments/{round20_full_cycle_geometry.py,round19e_clean_candidate_qa.py,round11_rootcause.py,round17_reopen_surface.py}
+          mkdir -p Round21
+      - name: Download fixed original v8
+        uses: actions/download-artifact@v4
+        with:
+          repository: mehmetdem2005/Fare
+          run-id: 43767152372
+          name: fare-round13-ik-phase-combined-review
+          path: OriginalV8
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download all four saved one-shot Round19D candidates
+        uses: actions/download-artifact@v4
+        with:
+          repository: mehmetdem2005/Fare
+          run-id: 43867305596
+          name: fare-round19d-clean-weight-readback-science
+          path: Clean
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Verify original SHA, actual candidate SHA and verified save-reload reports
+        run: |
+          set -euo pipefail
+          echo '984a21447c0217bc8ff91d02f9af1509324aa94dfaf29c543abd3d92f9b12c70  OriginalV8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend' | sha256sum -c
+          python3 - <<'PY'
+          import hashlib,json,pathlib
+          for digits in ('168','170','175','200'):
+              s='0.'+digits
+              root=pathlib.Path('Clean/Round19D_'+digits)
+              report=json.loads((root/'round19d_clean_weight_readback.json').read_text())
+              f=root/('round19d_clean_'+s+'_REVIEW_ONLY.blend')
+              assert f.is_file() and f.stat().st_size>1000000,(digits,f)
+              assert hashlib.sha256(f.read_bytes()).hexdigest()==report['output']['sha256'],digits
+              assert report['status']=='PASS_TRUE_SAVED_WEIGHT_DEFORMATION_REVIEW_ONLY',digits
+              assert abs(report['strength']-float(s))<1e-12,digits
+              assert report['save_reopen_score_drift']<3e-5,digits
+              print('PINNED',digits,report['output']['sha256'])
+          PY
+      - name: Install real Blender 5.1.2 with software Workbench
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 5 -o blender.tar.xz https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libegl1 libgl1 libgl1-mesa-dri libxi6 xvfb libxrender1
+      - name: Four 24-frame evaluated meshes, anatomical checks and actual rendered failure cases
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          for digits in 168 170 175 200; do
+            strength="0.$digits"
+            candidate="Clean/Round19D_$digits/round19d_clean_${strength}_REVIEW_ONLY.blend"
+            out="Round21/$digits"
+            mkdir -p "$out"
+            echo "SCREEN $strength from its saved and independently reopened BLEND"
+            if xvfb-run -a -s "-screen 0 1280x1024x24" "$B" -b -P rig-experiments/round20_full_cycle_geometry.py -- \
+                 --baseline OriginalV8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend \
+                 --candidate "$candidate" --out "$out"; then
+              echo "ANATOMICAL NUMERIC PASS ONLY: $strength"
+            else
+              echo "REJECTED OR FAILED: $strength; preserving exact JSON and images for separate classification"
+            fi
+          done
+      - name: Distinguish a real rejected hypothesis from execution failure
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import pathlib,json
+          entries=[]
+          for strength in ('168','170','175','200'):
+              f=pathlib.Path('Round21')/strength/'round20_full_cycle_anatomy.json'
+              assert f.is_file(),('Missing real Blender report',strength)
+              r=json.loads(f.read_text())
+              assert r['status'] in ('PASS_L3_FULL_CYCLE_L4_HUMAN_REVIEW_REQUIRED','REJECT_L3_FULL_CYCLE_ANATOMICAL_REGRESSION'),(strength,r.get('error'),r.get('traceback'))
+              assert len(r['frames_detail'])==24 and r['body_triangles']==1069,strength
+              assert r['renders_generated']>=16,strength
+              new_inv=sum(x['reference_orientation']['new_reference_inversions'] for x in r['frames_detail'])
+              increased_overlap=[x['frame'] for x in r['frames_detail'] if x['geometry']['candidate_nonadjacent_overlaps']>x['geometry']['baseline_nonadjacent_overlaps']]
+              areas=[x['frame'] for x in r['frames_detail'] if x['area_candidate']['min']<x['area_baseline']['min']-.002]
+              entries.append(dict(strength=float('0.'+strength),status=r['status'],
+                  p95=r['interleg_worst_p95'],issues=r['issues'],
+                  new_corotated_normal_flips=new_inv,
+                  frames_with_increased_BVH_overlaps=increased_overlap,
+                  frames_with_min_area_regression=areas,
+                  worst_frame=r['worst_anatomy_frame']))
+          accepted=[x['strength'] for x in entries if x['status'].startswith('PASS_')]
+          result=dict(status='EXPERIMENT_COMPLETE',numerical_accepted=accepted,
+              production_approved=False,L4_visual_approved=False,L5_glTF_Godot_approved=False,
+              entries=entries)
+          pathlib.Path('Round21/strength_matrix.json').write_text(json.dumps(result,indent=2))
+          for x in entries:
+              print('ROUND21',x['strength'],x['status'],'inverted',x['new_corotated_normal_flips'],
+                  'new-overlap-frames',x['frames_with_increased_BVH_overlaps'],
+                  'min-area-frames',x['frames_with_min_area_regression'],
+                  'worst-interleg',x['p95'])
+          print('NUMERICAL PASS (still NOT production-approved):',accepted)
+          PY
+      - name: Preserve every generated frame, negative finding and comparative matrix
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-round21-all-four-strengths-framewise-anatomical-screen
+          path: Round21/
+          retention-days: 30
+          if-no-files-found: warn
