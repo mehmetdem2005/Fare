@@ -1,0 +1,81 @@
+name: Fare Round 19D clean one-shot weight save-reopen truth test
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - rig-experiments/round19d_clean_weight_readback.py
+      - .github/workflows/fare-round19d-clean-readback.yml
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  clean-weight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    env:
+      LIBGL_ALWAYS_SOFTWARE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify original 49 bone provenance, script syntax
+        run: |
+          set -euo pipefail
+          echo '173ca67a372f5c04f27d922ef02f37921bbaf184cff0094976df326b4ec095b6  deliver/mouse_rig.blend' | sha256sum -c
+          python3 -m py_compile rig-experiments/{round19d_clean_weight_readback.py,round17_reopen_surface.py,round11_rootcause.py}
+          mkdir -p Round19D_175 Round19D_200
+      - name: Fetch strictly identified independently verified original v8
+        uses: actions/download-artifact@v4
+        with:
+          repository: mehmetdem2005/Fare
+          run-id: 43767152372
+          name: fare-round13-ik-phase-combined-review
+          path: OriginalV8
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Verify v8 source exact checksum
+        run: |
+          set -euo pipefail
+          echo '984a21447c0217bc8ff91d02f9af1509324aa94dfaf29c543abd3d92f9b12c70  OriginalV8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend' | sha256sum -c
+      - name: Install Blender 5.1.2 official runtime
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 5 -o blender.tar.xz https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libegl1 libgl1 libgl1-mesa-dri libxi6 xvfb libxrender1
+      - name: Independent clean strength 0.175 - one update and Blender save/reopen
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          "$B" -b -P rig-experiments/round19d_clean_weight_readback.py -- \
+            --source OriginalV8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend \
+            --out Round19D_175 --strength 0.175
+      - name: Independent clean strength 0.200 - one update and Blender save/reopen
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          "$B" -b -P rig-experiments/round19d_clean_weight_readback.py -- \
+            --source OriginalV8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend \
+            --out Round19D_200 --strength 0.200
+      - name: Explicitly require zero persisted mesh/readback divergence
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          for folder in ('Round19D_175','Round19D_200'):
+              x=json.load(open(folder+'/round19d_clean_weight_readback.json'))
+              assert x['status']=='PASS_TRUE_SAVED_WEIGHT_DEFORMATION_REVIEW_ONLY',x.get('traceback',x)
+              assert x['save_reopen_score_drift']<3e-5,x
+              assert x['save_reopen_area_drift']<1e-6,x
+              print(folder,'L3 reproduced',x['candidate_tagged_score']['interleg'],'geometry',x['geometry_screen'])
+          PY
+      - name: Preserve both true binary candidates and exact per-frame numeric observations
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-round19d-clean-weight-readback-science
+          path: |
+            Round19D_175/
+            Round19D_200/
+          retention-days: 30
+          if-no-files-found: warn
