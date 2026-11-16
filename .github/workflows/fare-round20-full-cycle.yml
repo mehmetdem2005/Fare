@@ -1,0 +1,80 @@
+name: Fare Round 20 full-cycle 24-frame anatomical QA
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - rig-experiments/round20_full_cycle_geometry.py
+      - .github/workflows/fare-round20-full-cycle.yml
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  anatomical-full-cycle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 85
+    env:
+      LIBGL_ALWAYS_SOFTWARE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify source identity and compile actual code
+        run: |
+          set -euo pipefail
+          echo '173ca67a372f5c04f27d922ef02f37921bbaf184cff0094976df326b4ec095b6  deliver/mouse_rig.blend' | sha256sum -c
+          python3 -m py_compile rig-experiments/{round20_full_cycle_geometry.py,round19e_clean_candidate_qa.py,round11_rootcause.py,round17_reopen_surface.py}
+          mkdir -p Round20
+      - name: Fetch verified immutable original v8
+        uses: actions/download-artifact@v4
+        with:
+          repository: mehmetdem2005/Fare
+          run-id: 43767152372
+          name: fare-round13-ik-phase-combined-review
+          path: OriginalV8
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Fetch saved Round19D 0.170 candidate (not original deliver)
+        uses: actions/download-artifact@v4
+        with:
+          repository: mehmetdem2005/Fare
+          run-id: 43867305596
+          name: fare-round19d-clean-weight-readback-science
+          path: Clean
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Require exact known bytes, reject mismatched inputs
+        run: |
+          set -euo pipefail
+          echo '984a21447c0217bc8ff91d02f9af1509324aa94dfaf29c543abd3d92f9b12c70  OriginalV8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend' | sha256sum -c
+          echo 'cb67f61b9a1a771366df53b10b89e1bec827c81450e2bac300be2c96b52e85bc  Clean/Round19D_170/round19d_clean_0.170_REVIEW_ONLY.blend' | sha256sum -c
+      - name: Install actual Blender 5.1.2 and software GPU renderer
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 5 -o blender.tar.xz https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libegl1 libgl1 libgl1-mesa-dri libxi6 xvfb libxrender1
+      - name: All 24 frames plus seam, full saved geometry and multi-view images
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          xvfb-run -a -s "-screen 0 1280x1024x24" "$B" -b -P rig-experiments/round20_full_cycle_geometry.py -- \
+            --baseline OriginalV8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend \
+            --candidate Clean/Round19D_170/round19d_clean_0.170_REVIEW_ONLY.blend \
+            --out Round20
+          python3 - <<'PY'
+          import glob,json
+          r=json.load(open('Round20/round20_full_cycle_anatomy.json'))
+          assert r['status']=='PASS_L3_FULL_CYCLE_L4_HUMAN_REVIEW_REQUIRED'
+          assert len(r['frames_detail'])==24 and r['body_triangles']==1069
+          assert r['source_invariant_sha256']
+          assert len(glob.glob('Round20/*_views/*.png'))==r['renders_generated']
+          assert r['renders_generated']>=16
+          print('Round20 L3 all-frame PASS; L4 images await human anatomical acceptance',r['interleg_worst_p95'])
+          PY
+      - name: Keep all negative findings, 24-frame CSV/JSON and anatomical renders
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-round20-complete-gait-normal-bvh-area-qa
+          path: Round20/
+          retention-days: 30
+          if-no-files-found: warn
