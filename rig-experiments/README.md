@@ -25,3 +25,11 @@ ChatGPT tarafından hazırlanan v6 ikili dosyası GitHub depoda henüz yoksa bu 
 - Round 25: 32 yumuşak geçişli koşu/IK/kasık-kalça poz müdahalesi, 24+1 gerçek Blender karesi; **0 kabul edilen**.
 - [Ayrıntılı tamamlanmış teknik rapor](ROUND_23_25_BONE_IK_SPATIAL_REPAIR_EXPERIMENTS_2026-11-17.md) ve [Round22 kalıcı kök-neden kanıtları](ROUND_22_VERIFIED_FAILURE_FACE_BONE_TRACE_2026-11-17.md).
 - **Durum: ÇÖZÜLMEDİ.** İyi tek-kare sonuçları üretim BLEND/GLB dosyası sayma. Godot ve Android L5 hiç doğrulanmadı. Kaynak `deliver/`, `scripts/` ve varsayılan dal değişmedi.
+
+## Son deney serisi — Round 26–37 (17 Kasım 2026)
+
+- [12 tur, gerçek Blender 5.1.2 kanıtları ve f14 BVH çift analizi](ROUND_26_37_SIGNED_MORPH_BVH_FORENSICS_2026-11-17.md).
+- Poz bazlı ve çok yüzeyli **inverse-skin shape key** düzelticileri geliştirildi; önceki pasif driver varsayımı gerçek v8'de çürütüldü.
+- 9. karede alan eşiğini aşan üçgenler 465 ve 809 tespit edilerek eşik kaynaklı hata giderildi; 8. karede BVH regresyonu önlendi.
+- Son kalan engel: **14. karede BVH 27 → 30**; 16 yeni kesişen üçgen çifti ve 13 iyileşen çift; f14 minimum alan ve BVH aynı anda korunamıyor. Ön/arka parçalara bölünmüş 24 profil de elendi.
+- GitHub Actions yeşil = deney başarıyla çalıştırıldı; **0 yeni model tam L3 kabulüne ulaştı**. Hâlen L4/L5 yok; orijinal 49 kemikli model ve production GLB dokunulmadı.
