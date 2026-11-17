@@ -1,0 +1,77 @@
+name: Fare Round 38 multi-face co-oriented inverse-skin shape corrective trials
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - rig-experiments/round38_contact_constrained_pose.py
+      - .github/workflows/fare-round38-true-contact-separation.yml
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  blender-oriented-triangle-repair:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 85
+    env:
+      LIBGL_ALWAYS_SOFTWARE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile and verify unchanged production
+        run: |
+          set -euo pipefail
+          echo '173ca67a372f5c04f27d922ef02f37921bbaf184cff0094976df326b4ec095b6  deliver/mouse_rig.blend' | sha256sum -c
+          python3 -m py_compile rig-experiments/{round38_contact_constrained_pose.py,round38_contact_geometry.py,round38_contact_apply.py,round20_full_cycle_geometry.py,round19e_clean_candidate_qa.py,round14_skinning_forensics.py}
+          mkdir -p Round38
+      - name: Restore original immutable v8 blend
+        uses: actions/download-artifact@v4
+        with:
+          repository: mehmetdem2005/Fare
+          run-id: 43767152372
+          name: fare-round13-ik-phase-combined-review
+          path: OriginalV8
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Restore verified saved rejected 0.170 blend
+        uses: actions/download-artifact@v4
+        with:
+          repository: mehmetdem2005/Fare
+          run-id: 43867305596
+          name: fare-round19d-clean-weight-readback-science
+          path: Clean
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check absolute SHA256 of both verified exact Blender models
+        run: |
+          set -euo pipefail
+          echo '984a21447c0217bc8ff91d02f9af1509324aa94dfaf29c543abd3d92f9b12c70  OriginalV8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend' | sha256sum -c
+          echo 'cb67f61b9a1a771366df53b10b89e1bec827c81450e2bac300be2c96b52e85bc  Clean/Round19D_170/round19d_clean_0.170_REVIEW_ONLY.blend' | sha256sum -c
+      - name: Install actual official Blender 5.1.2
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 5 -o blender.tar.xz https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libegl1 libgl1 libgl1-mesa-dri libxi6 xvfb libxrender1
+      - name: Generate real multi-face co-oriented inverse-skin shape keys and independently evaluate 8 gait profiles
+        run: |
+          set -euo pipefail
+          blender_runtime/blender-5.1.2-linux-x64/blender -b -P rig-experiments/round38_contact_constrained_pose.py -- \
+            --baseline OriginalV8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend \
+            --candidate Clean/Round19D_170/round19d_clean_0.170_REVIEW_ONLY.blend \
+            --out Round38
+          python3 - <<'PY'
+          import json
+          r=json.load(open('Round38/round38_contact_constrained_pose.json'))
+          assert r['status']=='PASS_COMPLETED_4_CONTACT_PROFILES_L3_SCREEN',r.get('traceback')
+          assert len(r['target_solvers'])==7 and len(r['trials'])==4 and len(r['central_roi_restoration'])==5
+          assert all(t['loop_seam']<1e-5 for t in r['trials'])
+          print('Round38 genuine triangle contact solver and 4 real all-frame trials; approved ONLY:',r['l3_numerical_eligible'],'contact progress:',r['contact_solver']['before']['total'],'->',r['contact_solver']['after']['total'])
+          PY
+      - name: Preserve source-safe full evidence and only optionally valid review blend
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-round38-actual-f14-contact-projection-all-gait
+          path: Round38/
+          retention-days: 30
+          if-no-files-found: warn
