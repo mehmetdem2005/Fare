@@ -1,0 +1,67 @@
+name: Fare Round 41 49-bone corrected Sprint GLB export/reimport nonproduction
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - rig-experiments/round41_export_and_glb_reimport.py
+      - .github/workflows/fare-round41-review-glb-export.yml
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  gltf-morph-skin-gait-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 85
+    env:
+      LIBGL_ALWAYS_SOFTWARE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assert untouched production and compile experimental GLB script
+        run: |
+          set -euo pipefail
+          echo '173ca67a372f5c04f27d922ef02f37921bbaf184cff0094976df326b4ec095b6  deliver/mouse_rig.blend' | sha256sum -c
+          python3 -m py_compile rig-experiments/round41_export_and_glb_reimport.py
+          mkdir -p Round41
+      - name: Download saved Round39 corrected rig that independently passed Round40
+        uses: actions/download-artifact@v4
+        with:
+          repository: mehmetdem2005/Fare
+          run-id: 44116055380
+          name: fare-round39-10-reference-restored-f14-review-files
+          path: Round39Saved
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Require exact independently validated correct BLEND file hash
+        run: |
+          echo 'bf24c3c00367790af976e5f407cb9c3b20ad11754845bd0eb63d5cbe4042d07b  Round39Saved/R39_SAVED_NUMERIC_REVIEW_ONLY.blend' | sha256sum -c
+      - name: Install official Blender 5.1.2 with glTF exporter
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 5 -o blender.tar.xz https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libegl1 libgl1 libgl1-mesa-dri libxi6 xvfb libxrender1
+      - name: Real Blender Morph/Skin/Animation export to review GLB and actual re-import
+        run: |
+          set -euo pipefail
+          blender_runtime/blender-5.1.2-linux-x64/blender -b -P rig-experiments/round41_export_and_glb_reimport.py -- \
+            --candidate Round39Saved/R39_SAVED_NUMERIC_REVIEW_ONLY.blend \
+            --out Round41
+          python3 - <<'PY'
+          import json
+          r=json.load(open('Round41/round41_glb_export_reimport.json'))
+          assert r['status']=='PASS_EXPORTED_GLB_AND_REAL_BLENDER_REIMPORT_GODOT_L5_PENDING',r.get('traceback')
+          assert r['animated_morph_weight_channels']>=1
+          assert r['animated_rotation_channels']>=15
+          assert len(r['reimport_shape_key_names'])>=5
+          print('GLB exported and reimported; true Godot L5 and visual L4 still NOT approved')
+          PY
+      - name: Preserve valid GLB or failure evidence without touching production deliver
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-round41-corrected-sprint-review-glb-plus-reimport-check
+          path: Round41/
+          retention-days: 30
+          if-no-files-found: warn
