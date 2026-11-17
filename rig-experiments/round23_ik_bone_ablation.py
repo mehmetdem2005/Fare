@@ -141,7 +141,12 @@ def main():
     if moved<1e-8:
      raise RuntimeError("Actuator was ineffective: "+name+" "+axis+" at "+str(f))
     co=sample(ob,helper)
-    test=trial_measure(co,f,reference,baseline,triangles,areas,rot,edges,TARGET_TRIANGLES)
+    # Co-rotating the reference by this ACTUAL pose's spine_03 orientation
+    # avoids false inverse-normal calls after independent torso rotation tests.
+    rot_trial=(arm.matrix_world@arm.pose.bones["spine_03"].matrix@
+               arm.data.bones["spine_03"].matrix_local.inverted()@
+               arm.matrix_world.inverted()).to_quaternion()
+    test=trial_measure(co,f,reference,baseline,triangles,areas,rot_trial,edges,TARGET_TRIANGLES)
     row={"frame":f,"control_type":typ,"bone":name,"axis":axis,
          "delta":change,"actual_bone_response":moved,"result":test,
          "relative_to_original_v8_quality":quality(test,ref,row) if False else quality(test,ref,None),
@@ -173,7 +178,10 @@ def main():
     row["bvh_before"]=areasurface["baseline_nonadjacent_overlaps"]
     row["bvh_after"]=areasurface["candidate_nonadjacent_overlaps"]
     row["bvh_new_relative_to_original"]=max(0,row["bvh_after"]-row["bvh_before"])
-    row["normal_relative_to_original"]=area_qual(z,baseline["rest"],triangles,areas,rot)["reference_inversions"]-ref["area"]["reference_inversions"]
+    rot_trial=(arm.matrix_world@arm.pose.bones["spine_03"].matrix@
+               arm.data.bones["spine_03"].matrix_local.inverted()@
+               arm.matrix_world.inverted()).to_quaternion()
+    row["normal_relative_to_original"]=area_qual(z,baseline["rest"],triangles,areas,rot_trial)["reference_inversions"]-ref["area"]["reference_inversions"]
    shortlisted=[z for z in best if z.get("bvh_new_relative_to_original",999)==0 and
                 z.get("normal_relative_to_original",999)<=0 and
                 z["result"]["area"]["min"]>=ref["area"]["min"]-.002]
