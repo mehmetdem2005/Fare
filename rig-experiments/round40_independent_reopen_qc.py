@@ -38,6 +38,17 @@ def keys_and_bones(path,helper):
              if k.name.startswith("R39_")}
  return bones,values
 
+def read_static_basis(path,helper):
+ # Evaluated unanimated poses can STILL be deformed by active IK constraints
+ # and therefore cannot stand in for mesh rest/basis. Use actual datablock
+ # coordinates, never a constraint-evaluated mesh, for topology/rest checks.
+ bpy.ops.wm.open_mainfile(filepath=str(path))
+ obj,arm=helper["model"]()
+ vertices=np.asarray([[float(v) for v in point.co] for point in obj.data.vertices])
+ bone_rest=np.asarray([list(row) for name in sorted(x.name for x in arm.data.bones)
+                        for row in arm.data.bones[name].matrix_local],dtype=np.float64)
+ return vertices,bone_rest
+
 def main():
  a=cli();output=Path(a.out).resolve();output.mkdir(parents=True,exist_ok=True)
  report={"status":"STARTED","assurance":"Independent actual Blender 5.1.2 L3 readback + L4 render files only"}
@@ -58,8 +69,17 @@ def main():
   saved=R["load_and_sample"](canpath,H,D)
   if original["polys"]!=saved["polys"] or original["edges"]!=saved["edges"] or original["rois"]!=saved["rois"]:
    raise RuntimeError("Saved Round39 topology/body ROI/vertex connectivity changed")
-  rest_max=max((p-q).length for p,q in zip(original["rest"],saved["rest"]))
-  if rest_max>1e-5:raise RuntimeError("Saved candidate altered original mesh rest pose")
+  # The 'load_and_sample' reference neutral pose with action=None is NOT
+  # a true rest mesh: active IK/constraint matrices may deform it differently
+  # when the intended 290 skin weights were changed. Compare immutable
+  # datablock Basis + bone rest transforms instead, fail on *actual* changes.
+  pseudo_rest_drift=max((p-q).length for p,q in zip(original["rest"],saved["rest"]))
+  source_basis,source_bones=read_static_basis(basepath,H)
+  candidate_basis,candidate_bones=read_static_basis(canpath,H)
+  rest_max=float(np.max(np.linalg.norm(source_basis-candidate_basis,axis=1)))
+  bone_rest_drift=float(np.max(np.abs(source_bones-candidate_bones)))
+  if rest_max>1e-7:raise RuntimeError("Candidate modified original raw base mesh vertex coordinates")
+  if bone_rest_drift>1e-7:raise RuntimeError("Candidate modified original 49-bone rest matrices")
   if max(original["seam"],saved["seam"])>1e-5:raise RuntimeError("Baked original/candidate loop closure failed")
   basebones,_=keys_and_bones(basepath,H)
   newbones,keyvalues=keys_and_bones(canpath,H)
@@ -122,7 +142,9 @@ def main():
   if largest_side>.004:
    fail.append({"error":"other_anatomical_region_p95_regression","worst":largest_side})
   report.update(status="PASS_FRESH_REOPEN_L3_CANDIDATE_L4_AND_L5_PENDING" if not fail else "REJECT_FRESH_REOPEN_ANATOMICAL_L3",
-     source_sha256=SOURCE_SHA,saved_blend_sha256=EXPECTED_SHA,mesh_restitution_error=rest_max,
+     source_sha256=SOURCE_SHA, saved_blend_sha256=EXPECTED_SHA,mesh_restitution_error=rest_max,
+     constraint_evaluated_false_rest_max_difference=pseudo_rest_drift,
+     rest_bone_local_matrix_max_difference=bone_rest_drift,
      bone_action_all_sampled_matrix_max_drift=maximum_bone_matrix_drift,
      original_seam=original["seam"],candidate_seam=saved["seam"],
      f14_saved_reference_value=values14["R39_F14_ORIGINAL_REFERENCE"],
