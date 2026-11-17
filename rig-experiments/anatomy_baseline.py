@@ -68,6 +68,8 @@ def main():
     parser.add_argument("--rest-only", action="store_true")
     parser.add_argument("--full-body-intersections", action="store_true")
     parser.add_argument("--render", action="store_true")
+    parser.add_argument("--stage-probes", action="store_true",
+                        help="Measure pre-armature samples and sprint half-frames")
     parser.add_argument("--expected-bones", type=int, default=49)
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:])
     output = args.out.resolve()
@@ -125,6 +127,25 @@ def main():
     body_rest_areas = np.linalg.norm(normals(rest, body_tris), axis=1)
     valid_body_areas = body_rest_areas > 2e-7
     body_tri_list = body_tris.tolist()
+    def body_intersections(points):
+        tree = BVHTree.FromPolygons(points, body_tri_list, all_triangles=True)
+        candidate_count = 0
+        shared_vertex_count = 0
+        witnesses = []
+        for i, j in sorted(tree.overlap(tree)):
+            if i >= j:
+                continue
+            a, b = body_tri_list[i], body_tri_list[j]
+            if set(a).intersection(b):
+                shared_vertex_count += 1
+                continue
+            candidate_count += 1
+            point = crossing([points[v] for v in a], [points[v] for v in b])
+            if point is not None:
+                witnesses.append({"triangles": [i, j], "vertices": [a, b], "world_point": point})
+        return {"bvh_disjoint_candidates": candidate_count, "shared_vertex_overlaps": shared_vertex_count,
+                "noncoplanar_intersection_witnesses": witnesses}
+
     def signed_body_volume(points):
         a, b, c = points[body_tris].transpose(1, 0, 2)
         return float(np.einsum("ij,ij->", a, np.cross(b, c)) / 6)
@@ -176,6 +197,8 @@ def main():
         arm.data.pose_position = "REST"
         for key in list(obj.data.shape_keys.key_blocks)[1:]:
             key.mute = True
+    if args.stage_probes:
+        report["stage_probes"] = []
     first = None
     for frame in [1] if args.rest_only else range(1, 26):
         helpers["reset"](arm, action, frame)
@@ -217,22 +240,23 @@ def main():
             "shape_keys": {k.name: float(k.value) for k in list(obj.data.shape_keys.key_blocks)[1:]},
         })
         if args.full_body_intersections:
-            body_tree = BVHTree.FromPolygons(points, body_tri_list, all_triangles=True)
-            samples = []
-            for i, j in sorted(body_tree.overlap(body_tree)):
-                a, b = body_tri_list[i], body_tri_list[j]
-                if i >= j or set(a).intersection(b):
-                    continue
-                point = crossing([points[v] for v in a], [points[v] for v in b])
-                if point is not None:
-                    samples.append({"triangles": [i, j], "vertices": [a, b], "world_point": point})
             body_areas = np.linalg.norm(normals(xyz, body_tris), axis=1)
             body_ratios = body_areas[valid_body_areas] / body_rest_areas[valid_body_areas]
             report["samples"][-1]["body_surface"] = {
                 "min_area_ratio": float(body_ratios.min()),
                 "under_half": int((body_ratios < .5).sum()),
-                "noncoplanar_intersection_witnesses": samples,
+                **body_intersections(points),
             }
+        if args.stage_probes and not args.rest_only and frame in (1, 7, 8, 9, 10, 14, 16, 17, 18, 19, 20, 25):
+            upstream = helpers["get_input"](obj, modifier)
+            report["stage_probes"].append({"frame": frame, "subframe": 0, "stage": "before_armature",
+                                           **body_intersections(upstream)})
+            if frame < 25:
+                scene.frame_set(frame, subframe=.5)
+                midpoint = helpers["pts"](obj)
+                report["stage_probes"].append({"frame": frame, "subframe": .5, "stage": "after_armature",
+                                               **body_intersections(midpoint)})
+                scene.frame_set(frame)
         if args.render:
             for name, direction in VIEWS.items():
                 render(scene, camera, frame, name, direction, (0, -.02, .23), 1.48, output)

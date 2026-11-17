@@ -1,0 +1,138 @@
+{
+  "blender": "5.1.2",
+  "source_vertices": 19466,
+  "reimport_vertices": 22198,
+  "reimport_fps": 24,
+  "samples": {
+    "Sprint@1": {
+      "reference_to_reimport": {
+        "max": 0.002464821795001626,
+        "max_source_vertex": 7487,
+        "p95": 2.730665471517568e-07,
+        "worst_vertex_has_source_face": false
+      },
+      "reimport_to_reference": {
+        "max": 6.665735782007687e-06,
+        "max_source_vertex": 3980,
+        "p95": 2.6927949647870264e-07
+      }
+    },
+    "Sprint@7": {
+      "reference_to_reimport": {
+        "max": 0.0024544554762542248,
+        "max_source_vertex": 7487,
+        "p95": 4.02882861294529e-07,
+        "worst_vertex_has_source_face": false
+      },
+      "reimport_to_reference": {
+        "max": 2.3326863356487593e-06,
+        "max_source_vertex": 11709,
+        "p95": 3.640887769051915e-07
+      }
+    },
+    "Sprint@9": {
+      "reference_to_reimport": {
+        "max": 0.002448377665132284,
+        "max_source_vertex": 7487,
+        "p95": 3.4161135431531875e-07,
+        "worst_vertex_has_source_face": false
+      },
+      "reimport_to_reference": {
+        "max": 4.1260209400206804e-06,
+        "max_source_vertex": 3980,
+        "p95": 3.3494481499474205e-07
+      }
+    },
+    "Sprint@14": {
+      "reference_to_reimport": {
+        "max": 0.002442416734993458,
+        "max_source_vertex": 7487,
+        "p95": 4.0917188925959636e-07,
+        "worst_vertex_has_source_face": false
+      },
+      "reimport_to_reference": {
+        "max": 5.804134161735419e-06,
+        "max_source_vertex": 3980,
+        "p95": 4.0535968537369627e-07
+      }
+    },
+    "Sprint@25": {
+      "reference_to_reimport": {
+        "max": 0.002464821795001626,
+        "max_source_vertex": 7487,
+        "p95": 2.730665471517568e-07,
+        "worst_vertex_has_source_face": false
+      },
+      "reimport_to_reference": {
+        "max": 6.665735782007687e-06,
+        "max_source_vertex": 3980,
+        "p95": 2.6927949647870264e-07
+      }
+    },
+    "Idle_expressions@1": {
+      "reference_to_reimport": {
+        "max": 0.002459402196109295,
+        "max_source_vertex": 7487,
+        "p95": 0.00011706428085744847,
+        "worst_vertex_has_source_face": false
+      },
+      "reimport_to_reference": {
+        "max": 0.0006724903360009193,
+        "max_source_vertex": 4948,
+        "p95": 0.00011551260067790241
+      }
+    },
+    "Idle_expressions@9": {
+      "reference_to_reimport": {
+        "max": 0.002459402196109295,
+        "max_source_vertex": 7487,
+        "p95": 0.0001173588552774163,
+        "worst_vertex_has_source_face": false
+      },
+      "reimport_to_reference": {
+        "max": 0.000672497961204499,
+        "max_source_vertex": 4948,
+        "p95": 0.00011551226671144792
+      }
+    },
+    "Idle_expressions@23": {
+      "reference_to_reimport": {
+        "max": 0.002459402196109295,
+        "max_source_vertex": 7487,
+        "p95": 0.00011714080756064504,
+        "worst_vertex_has_source_face": false
+      },
+      "reimport_to_reference": {
+        "max": 0.0006724905106239021,
+        "max_source_vertex": 4948,
+        "p95": 0.00011551512398000302
+      }
+    },
+    "Idle_expressions@28": {
+      "reference_to_reimport": {
+        "max": 0.002459402196109295,
+        "max_source_vertex": 7487,
+        "p95": 0.0001173588552774163,
+        "worst_vertex_has_source_face": false
+      },
+      "reimport_to_reference": {
+        "max": 0.0006724981358274817,
+        "max_source_vertex": 4948,
+        "p95": 0.0001155114070570558
+      }
+    },
+    "Idle_expressions@49": {
+      "reference_to_reimport": {
+        "max": 0.002459402196109295,
+        "max_source_vertex": 7487,
+        "p95": 0.00011706428085744847,
+        "worst_vertex_has_source_face": false
+      },
+      "reimport_to_reference": {
+        "max": 0.0006724903360009193,
+        "max_source_vertex": 4948,
+        "p95": 0.00011551260067790241
+      }
+    }
+  }
+}

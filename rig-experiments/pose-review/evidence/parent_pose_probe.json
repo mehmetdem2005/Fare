@@ -1,0 +1,1168 @@
+{
+  "root": [
+    {
+      "input": -15,
+      "max_displacement": 0.14288707077503204,
+      "moved_vertices": 19466
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.04775017499923706,
+      "moved_vertices": 19466
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.047750405967235565,
+      "moved_vertices": 19466
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.1428873986005783,
+      "moved_vertices": 19466
+    }
+  ],
+  "hips": [
+    {
+      "input": -15,
+      "max_displacement": 0.18963563442230225,
+      "moved_vertices": 18574
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.07506439089775085,
+      "moved_vertices": 18483
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.06337272375822067,
+      "moved_vertices": 17799
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.18963578343391418,
+      "moved_vertices": 17959
+    }
+  ],
+  "thigh.L": [
+    {
+      "input": -15,
+      "max_displacement": 1.2036781527058338e-07,
+      "moved_vertices": 0
+    },
+    {
+      "input": -5,
+      "max_displacement": 6.757064596740747e-08,
+      "moved_vertices": 0
+    },
+    {
+      "input": 5,
+      "max_displacement": 7.48774056091861e-08,
+      "moved_vertices": 0
+    },
+    {
+      "input": 15,
+      "max_displacement": 1.2489448408814496e-07,
+      "moved_vertices": 0
+    }
+  ],
+  "shin.L": [
+    {
+      "input": -15,
+      "max_displacement": 0.019985513761639595,
+      "moved_vertices": 3143
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.006226895842701197,
+      "moved_vertices": 3118
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.005869471002370119,
+      "moved_vertices": 3118
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.016838494688272476,
+      "moved_vertices": 3142
+    }
+  ],
+  "foot.L": [
+    {
+      "input": -15,
+      "max_displacement": 4.535837305752466e-08,
+      "moved_vertices": 0
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.0,
+      "moved_vertices": 0
+    },
+    {
+      "input": 5,
+      "max_displacement": 3.687849314815139e-08,
+      "moved_vertices": 0
+    },
+    {
+      "input": 15,
+      "max_displacement": 5.252692503177059e-08,
+      "moved_vertices": 0
+    }
+  ],
+  "toes.L": [
+    {
+      "input": -15,
+      "max_displacement": 0.010130633600056171,
+      "moved_vertices": 390
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.003385465359315276,
+      "moved_vertices": 386
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.003385464893653989,
+      "moved_vertices": 386
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.010130630806088448,
+      "moved_vertices": 390
+    }
+  ],
+  "thigh.R": [
+    {
+      "input": -15,
+      "max_displacement": 9.064022776783531e-08,
+      "moved_vertices": 0
+    },
+    {
+      "input": -5,
+      "max_displacement": 8.940696716308594e-08,
+      "moved_vertices": 0
+    },
+    {
+      "input": 5,
+      "max_displacement": 1.2219861389439757e-07,
+      "moved_vertices": 0
+    },
+    {
+      "input": 15,
+      "max_displacement": 1.0848209086589122e-07,
+      "moved_vertices": 0
+    }
+  ],
+  "shin.R": [
+    {
+      "input": -15,
+      "max_displacement": 0.01868036575615406,
+      "moved_vertices": 3156
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.005800663027912378,
+      "moved_vertices": 3124
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.005481691565364599,
+      "moved_vertices": 3125
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.015779292210936546,
+      "moved_vertices": 3152
+    }
+  ],
+  "foot.R": [
+    {
+      "input": -15,
+      "max_displacement": 2.4609660087548946e-08,
+      "moved_vertices": 0
+    },
+    {
+      "input": -5,
+      "max_displacement": 3.0719530030864917e-08,
+      "moved_vertices": 0
+    },
+    {
+      "input": 5,
+      "max_displacement": 2.686345013103164e-08,
+      "moved_vertices": 0
+    },
+    {
+      "input": 15,
+      "max_displacement": 3.122362102203624e-08,
+      "moved_vertices": 0
+    }
+  ],
+  "toes.R": [
+    {
+      "input": -15,
+      "max_displacement": 0.010116014629602432,
+      "moved_vertices": 497
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.003380585927516222,
+      "moved_vertices": 473
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.0033805700950324535,
+      "moved_vertices": 473
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.010116007179021835,
+      "moved_vertices": 497
+    }
+  ],
+  "tail_01": [
+    {
+      "input": -15,
+      "max_displacement": 0.05859064310789108,
+      "moved_vertices": 1828
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.019579889252781868,
+      "moved_vertices": 1828
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.019579892978072166,
+      "moved_vertices": 1828
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.05859067663550377,
+      "moved_vertices": 1828
+    }
+  ],
+  "tail_02": [
+    {
+      "input": -15,
+      "max_displacement": 0.06213584169745445,
+      "moved_vertices": 1264
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.02076461911201477,
+      "moved_vertices": 1264
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.020764626562595367,
+      "moved_vertices": 1264
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.062135856598615646,
+      "moved_vertices": 1264
+    }
+  ],
+  "tail_03": [
+    {
+      "input": -15,
+      "max_displacement": 0.06703396886587143,
+      "moved_vertices": 627
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.022401485592126846,
+      "moved_vertices": 624
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.022401485592126846,
+      "moved_vertices": 624
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.06703397631645203,
+      "moved_vertices": 627
+    }
+  ],
+  "tail_04": [
+    {
+      "input": -15,
+      "max_displacement": 0.05592257156968117,
+      "moved_vertices": 478
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.018688272684812546,
+      "moved_vertices": 478
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.018688278272747993,
+      "moved_vertices": 478
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.05592259019613266,
+      "moved_vertices": 478
+    }
+  ],
+  "tail_05": [
+    {
+      "input": -15,
+      "max_displacement": 0.04033155366778374,
+      "moved_vertices": 326
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.013478044420480728,
+      "moved_vertices": 326
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.013478046283125877,
+      "moved_vertices": 326
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.04033156856894493,
+      "moved_vertices": 326
+    }
+  ],
+  "tail_06": [
+    {
+      "input": -15,
+      "max_displacement": 0.02155318297445774,
+      "moved_vertices": 225
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.007202675566077232,
+      "moved_vertices": 225
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.007202674634754658,
+      "moved_vertices": 225
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.021553203463554382,
+      "moved_vertices": 225
+    }
+  ],
+  "spine_01": [
+    {
+      "input": -15,
+      "max_displacement": 0.18963555991649628,
+      "moved_vertices": 13986
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.06337255984544754,
+      "moved_vertices": 13954
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.07506447285413742,
+      "moved_vertices": 14529
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.1896357238292694,
+      "moved_vertices": 14561
+    }
+  ],
+  "spine_02": [
+    {
+      "input": -15,
+      "max_displacement": 0.17553269863128662,
+      "moved_vertices": 12282
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.058659616857767105,
+      "moved_vertices": 12261
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.07102455943822861,
+      "moved_vertices": 12836
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.1755327433347702,
+      "moved_vertices": 12857
+    }
+  ],
+  "spine_03": [
+    {
+      "input": -15,
+      "max_displacement": 0.161381334066391,
+      "moved_vertices": 14932
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.053930580615997314,
+      "moved_vertices": 14891
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.05393059924244881,
+      "moved_vertices": 14871
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.16138137876987457,
+      "moved_vertices": 15506
+    }
+  ],
+  "spine_04": [
+    {
+      "input": -15,
+      "max_displacement": 0.1469542682170868,
+      "moved_vertices": 11454
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.049109358340501785,
+      "moved_vertices": 11453
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.04910939931869507,
+      "moved_vertices": 11453
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.14695434272289276,
+      "moved_vertices": 12029
+    }
+  ],
+  "spine_05": [
+    {
+      "input": -15,
+      "max_displacement": 0.13219882547855377,
+      "moved_vertices": 10907
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.04417836666107178,
+      "moved_vertices": 10883
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.04417840391397476,
+      "moved_vertices": 10884
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.13219891488552094,
+      "moved_vertices": 11482
+    }
+  ],
+  "neck": [
+    {
+      "input": -15,
+      "max_displacement": 0.11684025824069977,
+      "moved_vertices": 8749
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.039045803248882294,
+      "moved_vertices": 8749
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.0390457883477211,
+      "moved_vertices": 8749
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.11684026569128036,
+      "moved_vertices": 8749
+    }
+  ],
+  "head": [
+    {
+      "input": -15,
+      "max_displacement": 0.07913169264793396,
+      "moved_vertices": 7308
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.0264443252235651,
+      "moved_vertices": 7308
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.026444336399435997,
+      "moved_vertices": 7308
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.07913170009851456,
+      "moved_vertices": 7308
+    }
+  ],
+  "snout": [
+    {
+      "input": -15,
+      "max_displacement": 0.04889408499002457,
+      "moved_vertices": 4164
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.016339458525180817,
+      "moved_vertices": 4164
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.016339439898729324,
+      "moved_vertices": 4164
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.048894040286540985,
+      "moved_vertices": 4164
+    }
+  ],
+  "whisker_fan.L": [
+    {
+      "input": -15,
+      "max_displacement": 0.05760728195309639,
+      "moved_vertices": 1446
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.019251283258199692,
+      "moved_vertices": 1446
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.01925126276910305,
+      "moved_vertices": 1446
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.057607296854257584,
+      "moved_vertices": 1446
+    }
+  ],
+  "whisker_fan.R": [
+    {
+      "input": -15,
+      "max_displacement": 0.060612767934799194,
+      "moved_vertices": 1233
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.02025565877556801,
+      "moved_vertices": 1233
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.02025565691292286,
+      "moved_vertices": 1233
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.0606127493083477,
+      "moved_vertices": 1233
+    }
+  ],
+  "ear.L": [
+    {
+      "input": -15,
+      "max_displacement": 0.03661211580038071,
+      "moved_vertices": 345
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.012235093861818314,
+      "moved_vertices": 344
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.012235064059495926,
+      "moved_vertices": 459
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.03661207854747772,
+      "moved_vertices": 465
+    }
+  ],
+  "ear_02.L": [
+    {
+      "input": -15,
+      "max_displacement": 0.023474087938666344,
+      "moved_vertices": 269
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.00784462969750166,
+      "moved_vertices": 269
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.007844602689146996,
+      "moved_vertices": 269
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.02347405254840851,
+      "moved_vertices": 269
+    }
+  ],
+  "ear_03.L": [
+    {
+      "input": -15,
+      "max_displacement": 0.023524085059762,
+      "moved_vertices": 151
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.007861306890845299,
+      "moved_vertices": 150
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.007861340418457985,
+      "moved_vertices": 150
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.02352415956556797,
+      "moved_vertices": 151
+    }
+  ],
+  "ear_04.L": [
+    {
+      "input": -15,
+      "max_displacement": 0.012801381759345531,
+      "moved_vertices": 101
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.004277978558093309,
+      "moved_vertices": 101
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.004277999512851238,
+      "moved_vertices": 101
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.012801437638700008,
+      "moved_vertices": 101
+    }
+  ],
+  "ear.R": [
+    {
+      "input": -15,
+      "max_displacement": 0.034962017089128494,
+      "moved_vertices": 340
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.011683627031743526,
+      "moved_vertices": 340
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.01168364193290472,
+      "moved_vertices": 484
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.03496190905570984,
+      "moved_vertices": 486
+    }
+  ],
+  "ear_02.R": [
+    {
+      "input": -15,
+      "max_displacement": 0.024567972868680954,
+      "moved_vertices": 244
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.00821015052497387,
+      "moved_vertices": 244
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.008210157044231892,
+      "moved_vertices": 244
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.02456793375313282,
+      "moved_vertices": 244
+    }
+  ],
+  "ear_03.R": [
+    {
+      "input": -15,
+      "max_displacement": 0.01808902993798256,
+      "moved_vertices": 133
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.006045032292604446,
+      "moved_vertices": 133
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.006045002955943346,
+      "moved_vertices": 133
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.018088966608047485,
+      "moved_vertices": 133
+    }
+  ],
+  "shoulder.L": [
+    {
+      "input": -15,
+      "max_displacement": 0.04102114960551262,
+      "moved_vertices": 1769
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.01362310629338026,
+      "moved_vertices": 1750
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.013854976743459702,
+      "moved_vertices": 1748
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.04503151401877403,
+      "moved_vertices": 1768
+    }
+  ],
+  "upper_arm.L": [
+    {
+      "input": -15,
+      "max_displacement": 9.290030078545897e-08,
+      "moved_vertices": 0
+    },
+    {
+      "input": -5,
+      "max_displacement": 7.300048565639372e-08,
+      "moved_vertices": 0
+    },
+    {
+      "input": 5,
+      "max_displacement": 9.217741592237871e-08,
+      "moved_vertices": 0
+    },
+    {
+      "input": 15,
+      "max_displacement": 9.358286234828483e-08,
+      "moved_vertices": 0
+    }
+  ],
+  "forearm.L": [
+    {
+      "input": -15,
+      "max_displacement": 0.0014229933731257915,
+      "moved_vertices": 1512
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.00043970884871669114,
+      "moved_vertices": 1200
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.0004199255199637264,
+      "moved_vertices": 1203
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.0012344897259026766,
+      "moved_vertices": 1473
+    }
+  ],
+  "hand.L": [
+    {
+      "input": -15,
+      "max_displacement": 7.598131190889035e-08,
+      "moved_vertices": 0
+    },
+    {
+      "input": -5,
+      "max_displacement": 4.470348358154297e-08,
+      "moved_vertices": 0
+    },
+    {
+      "input": 5,
+      "max_displacement": 6.420049203370581e-08,
+      "moved_vertices": 0
+    },
+    {
+      "input": 15,
+      "max_displacement": 6.476543035205395e-08,
+      "moved_vertices": 0
+    }
+  ],
+  "front_toes.L": [
+    {
+      "input": -15,
+      "max_displacement": 0.034928612411022186,
+      "moved_vertices": 634
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.011672492139041424,
+      "moved_vertices": 634
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.011672462336719036,
+      "moved_vertices": 634
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.03492860496044159,
+      "moved_vertices": 634
+    }
+  ],
+  "shoulder.R": [
+    {
+      "input": -15,
+      "max_displacement": 0.04121323302388191,
+      "moved_vertices": 1682
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.013724234886467457,
+      "moved_vertices": 1670
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.014085760340094566,
+      "moved_vertices": 1669
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.04507444053888321,
+      "moved_vertices": 1682
+    }
+  ],
+  "upper_arm.R": [
+    {
+      "input": -15,
+      "max_displacement": 4.470348358154297e-08,
+      "moved_vertices": 0
+    },
+    {
+      "input": -5,
+      "max_displacement": 1.043081283569336e-07,
+      "moved_vertices": 0
+    },
+    {
+      "input": 5,
+      "max_displacement": 6.322026990801533e-08,
+      "moved_vertices": 0
+    },
+    {
+      "input": 15,
+      "max_displacement": 1.0044585252444449e-07,
+      "moved_vertices": 0
+    }
+  ],
+  "forearm.R": [
+    {
+      "input": -15,
+      "max_displacement": 0.0014041636604815722,
+      "moved_vertices": 1442
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.00043253504554741085,
+      "moved_vertices": 1037
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.00041480001527816057,
+      "moved_vertices": 1036
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.0012217233888804913,
+      "moved_vertices": 1416
+    }
+  ],
+  "hand.R": [
+    {
+      "input": -15,
+      "max_displacement": 4.360340355447079e-08,
+      "moved_vertices": 0
+    },
+    {
+      "input": -5,
+      "max_displacement": 4.535837305752466e-08,
+      "moved_vertices": 0
+    },
+    {
+      "input": 5,
+      "max_displacement": 4.214684778958144e-08,
+      "moved_vertices": 0
+    },
+    {
+      "input": 15,
+      "max_displacement": 4.470348358154297e-08,
+      "moved_vertices": 0
+    }
+  ],
+  "front_toes.R": [
+    {
+      "input": -15,
+      "max_displacement": 0.011692510917782784,
+      "moved_vertices": 734
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.003907460719347,
+      "moved_vertices": 733
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.003907397855073214,
+      "moved_vertices": 733
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.01169247180223465,
+      "moved_vertices": 734
+    }
+  ],
+  "spine_curve": [
+    {
+      "input": -15,
+      "max_displacement": 0.0,
+      "moved_vertices": 0
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.0,
+      "moved_vertices": 0
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.0,
+      "moved_vertices": 0
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.0,
+      "moved_vertices": 0
+    }
+  ],
+  "ik_hand.L": [
+    {
+      "input": -15,
+      "max_displacement": 0.015890447422862053,
+      "moved_vertices": 1907
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.005259233061224222,
+      "moved_vertices": 1878
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.005228674039244652,
+      "moved_vertices": 1874
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.015607107430696487,
+      "moved_vertices": 1887
+    }
+  ],
+  "pole_front.L": [
+    {
+      "input": -15,
+      "max_displacement": 0.0002827306161634624,
+      "moved_vertices": 1109
+    },
+    {
+      "input": -5,
+      "max_displacement": 9.935558045981452e-05,
+      "moved_vertices": 955
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.00010505076352274045,
+      "moved_vertices": 963
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.00033435653313063085,
+      "moved_vertices": 1128
+    }
+  ],
+  "ik_foot.L": [
+    {
+      "input": -15,
+      "max_displacement": 0.015831001102924347,
+      "moved_vertices": 3537
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.0052791014313697815,
+      "moved_vertices": 3508
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.0052805193699896336,
+      "moved_vertices": 3509
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.015843400731682777,
+      "moved_vertices": 3538
+    }
+  ],
+  "pole_hind.L": [
+    {
+      "input": -15,
+      "max_displacement": 0.0034197652712464333,
+      "moved_vertices": 3116
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.0010958537459373474,
+      "moved_vertices": 2901
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.0010548611171543598,
+      "moved_vertices": 2900
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.0030502015724778175,
+      "moved_vertices": 3101
+    }
+  ],
+  "ik_hand.R": [
+    {
+      "input": -15,
+      "max_displacement": 0.01594926044344902,
+      "moved_vertices": 1845
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.00526113947853446,
+      "moved_vertices": 1826
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.005226492416113615,
+      "moved_vertices": 1820
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.0155879445374012,
+      "moved_vertices": 1837
+    }
+  ],
+  "pole_front.R": [
+    {
+      "input": -15,
+      "max_displacement": 0.00029243965400382876,
+      "moved_vertices": 1027
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.00010277674300596118,
+      "moved_vertices": 893
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.00010866812226595357,
+      "moved_vertices": 898
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.0003458211140241474,
+      "moved_vertices": 1041
+    }
+  ],
+  "ik_foot.R": [
+    {
+      "input": -15,
+      "max_displacement": 0.01590726338326931,
+      "moved_vertices": 3645
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.0053082178346812725,
+      "moved_vertices": 3618
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.005313169676810503,
+      "moved_vertices": 3619
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.01595144160091877,
+      "moved_vertices": 3647
+    }
+  ],
+  "pole_hind.R": [
+    {
+      "input": -15,
+      "max_displacement": 0.003224562853574753,
+      "moved_vertices": 3119
+    },
+    {
+      "input": -5,
+      "max_displacement": 0.0010328027419745922,
+      "moved_vertices": 2929
+    },
+    {
+      "input": 5,
+      "max_displacement": 0.0009938469156622887,
+      "moved_vertices": 2921
+    },
+    {
+      "input": 15,
+      "max_displacement": 0.002872670069336891,
+      "moved_vertices": 3087
+    }
+  ],
+  "FK": {
+    "upper_arm.L": 0.06303686648607254,
+    "forearm.L": 0.06120235100388527,
+    "hand.L": 0.05125430226325989,
+    "thigh.L": 0.08054328709840775,
+    "shin.L": 0.04344688355922699,
+    "foot.L": 0.049394477158784866,
+    "upper_arm.R": 0.06359247863292694,
+    "forearm.R": 0.05964834615588188,
+    "hand.R": 0.04883052781224251,
+    "thigh.R": 0.08069002628326416,
+    "shin.R": 0.042866818606853485,
+    "foot.R": 0.0492621473968029
+  },
+  "breath": {
+    "max_displacement": 0.0077196089550852776,
+    "moved_vertices": 2447
+  },
+  "heartbeat": {
+    "max_displacement": 0.0015646141255274415,
+    "moved_vertices": 798
+  }
+}

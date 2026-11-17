@@ -1,0 +1,5055 @@
+{
+  "source": "rig-experiments/pose-mode-evidence/taubin-delivery/FARE_POSE_REVIEW_UNAPPROVED.blend",
+  "blender": "5.1.2",
+  "bone_count": 52,
+  "bone_collections": [
+    "DEF",
+    "CTRL",
+    "Whisker articulation",
+    "Spine controls"
+  ],
+  "sampled_scenarios": {
+    "neutral": {
+      "inputs": {},
+      "body_edge_strain_p95": 0.0,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "crouch": {
+      "inputs": {
+        "locations": {
+          "hips": [
+            0,
+            0,
+            -0.025
+          ]
+        },
+        "spine": {
+          "flex": 8
+        }
+      },
+      "body_edge_strain_p95": 0.148976132273674,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.06213412061333656,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.9210323691368103
+      }
+    },
+    "rise": {
+      "inputs": {
+        "locations": {
+          "hips": [
+            0,
+            0,
+            0.014
+          ]
+        },
+        "spine": {
+          "flex": -6
+        }
+      },
+      "body_edge_strain_p95": 0.12287931144237518,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.05142312869429588,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "reach": {
+      "inputs": {
+        "locations": {
+          "ik_hand.R": [
+            0,
+            -0.035,
+            0.008
+          ]
+        },
+        "spine": {
+          "flex": -8
+        }
+      },
+      "body_edge_strain_p95": 0.1923806518316269,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.08676470816135406,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "front_open_left": {
+      "inputs": {
+        "locations": {
+          "ik_hand.L": [
+            0.023,
+            -0.01,
+            0.008
+          ]
+        }
+      },
+      "body_edge_strain_p95": 0.015209195204079151,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.026834791526198387,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "front_open_right": {
+      "inputs": {
+        "locations": {
+          "ik_hand.R": [
+            -0.023,
+            -0.01,
+            0.008
+          ]
+        }
+      },
+      "body_edge_strain_p95": 0.014333155937492847,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.02678116224706173,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_flex": {
+      "inputs": {
+        "spine": {
+          "flex": 15
+        }
+      },
+      "body_edge_strain_p95": 0.22929580509662628,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.16312414407730103,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_extend": {
+      "inputs": {
+        "spine": {
+          "flex": -15
+        }
+      },
+      "body_edge_strain_p95": 0.3365074694156647,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.1621229201555252,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_side_left": {
+      "inputs": {
+        "spine": {
+          "side_bend": 12
+        }
+      },
+      "body_edge_strain_p95": 0.17437312006950378,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.1270383894443512,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_side_right": {
+      "inputs": {
+        "spine": {
+          "side_bend": -12
+        }
+      },
+      "body_edge_strain_p95": 0.17319628596305847,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.12664811313152313,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_twist_left": {
+      "inputs": {
+        "spine": {
+          "twist": 12
+        }
+      },
+      "body_edge_strain_p95": 0.18673299252986908,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.07240604609251022,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_twist_right": {
+      "inputs": {
+        "spine": {
+          "twist": -12
+        }
+      },
+      "body_edge_strain_p95": 0.18756699562072754,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.07114574313163757,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "bend_twist_look": {
+      "inputs": {
+        "spine": {
+          "flex": 10,
+          "twist": 8
+        },
+        "rotations": {
+          "head": [
+            "Z",
+            -9
+          ]
+        }
+      },
+      "body_edge_strain_p95": 0.25494956970214844,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.13661018013954163,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "look_up": {
+      "inputs": {
+        "spine": {
+          "flex": 5
+        },
+        "rotations": {
+          "head": [
+            "X",
+            10
+          ]
+        }
+      },
+      "body_edge_strain_p95": 0.13318997621536255,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.10721973329782486,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "look_down": {
+      "inputs": {
+        "spine": {
+          "flex": -5
+        },
+        "rotations": {
+          "head": [
+            "X",
+            -10
+          ]
+        }
+      },
+      "body_edge_strain_p95": 0.14212016761302948,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.10641365498304367,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "tail_curve": {
+      "inputs": {
+        "rotations": {
+          "tail_01": [
+            "Z",
+            10
+          ],
+          "tail_02": [
+            "Z",
+            12
+          ]
+        }
+      },
+      "body_edge_strain_p95": 0.002513064071536064,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.13072159886360168,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "tuck": {
+      "inputs": {
+        "locations": {
+          "ik_hand.L": [
+            0,
+            0,
+            0.025
+          ],
+          "ik_hand.R": [
+            0,
+            0,
+            0.025
+          ],
+          "ik_foot.L": [
+            0,
+            0,
+            0.025
+          ],
+          "ik_foot.R": [
+            0,
+            0,
+            0.025
+          ]
+        },
+        "spine": {
+          "flex": 12
+        }
+      },
+      "body_edge_strain_p95": 0.21164314448833466,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.13055120408535004,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.9210310578346252
+      }
+    },
+    "landing": {
+      "inputs": {
+        "locations": {
+          "ik_hand.L": [
+            0,
+            -0.023,
+            0
+          ],
+          "ik_hand.R": [
+            0,
+            -0.023,
+            0
+          ],
+          "hips": [
+            0,
+            0,
+            -0.017
+          ]
+        }
+      },
+      "body_edge_strain_p95": 0.08719895780086517,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.023545555770397186,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.09454255551099777
+      }
+    },
+    "diagonal_lift": {
+      "inputs": {
+        "locations": {
+          "ik_hand.R": [
+            0,
+            -0.025,
+            0.02
+          ],
+          "ik_foot.L": [
+            0,
+            0.025,
+            0.02
+          ]
+        }
+      },
+      "body_edge_strain_p95": 0.06586074829101562,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0336921289563179,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "chest_combined": {
+      "inputs": {
+        "spine": {
+          "flex": 10
+        },
+        "rotations": {
+          "head": [
+            "X",
+            8
+          ]
+        },
+        "breath": 0.65,
+        "heartbeat": 0.5
+      },
+      "body_edge_strain_p95": 0.18565723299980164,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.1510331630706787,
+      "controls_morph_values": {
+        "chest_breath": 0.6500000357627869,
+        "chest_heartbeat": 0.4999999403953552,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "chest_maximum_bent": {
+      "inputs": {
+        "spine": {
+          "flex": 10
+        },
+        "breath": 1.0,
+        "heartbeat": 1.0
+      },
+      "body_edge_strain_p95": 0.18371744453907013,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.1088079959154129,
+      "controls_morph_values": {
+        "chest_breath": 1.0,
+        "chest_heartbeat": 1.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "whiskers_head": {
+      "inputs": {
+        "rotations": {
+          "head": [
+            "Z",
+            12
+          ],
+          "snout": [
+            "X",
+            4
+          ],
+          "whisker_fan.L": [
+            "Z",
+            6
+          ],
+          "whisker_fan.R": [
+            "Z",
+            -3
+          ]
+        }
+      },
+      "body_edge_strain_p95": 0.1662956327199936,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.08709661662578583,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "lift_ik_hand.L": {
+      "inputs": {
+        "locations": {
+          "ik_hand.L": [
+            0,
+            0,
+            0.025
+          ]
+        }
+      },
+      "body_edge_strain_p95": 0.02896546944975853,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.026779847219586372,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "load_ik_hand.L": {
+      "inputs": {
+        "locations": {
+          "hips": [
+            0.013,
+            -0.016,
+            -0.007
+          ]
+        }
+      },
+      "body_edge_strain_p95": 0.10512050241231918,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03179801255464554,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "lift_ik_hand.R": {
+      "inputs": {
+        "locations": {
+          "ik_hand.R": [
+            0,
+            0,
+            0.025
+          ]
+        }
+      },
+      "body_edge_strain_p95": 0.027579335495829582,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.026605274528265,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "load_ik_hand.R": {
+      "inputs": {
+        "locations": {
+          "hips": [
+            -0.013,
+            -0.016,
+            -0.007
+          ]
+        }
+      },
+      "body_edge_strain_p95": 0.1048029363155365,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03178217262029648,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "lift_ik_foot.L": {
+      "inputs": {
+        "locations": {
+          "ik_foot.L": [
+            0,
+            0,
+            0.025
+          ]
+        }
+      },
+      "body_edge_strain_p95": 0.05549928545951843,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.026896726340055466,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "load_ik_foot.L": {
+      "inputs": {
+        "locations": {
+          "hips": [
+            0.013,
+            0.016,
+            -0.007
+          ]
+        }
+      },
+      "body_edge_strain_p95": 0.11040165275335312,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.034508757293224335,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "lift_ik_foot.R": {
+      "inputs": {
+        "locations": {
+          "ik_foot.R": [
+            0,
+            0,
+            0.025
+          ]
+        }
+      },
+      "body_edge_strain_p95": 0.05960432067513466,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.028596848249435425,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.9210310578346252
+      }
+    },
+    "load_ik_foot.R": {
+      "inputs": {
+        "locations": {
+          "hips": [
+            -0.013,
+            0.016,
+            -0.007
+          ]
+        }
+      },
+      "body_edge_strain_p95": 0.11178284138441086,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03447343781590462,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    }
+  },
+  "fk_sweeps": {
+    "shoulder.L/X/-15": {
+      "body_edge_strain_p95": 0.07912883907556534,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0987221822142601,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.L/X/-10": {
+      "body_edge_strain_p95": 0.05300329998135567,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.06591936945915222,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.L/X/-5": {
+      "body_edge_strain_p95": 0.027821198105812073,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.032991085201501846,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.L/X/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.L/X/5": {
+      "body_edge_strain_p95": 0.027584876865148544,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03299109265208244,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.L/X/10": {
+      "body_edge_strain_p95": 0.05437207967042923,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.06591937690973282,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.L/X/15": {
+      "body_edge_strain_p95": 0.08138535916805267,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0987221971154213,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.L/Y/-15": {
+      "body_edge_strain_p95": 0.04385850951075554,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03635638952255249,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.L/Y/-10": {
+      "body_edge_strain_p95": 0.029661079868674278,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.02427658624947071,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.L/Y/-5": {
+      "body_edge_strain_p95": 0.0173589289188385,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.012150638736784458,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.L/Y/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.L/Y/5": {
+      "body_edge_strain_p95": 0.01677662879228592,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.012147609144449234,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.L/Y/10": {
+      "body_edge_strain_p95": 0.028196163475513458,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.024273622781038284,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.L/Y/15": {
+      "body_edge_strain_p95": 0.04210103303194046,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03635339438915253,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.L/Z/-15": {
+      "body_edge_strain_p95": 0.06407887488603592,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.10011156648397446,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.L/Z/-10": {
+      "body_edge_strain_p95": 0.04407775029540062,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.06684710085391998,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.L/Z/-5": {
+      "body_edge_strain_p95": 0.022728169336915016,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03345537558197975,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.L/Z/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.L/Z/5": {
+      "body_edge_strain_p95": 0.023244870826601982,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03345544636249542,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.L/Z/10": {
+      "body_edge_strain_p95": 0.04523724690079689,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.06684715300798416,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.L/Z/15": {
+      "body_edge_strain_p95": 0.06682880222797394,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.10011165589094162,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.R/X/-15": {
+      "body_edge_strain_p95": 0.08099779486656189,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.09925968945026398,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.R/X/-10": {
+      "body_edge_strain_p95": 0.055219318717718124,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.06627829372882843,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.R/X/-5": {
+      "body_edge_strain_p95": 0.029142603278160095,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.033170778304338455,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.R/X/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.R/X/5": {
+      "body_edge_strain_p95": 0.028397679328918457,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0331706739962101,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.R/X/10": {
+      "body_edge_strain_p95": 0.055908799171447754,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.06627825647592545,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.R/X/15": {
+      "body_edge_strain_p95": 0.08368179947137833,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0992596298456192,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.R/Y/-15": {
+      "body_edge_strain_p95": 0.043864089995622635,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03619952127337456,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.R/Y/-10": {
+      "body_edge_strain_p95": 0.029734833166003227,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.024170903488993645,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.R/Y/-5": {
+      "body_edge_strain_p95": 0.017280414700508118,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.012096250429749489,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.R/Y/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.R/Y/5": {
+      "body_edge_strain_p95": 0.01791379414498806,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.012099051848053932,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.R/Y/10": {
+      "body_edge_strain_p95": 0.031038371846079826,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.024173656478524208,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.R/Y/15": {
+      "body_edge_strain_p95": 0.045009780675172806,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03620230406522751,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.R/Z/-15": {
+      "body_edge_strain_p95": 0.06713761389255524,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.10062473267316818,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.R/Z/-10": {
+      "body_edge_strain_p95": 0.045658178627491,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0671897754073143,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.R/Z/-5": {
+      "body_edge_strain_p95": 0.02356906421482563,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03362692520022392,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.R/Z/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.R/Z/5": {
+      "body_edge_strain_p95": 0.02325219288468361,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03362686559557915,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.R/Z/10": {
+      "body_edge_strain_p95": 0.044031236320734024,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.06718969345092773,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shoulder.R/Z/15": {
+      "body_edge_strain_p95": 0.06523718684911728,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.10062465816736221,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.L/X/-15": {
+      "body_edge_strain_p95": 0.042905062437057495,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.06303683668375015,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.L/X/-10": {
+      "body_edge_strain_p95": 0.029437679797410965,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.042091354727745056,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.L/X/-5": {
+      "body_edge_strain_p95": 0.017139572650194168,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.021065715700387955,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.L/X/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.L/X/5": {
+      "body_edge_strain_p95": 0.015768518671393394,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.021065691486001015,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.L/X/10": {
+      "body_edge_strain_p95": 0.02552015148103237,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04209136590361595,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.L/X/15": {
+      "body_edge_strain_p95": 0.03632357344031334,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.06303688138723373,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.L/Y/-15": {
+      "body_edge_strain_p95": 0.018006982281804085,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.05877389758825302,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.L/Y/-10": {
+      "body_edge_strain_p95": 0.014944174326956272,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03924484923481941,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.L/Y/-5": {
+      "body_edge_strain_p95": 0.011521748267114162,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.019641080871224403,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.L/Y/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.L/Y/5": {
+      "body_edge_strain_p95": 0.01108076423406601,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.019641246646642685,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.L/Y/10": {
+      "body_edge_strain_p95": 0.01495575811713934,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.039244987070560455,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.L/Y/15": {
+      "body_edge_strain_p95": 0.018487459048628807,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.058774061501026154,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.L/Z/-15": {
+      "body_edge_strain_p95": 0.02695588394999504,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.046510495245456696,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.L/Z/-10": {
+      "body_edge_strain_p95": 0.019641343504190445,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.031055742874741554,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.L/Z/-5": {
+      "body_edge_strain_p95": 0.013503126800060272,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.01554185152053833,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.L/Z/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.L/Z/5": {
+      "body_edge_strain_p95": 0.013240573927760124,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.015545088797807693,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.L/Z/10": {
+      "body_edge_strain_p95": 0.018682213500142097,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.031058961525559425,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.L/Z/15": {
+      "body_edge_strain_p95": 0.02543066442012787,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04651370272040367,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.R/X/-15": {
+      "body_edge_strain_p95": 0.04182536154985428,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.06359255313873291,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.R/X/-10": {
+      "body_edge_strain_p95": 0.02843552455306053,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.042462389916181564,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.R/X/-5": {
+      "body_edge_strain_p95": 0.016812479123473167,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.021251387894153595,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.R/X/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.R/X/5": {
+      "body_edge_strain_p95": 0.015645967796444893,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.021251384168863297,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.R/X/10": {
+      "body_edge_strain_p95": 0.024870028719305992,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04246233031153679,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.R/X/15": {
+      "body_edge_strain_p95": 0.035986658185720444,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.06359248608350754,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.R/Y/-15": {
+      "body_edge_strain_p95": 0.01840798370540142,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.05968752130866051,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.R/Y/-10": {
+      "body_edge_strain_p95": 0.014784044586122036,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03985484689474106,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.R/Y/-5": {
+      "body_edge_strain_p95": 0.011099744588136673,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.019946353510022163,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.R/Y/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.R/Y/5": {
+      "body_edge_strain_p95": 0.011293048970401287,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.01994665339589119,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.R/Y/10": {
+      "body_edge_strain_p95": 0.014823177829384804,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.039855170994997025,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.R/Y/15": {
+      "body_edge_strain_p95": 0.018101144582033157,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.05968784540891647,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.R/Z/-15": {
+      "body_edge_strain_p95": 0.0256264116615057,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04652639105916023,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.R/Z/-10": {
+      "body_edge_strain_p95": 0.018769165500998497,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03106735460460186,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.R/Z/-5": {
+      "body_edge_strain_p95": 0.013540929183363914,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.015549182891845703,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.R/Z/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.R/Z/5": {
+      "body_edge_strain_p95": 0.01380822341889143,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.015546341426670551,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.R/Z/10": {
+      "body_edge_strain_p95": 0.019365401938557625,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.031064514070749283,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "upper_arm.R/Z/15": {
+      "body_edge_strain_p95": 0.02599024958908558,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.046523548662662506,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.L/X/-15": {
+      "body_edge_strain_p95": 0.009262586943805218,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.061202194541692734,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.L/X/-10": {
+      "body_edge_strain_p95": 0.008854294195771217,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.040866270661354065,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.L/X/-5": {
+      "body_edge_strain_p95": 0.008132594637572765,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.020452527329325676,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.L/X/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.L/X/5": {
+      "body_edge_strain_p95": 0.008664023131132126,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.02045278809964657,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.L/X/10": {
+      "body_edge_strain_p95": 0.009453673847019672,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04086651653051376,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.L/X/15": {
+      "body_edge_strain_p95": 0.010009285062551498,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.061202455312013626,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.L/Y/-15": {
+      "body_edge_strain_p95": 0.008715780451893806,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04402318596839905,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.L/Y/-10": {
+      "body_edge_strain_p95": 0.00840822421014309,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.029395360499620438,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.L/Y/-5": {
+      "body_edge_strain_p95": 0.007824979722499847,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.01471161749213934,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.L/Y/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.L/Y/5": {
+      "body_edge_strain_p95": 0.007718758657574654,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.014711867086589336,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.L/Y/10": {
+      "body_edge_strain_p95": 0.008427249267697334,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.029395610094070435,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.L/Y/15": {
+      "body_edge_strain_p95": 0.008761618286371231,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.044023413211107254,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.L/Z/-15": {
+      "body_edge_strain_p95": 0.009192049503326416,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.048928044736385345,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.L/Z/-10": {
+      "body_edge_strain_p95": 0.008787239901721478,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.032670531421899796,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.L/Z/-5": {
+      "body_edge_strain_p95": 0.008098442107439041,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.01635080575942993,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.L/Z/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.L/Z/5": {
+      "body_edge_strain_p95": 0.008086842484772205,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.016350898891687393,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.L/Z/10": {
+      "body_edge_strain_p95": 0.00871950201690197,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03267059102654457,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.L/Z/15": {
+      "body_edge_strain_p95": 0.009074954316020012,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.048928141593933105,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.R/X/-15": {
+      "body_edge_strain_p95": 0.008941732347011566,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.059648413211107254,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.R/X/-10": {
+      "body_edge_strain_p95": 0.008544494397938251,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.039828795939683914,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.R/X/-5": {
+      "body_edge_strain_p95": 0.00790085457265377,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.01993337646126747,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.R/X/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.R/X/5": {
+      "body_edge_strain_p95": 0.008323222398757935,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0199333056807518,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.R/X/10": {
+      "body_edge_strain_p95": 0.008954634889960289,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03982869163155556,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.R/X/15": {
+      "body_edge_strain_p95": 0.009324956685304642,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0596483051776886,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.R/Y/-15": {
+      "body_edge_strain_p95": 0.00854730885475874,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04203566536307335,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.R/Y/-10": {
+      "body_edge_strain_p95": 0.008269613608717918,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.028068244457244873,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.R/Y/-5": {
+      "body_edge_strain_p95": 0.007692481856793165,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.014047414995729923,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.R/Y/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.R/Y/5": {
+      "body_edge_strain_p95": 0.007720753084868193,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.014047762379050255,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.R/Y/10": {
+      "body_edge_strain_p95": 0.008257757872343063,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.02806858904659748,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.R/Y/15": {
+      "body_edge_strain_p95": 0.008518590591847897,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04203599691390991,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.R/Z/-15": {
+      "body_edge_strain_p95": 0.008810662664473057,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.05046256259083748,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.R/Z/-10": {
+      "body_edge_strain_p95": 0.008447427302598953,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03369520232081413,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.R/Z/-5": {
+      "body_edge_strain_p95": 0.007927147671580315,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.01686374470591545,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.R/Z/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.R/Z/5": {
+      "body_edge_strain_p95": 0.007934900932013988,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.01686345413327217,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.R/Z/10": {
+      "body_edge_strain_p95": 0.00849620345979929,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03369494155049324,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "forearm.R/Z/15": {
+      "body_edge_strain_p95": 0.00882406160235405,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0504622720181942,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.L/X/-15": {
+      "body_edge_strain_p95": 0.008378931321203709,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0512542687356472,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.L/X/-10": {
+      "body_edge_strain_p95": 0.00806715153157711,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03422378748655319,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.L/X/-5": {
+      "body_edge_strain_p95": 0.007498685270547867,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.017128175124526024,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.L/X/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.L/X/5": {
+      "body_edge_strain_p95": 0.007451491430401802,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.017128247767686844,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.L/X/10": {
+      "body_edge_strain_p95": 0.008030603639781475,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03422385826706886,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.L/X/15": {
+      "body_edge_strain_p95": 0.008393618278205395,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.05125432834029198,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.L/Y/-15": {
+      "body_edge_strain_p95": 0.00803642813116312,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03595469146966934,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.L/Y/-10": {
+      "body_edge_strain_p95": 0.0077176569029688835,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.024007834494113922,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.L/Y/-5": {
+      "body_edge_strain_p95": 0.007232305593788624,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.012015282176434994,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.L/Y/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.L/Y/5": {
+      "body_edge_strain_p95": 0.007205233443528414,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.012015577405691147,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.L/Y/10": {
+      "body_edge_strain_p95": 0.007661520503461361,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.024008112028241158,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.L/Y/15": {
+      "body_edge_strain_p95": 0.007895511575043201,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03595498949289322,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.L/Z/-15": {
+      "body_edge_strain_p95": 0.008218688890337944,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.036976538598537445,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.L/Z/-10": {
+      "body_edge_strain_p95": 0.00788612850010395,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.02469026669859886,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.L/Z/-5": {
+      "body_edge_strain_p95": 0.007408648729324341,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.012356975115835667,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.L/Z/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.L/Z/5": {
+      "body_edge_strain_p95": 0.007430764380842447,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.012356661260128021,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.L/Z/10": {
+      "body_edge_strain_p95": 0.007899110205471516,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.024689970538020134,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.L/Z/15": {
+      "body_edge_strain_p95": 0.008316419087350368,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03697627782821655,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.R/X/-15": {
+      "body_edge_strain_p95": 0.008072354830801487,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04883050546050072,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.R/X/-10": {
+      "body_edge_strain_p95": 0.007751919329166412,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.032605379819869995,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.R/X/-5": {
+      "body_edge_strain_p95": 0.007371688261628151,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.01631820574402809,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.R/X/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.R/X/5": {
+      "body_edge_strain_p95": 0.007333641871809959,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.016318269073963165,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.R/X/10": {
+      "body_edge_strain_p95": 0.007742621935904026,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03260546550154686,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.R/X/15": {
+      "body_edge_strain_p95": 0.008045974187552929,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.048830583691596985,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.R/Y/-15": {
+      "body_edge_strain_p95": 0.007816784083843231,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0339515246450901,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.R/Y/-10": {
+      "body_edge_strain_p95": 0.007561402395367622,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.02267027273774147,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.R/Y/-5": {
+      "body_edge_strain_p95": 0.007130398880690336,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.01134586613625288,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.R/Y/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.R/Y/5": {
+      "body_edge_strain_p95": 0.007150540594011545,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.011346160434186459,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.R/Y/10": {
+      "body_edge_strain_p95": 0.0075803278014063835,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0226705614477396,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.R/Y/15": {
+      "body_edge_strain_p95": 0.00787435658276081,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03395182266831398,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.R/Z/-15": {
+      "body_edge_strain_p95": 0.008054463192820549,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03963421657681465,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.R/Z/-10": {
+      "body_edge_strain_p95": 0.007737644948065281,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.02646487019956112,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.R/Z/-5": {
+      "body_edge_strain_p95": 0.007333400659263134,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.01324512530118227,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.R/Z/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.R/Z/5": {
+      "body_edge_strain_p95": 0.007331904023885727,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.013244794681668282,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.R/Z/10": {
+      "body_edge_strain_p95": 0.007751919329166412,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.02646450884640217,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hand.R/Z/15": {
+      "body_edge_strain_p95": 0.00803642813116312,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03963388130068779,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.L/X/-15": {
+      "body_edge_strain_p95": 0.1312362402677536,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.08054327219724655,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.L/X/-10": {
+      "body_edge_strain_p95": 0.08825358748435974,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.05378083139657974,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.L/X/-5": {
+      "body_edge_strain_p95": 0.04389828443527222,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.026915982365608215,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.L/X/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.L/X/5": {
+      "body_edge_strain_p95": 0.04911943897604942,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.02691611461341381,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.L/X/10": {
+      "body_edge_strain_p95": 0.09694742411375046,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0537809357047081,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.L/X/15": {
+      "body_edge_strain_p95": 0.14369678497314453,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0805433839559555,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.L/Y/-15": {
+      "body_edge_strain_p95": 0.06573599576950073,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04190681502223015,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.L/Y/-10": {
+      "body_edge_strain_p95": 0.0432366244494915,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.02786923572421074,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.L/Y/-5": {
+      "body_edge_strain_p95": 0.02126489020884037,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.013778652995824814,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.L/Y/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.L/Y/5": {
+      "body_edge_strain_p95": 0.02422032691538334,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.014506619423627853,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.L/Y/10": {
+      "body_edge_strain_p95": 0.043056588619947433,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.028580723330378532,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.L/Y/15": {
+      "body_edge_strain_p95": 0.05992008000612259,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04260054975748062,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.L/Z/-15": {
+      "body_edge_strain_p95": 0.08152920752763748,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0801532045006752,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.L/Z/-10": {
+      "body_edge_strain_p95": 0.055136021226644516,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.053520385175943375,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.L/Z/-5": {
+      "body_edge_strain_p95": 0.0287326592952013,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.026785697788000107,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.L/Z/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.L/Z/5": {
+      "body_edge_strain_p95": 0.02706228941679001,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.02678561955690384,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.L/Z/10": {
+      "body_edge_strain_p95": 0.055045295506715775,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.05352030321955681,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.L/Z/15": {
+      "body_edge_strain_p95": 0.083855539560318,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.08015310019254684,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.R/X/-15": {
+      "body_edge_strain_p95": 0.1316746473312378,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.08068979531526566,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.R/X/-10": {
+      "body_edge_strain_p95": 0.08890152722597122,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.053878627717494965,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.R/X/-5": {
+      "body_edge_strain_p95": 0.04457695037126541,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.026964841410517693,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.R/X/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.R/X/5": {
+      "body_edge_strain_p95": 0.04900556057691574,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.026965299621224403,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.R/X/10": {
+      "body_edge_strain_p95": 0.09757592529058456,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.05387907102704048,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.R/X/15": {
+      "body_edge_strain_p95": 0.14445164799690247,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.08069025725126266,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.R/Y/-15": {
+      "body_edge_strain_p95": 0.060988858342170715,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04189690947532654,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.R/Y/-10": {
+      "body_edge_strain_p95": 0.04293249174952507,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.028107840567827225,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.R/Y/-5": {
+      "body_edge_strain_p95": 0.024112312123179436,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.014265277422964573,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.R/Y/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.R/Y/5": {
+      "body_edge_strain_p95": 0.021505219861865044,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.013480992056429386,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.R/Y/10": {
+      "body_edge_strain_p95": 0.043259527534246445,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.027319880202412605,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.R/Y/15": {
+      "body_edge_strain_p95": 0.06499596685171127,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.041112709790468216,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.R/Z/-15": {
+      "body_edge_strain_p95": 0.07940275967121124,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0804673358798027,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.R/Z/-10": {
+      "body_edge_strain_p95": 0.05273495241999626,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.05373010411858559,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.R/Z/-5": {
+      "body_edge_strain_p95": 0.026266638189554214,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.02689058892428875,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.R/Z/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.R/Z/5": {
+      "body_edge_strain_p95": 0.02852717787027359,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.026890765875577927,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.R/Z/10": {
+      "body_edge_strain_p95": 0.05448384955525398,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.05373026430606842,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "thigh.R/Z/15": {
+      "body_edge_strain_p95": 0.0805635154247284,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.08046746999025345,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.L/X/-15": {
+      "body_edge_strain_p95": 0.016805220395326614,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04360238462686539,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.L/X/-10": {
+      "body_edge_strain_p95": 0.014510177075862885,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.02916405163705349,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.L/X/-5": {
+      "body_edge_strain_p95": 0.01182893943041563,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.014671716839075089,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.L/X/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.L/X/5": {
+      "body_edge_strain_p95": 0.010241889394819736,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.014382991008460522,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.L/X/10": {
+      "body_edge_strain_p95": 0.011823581531643867,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.028876077383756638,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.L/X/15": {
+      "body_edge_strain_p95": 0.012850971892476082,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04331576079130173,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.L/Y/-15": {
+      "body_edge_strain_p95": 0.0098738893866539,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.037009723484516144,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.L/Y/-10": {
+      "body_edge_strain_p95": 0.009085508994758129,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.024712322279810905,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.L/Y/-5": {
+      "body_edge_strain_p95": 0.008034353144466877,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.012367861345410347,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.L/Y/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.L/Y/5": {
+      "body_edge_strain_p95": 0.008666954934597015,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.012368080206215382,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.L/Y/10": {
+      "body_edge_strain_p95": 0.009451239369809628,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.024712538346648216,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.L/Y/15": {
+      "body_edge_strain_p95": 0.010249285958707333,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.037009935826063156,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.L/Z/-15": {
+      "body_edge_strain_p95": 0.012127583846449852,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04207579791545868,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.L/Z/-10": {
+      "body_edge_strain_p95": 0.011260606348514557,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.027976134791970253,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.L/Z/-5": {
+      "body_edge_strain_p95": 0.009749745950102806,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.013823561370372772,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.L/Z/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.L/Z/5": {
+      "body_edge_strain_p95": 0.009590432979166508,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.014536652714014053,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.L/Z/10": {
+      "body_edge_strain_p95": 0.011027378030121326,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.028687231242656708,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.L/Z/15": {
+      "body_edge_strain_p95": 0.01189165934920311,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04278351739048958,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.R/X/-15": {
+      "body_edge_strain_p95": 0.022240322083234787,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.043641701340675354,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 1.0
+      }
+    },
+    "shin.R/X/-10": {
+      "body_edge_strain_p95": 0.017959490418434143,
+      "knee_witness_crossing_local": [
+        -0.15507280826568604,
+        0.18111540377140045,
+        0.08374720811843872
+      ],
+      "max_surface_delta": 0.029462769627571106,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.8375374674797058
+      }
+    },
+    "shin.R/X/-5": {
+      "body_edge_strain_p95": 0.01193839032202959,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.014461851678788662,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.R/X/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.R/X/5": {
+      "body_edge_strain_p95": 0.01048933807760477,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.014202498830854893,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.R/X/10": {
+      "body_edge_strain_p95": 0.012218145653605461,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0285014845430851,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.R/X/15": {
+      "body_edge_strain_p95": 0.013224134221673012,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.042747627943754196,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.R/Y/-15": {
+      "body_edge_strain_p95": 0.0103676225990057,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0373401902616024,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.R/Y/-10": {
+      "body_edge_strain_p95": 0.00970640778541565,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.024933060631155968,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.R/Y/-5": {
+      "body_edge_strain_p95": 0.008631858043372631,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.012478474527597427,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.R/Y/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.R/Y/5": {
+      "body_edge_strain_p95": 0.008144752122461796,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.012478196993470192,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.R/Y/10": {
+      "body_edge_strain_p95": 0.009293857030570507,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.02493281289935112,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.R/Y/15": {
+      "body_edge_strain_p95": 0.010188364423811436,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0373399592936039,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.R/Z/-15": {
+      "body_edge_strain_p95": 0.012499823234975338,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.042219582945108414,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.R/Z/-10": {
+      "body_edge_strain_p95": 0.011311599984765053,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.02827441319823265,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.R/Z/-5": {
+      "body_edge_strain_p95": 0.009868299588561058,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.01427560392767191,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.R/Z/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.R/Z/5": {
+      "body_edge_strain_p95": 0.009925073012709618,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.01377839781343937,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.R/Z/10": {
+      "body_edge_strain_p95": 0.011428629979491234,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.027778619900345802,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "shin.R/Z/15": {
+      "body_edge_strain_p95": 0.012536341324448586,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.041726142168045044,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.L/X/-15": {
+      "body_edge_strain_p95": 0.008455089293420315,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0493944026529789,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.L/X/-10": {
+      "body_edge_strain_p95": 0.007997004315257072,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03298186883330345,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.L/X/-5": {
+      "body_edge_strain_p95": 0.0073257023468613625,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.016506582498550415,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.L/X/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.L/X/5": {
+      "body_edge_strain_p95": 0.007265702821314335,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.016506848856806755,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.L/X/10": {
+      "body_edge_strain_p95": 0.008152388036251068,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03298213705420494,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.L/X/15": {
+      "body_edge_strain_p95": 0.008896850980818272,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.049394626170396805,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.L/Y/-15": {
+      "body_edge_strain_p95": 0.007913922891020775,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.016926981508731842,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.L/Y/-10": {
+      "body_edge_strain_p95": 0.007498685270547867,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.011302600614726543,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.L/Y/-5": {
+      "body_edge_strain_p95": 0.006983070634305477,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.005656688008457422,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.L/Y/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.L/Y/5": {
+      "body_edge_strain_p95": 0.00700466800481081,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.005656701046973467,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.L/Y/10": {
+      "body_edge_strain_p95": 0.007604262791574001,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.011302606202661991,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.L/Y/15": {
+      "body_edge_strain_p95": 0.00811599101871252,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.016927000135183334,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.L/Z/-15": {
+      "body_edge_strain_p95": 0.009276043623685837,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04934002831578255,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.L/Z/-10": {
+      "body_edge_strain_p95": 0.008655019104480743,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.032945625483989716,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.L/Z/-5": {
+      "body_edge_strain_p95": 0.007691960781812668,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.01648852601647377,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.L/Z/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.L/Z/5": {
+      "body_edge_strain_p95": 0.007710270583629608,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.01648845337331295,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.L/Z/10": {
+      "body_edge_strain_p95": 0.00840822421014309,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.032945577055215836,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.L/Z/15": {
+      "body_edge_strain_p95": 0.00891179870814085,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.049339983612298965,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.R/X/-15": {
+      "body_edge_strain_p95": 0.008452922105789185,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04926198720932007,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.R/X/-10": {
+      "body_edge_strain_p95": 0.008013769052922726,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.032893456518650055,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.R/X/-5": {
+      "body_edge_strain_p95": 0.007398838177323341,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.016462337225675583,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.R/X/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.R/X/5": {
+      "body_edge_strain_p95": 0.007408648729324341,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.016462620347738266,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.R/X/10": {
+      "body_edge_strain_p95": 0.008139334619045258,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.032893747091293335,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.R/X/15": {
+      "body_edge_strain_p95": 0.00882406160235405,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04926227778196335,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.R/Y/-15": {
+      "body_edge_strain_p95": 0.008152388036251068,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.015925820916891098,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.R/Y/-10": {
+      "body_edge_strain_p95": 0.007613166701048613,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.010634176433086395,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.R/Y/-5": {
+      "body_edge_strain_p95": 0.007068024482578039,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.005322305951267481,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.R/Y/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.R/Y/5": {
+      "body_edge_strain_p95": 0.007047661580145359,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.005321730859577656,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.R/Y/10": {
+      "body_edge_strain_p95": 0.0075803278014063835,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.010633607394993305,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.R/Y/15": {
+      "body_edge_strain_p95": 0.00799637846648693,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.015925243496894836,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.R/Z/-15": {
+      "body_edge_strain_p95": 0.009127759374678135,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.049268364906311035,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.R/Z/-10": {
+      "body_edge_strain_p95": 0.008557171560823917,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03289776295423508,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.R/Z/-5": {
+      "body_edge_strain_p95": 0.007746102754026651,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.016464538872241974,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.R/Z/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.R/Z/5": {
+      "body_edge_strain_p95": 0.007763003930449486,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.016464589163661003,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.R/Z/10": {
+      "body_edge_strain_p95": 0.008827160112559795,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03289780393242836,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "foot.R/Z/15": {
+      "body_edge_strain_p95": 0.009441083297133446,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04926840588450432,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_01/X/-15": {
+      "body_edge_strain_p95": 0.21744981408119202,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.18963555991649628,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_01/X/-10": {
+      "body_edge_strain_p95": 0.14627912640571594,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.12662459909915924,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_01/X/-5": {
+      "body_edge_strain_p95": 0.07385295629501343,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.06337255984544754,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_01/X/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_01/X/5": {
+      "body_edge_strain_p95": 0.07224273681640625,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.06337273120880127,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_01/X/10": {
+      "body_edge_strain_p95": 0.1454278528690338,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.12662486732006073,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_01/X/15": {
+      "body_edge_strain_p95": 0.2189193218946457,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.1896357238292694,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_01/Y/-15": {
+      "body_edge_strain_p95": 0.16489824652671814,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.13302850723266602,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_01/Y/-10": {
+      "body_edge_strain_p95": 0.11074322462081909,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.08882660418748856,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_01/Y/-5": {
+      "body_edge_strain_p95": 0.05564600229263306,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.044455595314502716,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_01/Y/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_01/Y/5": {
+      "body_edge_strain_p95": 0.05432521551847458,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04445537552237511,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_01/Y/10": {
+      "body_edge_strain_p95": 0.11011546105146408,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.08882652223110199,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_01/Y/15": {
+      "body_edge_strain_p95": 0.16547471284866333,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.13302822411060333,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_01/Z/-15": {
+      "body_edge_strain_p95": 0.16991783678531647,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.16956789791584015,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_01/Z/-10": {
+      "body_edge_strain_p95": 0.11715465039014816,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.1132248118519783,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_01/Z/-5": {
+      "body_edge_strain_p95": 0.05923737585544586,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.05666644126176834,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_01/Z/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_01/Z/5": {
+      "body_edge_strain_p95": 0.05956856906414032,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.05666636675596237,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_01/Z/10": {
+      "body_edge_strain_p95": 0.11797819286584854,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.11322476714849472,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_01/Z/15": {
+      "body_edge_strain_p95": 0.1713615208864212,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.1695675551891327,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_02/X/-15": {
+      "body_edge_strain_p95": 0.13772636651992798,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.17553269863128662,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_02/X/-10": {
+      "body_edge_strain_p95": 0.09071691334247589,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.11720781028270721,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_02/X/-5": {
+      "body_edge_strain_p95": 0.04577278345823288,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.058659616857767105,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_02/X/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_02/X/5": {
+      "body_edge_strain_p95": 0.0440230518579483,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.05865970253944397,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_02/X/10": {
+      "body_edge_strain_p95": 0.08716592192649841,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.11720777302980423,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_02/X/15": {
+      "body_edge_strain_p95": 0.12940232455730438,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.1755327433347702,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_02/Y/-15": {
+      "body_edge_strain_p95": 0.11263301223516464,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.11524149030447006,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_02/Y/-10": {
+      "body_edge_strain_p95": 0.07510868459939957,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.07694974541664124,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_02/Y/-5": {
+      "body_edge_strain_p95": 0.03783724829554558,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03851158171892166,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_02/Y/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_02/Y/5": {
+      "body_edge_strain_p95": 0.037001240998506546,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03851145878434181,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_02/Y/10": {
+      "body_edge_strain_p95": 0.07458323240280151,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.07694972306489944,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_02/Y/15": {
+      "body_edge_strain_p95": 0.11150257289409637,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.11524134874343872,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_02/Z/-15": {
+      "body_edge_strain_p95": 0.1199246495962143,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.1681160181760788,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_02/Z/-10": {
+      "body_edge_strain_p95": 0.08306847512722015,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.11225537955760956,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_02/Z/-5": {
+      "body_edge_strain_p95": 0.04232284799218178,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.05618112534284592,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_02/Z/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_02/Z/5": {
+      "body_edge_strain_p95": 0.04264257475733757,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.05618124455213547,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_02/Z/10": {
+      "body_edge_strain_p95": 0.08397268503904343,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.1122555062174797,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_02/Z/15": {
+      "body_edge_strain_p95": 0.12299520522356033,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.16811594367027283,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_03/X/-15": {
+      "body_edge_strain_p95": 0.4675882160663605,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.161381334066391,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_03/X/-10": {
+      "body_edge_strain_p95": 0.460129976272583,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.1077585220336914,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_03/X/-5": {
+      "body_edge_strain_p95": 0.2606334686279297,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.053930580615997314,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_03/X/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_03/X/5": {
+      "body_edge_strain_p95": 0.2194606363773346,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.05393059924244881,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_03/X/10": {
+      "body_edge_strain_p95": 0.4314412474632263,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.10775867849588394,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_03/X/15": {
+      "body_edge_strain_p95": 0.4786328375339508,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.16138137876987457,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_03/Y/-15": {
+      "body_edge_strain_p95": 0.11246880888938904,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.09951355308294296,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_03/Y/-10": {
+      "body_edge_strain_p95": 0.07484782487154007,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0664481520652771,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_03/Y/-5": {
+      "body_edge_strain_p95": 0.03783779591321945,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03325619921088219,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_03/Y/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_03/Y/5": {
+      "body_edge_strain_p95": 0.037216734141111374,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03325425833463669,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_03/Y/10": {
+      "body_edge_strain_p95": 0.07428344339132309,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.06644609570503235,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_03/Y/15": {
+      "body_edge_strain_p95": 0.10979209840297699,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.09951161593198776,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_03/Z/-15": {
+      "body_edge_strain_p95": 0.11225295811891556,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.16153322160243988,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_03/Z/-10": {
+      "body_edge_strain_p95": 0.07778246700763702,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.10785994678735733,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_03/Z/-5": {
+      "body_edge_strain_p95": 0.039094049483537674,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.05398137867450714,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_03/Z/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_03/Z/5": {
+      "body_edge_strain_p95": 0.03900055214762688,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.05398144945502281,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_03/Z/10": {
+      "body_edge_strain_p95": 0.07742669433355331,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.10786011070013046,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_03/Z/15": {
+      "body_edge_strain_p95": 0.11522972583770752,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.1615332067012787,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_04/X/-15": {
+      "body_edge_strain_p95": 0.0976337417960167,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.1469542682170868,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_04/X/-10": {
+      "body_edge_strain_p95": 0.06558458507061005,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.09812527894973755,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_04/X/-5": {
+      "body_edge_strain_p95": 0.03356868028640747,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.049109358340501785,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_04/X/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_04/X/5": {
+      "body_edge_strain_p95": 0.03094969317317009,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04910939931869507,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_04/X/10": {
+      "body_edge_strain_p95": 0.0631064623594284,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.09812533110380173,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_04/X/15": {
+      "body_edge_strain_p95": 0.09435471892356873,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.14695434272289276,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_04/Y/-15": {
+      "body_edge_strain_p95": 0.1078086867928505,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.08831629902124405,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_04/Y/-10": {
+      "body_edge_strain_p95": 0.07245329767465591,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.05897132307291031,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_04/Y/-5": {
+      "body_edge_strain_p95": 0.03665130212903023,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.029514284804463387,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_04/Y/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_04/Y/5": {
+      "body_edge_strain_p95": 0.036646805703639984,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.02951236627995968,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_04/Y/10": {
+      "body_edge_strain_p95": 0.07320844382047653,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.05896959453821182,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_04/Y/15": {
+      "body_edge_strain_p95": 0.10798636078834534,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.08831453323364258,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_04/Z/-15": {
+      "body_edge_strain_p95": 0.09644640982151031,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.1513407826423645,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_04/Z/-10": {
+      "body_edge_strain_p95": 0.06499116122722626,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.10105426609516144,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_04/Z/-5": {
+      "body_edge_strain_p95": 0.032687921077013016,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.05057530105113983,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_04/Z/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_04/Z/5": {
+      "body_edge_strain_p95": 0.03346903249621391,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.050575241446495056,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_04/Z/10": {
+      "body_edge_strain_p95": 0.06590168178081512,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.10105421394109726,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_04/Z/15": {
+      "body_edge_strain_p95": 0.09692256152629852,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.15134085714817047,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_05/X/-15": {
+      "body_edge_strain_p95": 0.15251484513282776,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.13219882547855377,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_05/X/-10": {
+      "body_edge_strain_p95": 0.10720358043909073,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.08827272802591324,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_05/X/-5": {
+      "body_edge_strain_p95": 0.055779971182346344,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04417836666107178,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_05/X/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_05/X/5": {
+      "body_edge_strain_p95": 0.0547688789665699,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04417840391397476,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_05/X/10": {
+      "body_edge_strain_p95": 0.11159483343362808,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.08827272802591324,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_05/X/15": {
+      "body_edge_strain_p95": 0.16858717799186707,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.13219891488552094,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_05/Y/-15": {
+      "body_edge_strain_p95": 0.15723565220832825,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.07351356744766235,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_05/Y/-10": {
+      "body_edge_strain_p95": 0.10554999113082886,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.049087218940258026,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_05/Y/-5": {
+      "body_edge_strain_p95": 0.053226713091135025,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.02456737868487835,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_05/Y/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_05/Y/5": {
+      "body_edge_strain_p95": 0.05172137916088104,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.024565866217017174,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_05/Y/10": {
+      "body_edge_strain_p95": 0.10281338542699814,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04908571392297745,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_05/Y/15": {
+      "body_edge_strain_p95": 0.15000297129154205,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.07351215928792953,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_05/Z/-15": {
+      "body_edge_strain_p95": 0.11819791793823242,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.13850761950016022,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_05/Z/-10": {
+      "body_edge_strain_p95": 0.0794706791639328,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.09248511493206024,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_05/Z/-5": {
+      "body_edge_strain_p95": 0.04013029485940933,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.046286631375551224,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_05/Z/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_05/Z/5": {
+      "body_edge_strain_p95": 0.040499720722436905,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04628662019968033,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_05/Z/10": {
+      "body_edge_strain_p95": 0.08066605776548386,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.09248510748147964,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "spine_05/Z/15": {
+      "body_edge_strain_p95": 0.12117428332567215,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.13850753009319305,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "neck/X/-15": {
+      "body_edge_strain_p95": 0.2089584618806839,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.11684025824069977,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "neck/X/-10": {
+      "body_edge_strain_p95": 0.1458219438791275,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.07801726460456848,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "neck/X/-5": {
+      "body_edge_strain_p95": 0.07562936097383499,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.039045803248882294,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "neck/X/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "neck/X/5": {
+      "body_edge_strain_p95": 0.07548809051513672,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0390457883477211,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "neck/X/10": {
+      "body_edge_strain_p95": 0.15258729457855225,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.07801728695631027,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "neck/X/15": {
+      "body_edge_strain_p95": 0.23238317668437958,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.11684026569128036,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "neck/Y/-15": {
+      "body_edge_strain_p95": 0.2019776701927185,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.07260482013225555,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "neck/Y/-10": {
+      "body_edge_strain_p95": 0.13533136248588562,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.048480115830898285,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "neck/Y/-5": {
+      "body_edge_strain_p95": 0.06816419959068298,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.024263130500912666,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "neck/Y/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "neck/Y/5": {
+      "body_edge_strain_p95": 0.06897212564945221,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.024263154715299606,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "neck/Y/10": {
+      "body_edge_strain_p95": 0.13752691447734833,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04848016798496246,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "neck/Y/15": {
+      "body_edge_strain_p95": 0.20291265845298767,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.07260481268167496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "neck/Z/-15": {
+      "body_edge_strain_p95": 0.2334868609905243,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.1249861791729927,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "neck/Z/-10": {
+      "body_edge_strain_p95": 0.16022779047489166,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.08345654606819153,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "neck/Z/-5": {
+      "body_edge_strain_p95": 0.08250557631254196,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.04176803305745125,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "neck/Z/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "neck/Z/5": {
+      "body_edge_strain_p95": 0.08320920169353485,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.041767992079257965,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "neck/Z/10": {
+      "body_edge_strain_p95": 0.16214856505393982,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.08345653116703033,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "neck/Z/15": {
+      "body_edge_strain_p95": 0.23722383379936218,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.12498613446950912,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hips/X/-15": {
+      "body_edge_strain_p95": 0.006517594680190086,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.18963563442230225,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hips/X/-10": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.12662476301193237,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hips/X/-5": {
+      "body_edge_strain_p95": 0.0065175918862223625,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0633726641535759,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hips/X/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hips/X/5": {
+      "body_edge_strain_p95": 0.0065172878094017506,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.06337272375822067,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hips/X/10": {
+      "body_edge_strain_p95": 0.0065175918862223625,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.1266249418258667,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hips/X/15": {
+      "body_edge_strain_p95": 0.0065169986337423325,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.18963578343391418,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hips/Y/-15": {
+      "body_edge_strain_p95": 0.006517970468848944,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.1848505288362503,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hips/Y/-10": {
+      "body_edge_strain_p95": 0.006516453344374895,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.1234293282032013,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hips/Y/-5": {
+      "body_edge_strain_p95": 0.00651715649291873,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.061773501336574554,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hips/Y/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hips/Y/5": {
+      "body_edge_strain_p95": 0.006517466623336077,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.061773449182510376,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hips/Y/10": {
+      "body_edge_strain_p95": 0.006517142057418823,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.12342943996191025,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hips/Y/15": {
+      "body_edge_strain_p95": 0.006517851259559393,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.18485040962696075,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hips/Z/-15": {
+      "body_edge_strain_p95": 0.006517472676932812,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.11642944067716599,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hips/Z/-10": {
+      "body_edge_strain_p95": 0.006517466157674789,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.07774298638105392,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hips/Z/-5": {
+      "body_edge_strain_p95": 0.0065175979398190975,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03890853375196457,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hips/Z/0": {
+      "body_edge_strain_p95": 0.006517117843031883,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.0023415894247591496,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hips/Z/5": {
+      "body_edge_strain_p95": 0.006516951136291027,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.03890851140022278,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hips/Z/10": {
+      "body_edge_strain_p95": 0.006517054978758097,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.07774299383163452,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    },
+    "hips/Z/15": {
+      "body_edge_strain_p95": 0.006517520174384117,
+      "knee_witness_crossing_local": null,
+      "max_surface_delta": 0.11642947047948837,
+      "controls_morph_values": {
+        "chest_breath": 0.0,
+        "chest_heartbeat": 0.0,
+        "trial_right_knee_pose": 0.0
+      }
+    }
+  },
+  "raw_ik_fk": {
+    "ik_hand.L": {
+      "unmatched_switch_position_delta": 0.025455816418986914,
+      "unmatched_switch_rotation_rad": 0.0,
+      "return_position_delta": 0.0
+    },
+    "ik_hand.R": {
+      "unmatched_switch_position_delta": 0.02545580327094518,
+      "unmatched_switch_rotation_rad": 0.0,
+      "return_position_delta": 0.0
+    },
+    "ik_foot.L": {
+      "unmatched_switch_position_delta": 0.025455869011077225,
+      "unmatched_switch_rotation_rad": 0.0,
+      "return_position_delta": 0.0
+    },
+    "ik_foot.R": {
+      "unmatched_switch_position_delta": 0.025455837570177872,
+      "unmatched_switch_rotation_rad": 0.0,
+      "return_position_delta": 0.0
+    }
+  },
+  "reset_max_surface_delta": 0.0
+}
