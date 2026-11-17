@@ -1,0 +1,62 @@
+{
+  "flex_-30": {
+    "edge_strain_p95": 1.0058324337005615,
+    "max_displacement": 0.16555416584014893,
+    "single_joint_edge_strain_p95": 1.1415258646011353
+  },
+  "flex_-15": {
+    "edge_strain_p95": 0.4273568391799927,
+    "max_displacement": 0.08468610048294067,
+    "single_joint_edge_strain_p95": 0.8003913760185242
+  },
+  "flex_15": {
+    "edge_strain_p95": 0.3023546636104584,
+    "max_displacement": 0.0960407629609108,
+    "single_joint_edge_strain_p95": 0.6519742608070374
+  },
+  "flex_30": {
+    "edge_strain_p95": 0.5998409390449524,
+    "max_displacement": 0.17518283426761627,
+    "single_joint_edge_strain_p95": 0.7827900648117065
+  },
+  "twist_-30": {
+    "edge_strain_p95": 0.33127832412719727,
+    "max_displacement": 0.14506787061691284,
+    "single_joint_edge_strain_p95": 0.43640759587287903
+  },
+  "twist_-15": {
+    "edge_strain_p95": 0.17690761387348175,
+    "max_displacement": 0.07310313731431961,
+    "single_joint_edge_strain_p95": 0.2387964129447937
+  },
+  "twist_15": {
+    "edge_strain_p95": 0.1872272938489914,
+    "max_displacement": 0.07305966317653656,
+    "single_joint_edge_strain_p95": 0.23964977264404297
+  },
+  "twist_30": {
+    "edge_strain_p95": 0.34661054611206055,
+    "max_displacement": 0.14498890936374664,
+    "single_joint_edge_strain_p95": 0.4597736597061157
+  },
+  "side_bend_-30": {
+    "edge_strain_p95": 0.38927918672561646,
+    "max_displacement": 0.13586470484733582,
+    "single_joint_edge_strain_p95": 0.4303457736968994
+  },
+  "side_bend_-15": {
+    "edge_strain_p95": 0.19636784493923187,
+    "max_displacement": 0.06790634989738464,
+    "single_joint_edge_strain_p95": 0.22828343510627747
+  },
+  "side_bend_15": {
+    "edge_strain_p95": 0.19376765191555023,
+    "max_displacement": 0.06788722425699234,
+    "single_joint_edge_strain_p95": 0.22307053208351135
+  },
+  "side_bend_30": {
+    "edge_strain_p95": 0.3805544972419739,
+    "max_displacement": 0.13584011793136597,
+    "single_joint_edge_strain_p95": 0.4252904951572418
+  }
+}
