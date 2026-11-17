@@ -1,0 +1,57 @@
+name: Fare anatomical baseline
+on:
+  push:
+    branches: [rig-experiments/anatomical-deformation-repair]
+    paths:
+      - .github/workflows/fare-anatomical-baseline.yml
+      - rig-experiments/anatomy_baseline.py
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  exact-input-comparison:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      LIBGL_ALWAYS_SOFTWARE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          repository: mehmetdem2005/Fare
+          run-id: 43767152372
+          name: fare-round13-ik-phase-combined-review
+          path: inputs/v8
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/download-artifact@v4
+        with:
+          repository: mehmetdem2005/Fare
+          run-id: 44116055380
+          name: fare-round39-10-reference-restored-f14-review-files
+          path: inputs/r39
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Verify immutable inputs and install Blender
+        run: |
+          set -euo pipefail
+          sha256sum -c <<'SUMS'
+          173ca67a372f5c04f27d922ef02f37921bbaf184cff0094976df326b4ec095b6  deliver/mouse_rig.blend
+          984a21447c0217bc8ff91d02f9af1509324aa94dfaf29c543abd3d92f9b12c70  inputs/v8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend
+          bf24c3c00367790af976e5f407cb9c3b20ad11754845bd0eb63d5cbe4042d07b  inputs/r39/R39_SAVED_NUMERIC_REVIEW_ONLY.blend
+          SUMS
+          curl --fail --location --retry 3 https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz | tar -xJ
+      - name: Render seven angles and five closeups per frame
+        run: |
+          set -euo pipefail
+          blender=./blender-5.1.2-linux-x64/blender
+          v8=inputs/v8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend
+          r39=inputs/r39/R39_SAVED_NUMERIC_REVIEW_ONLY.blend
+          "$blender" -b --python-exit-code 1 -P rig-experiments/anatomy_baseline.py -- --source deliver/mouse_rig.blend --rest-only --render --out evidence/rest
+          "$blender" -b --python-exit-code 1 -P rig-experiments/anatomy_baseline.py -- --source deliver/mouse_rig.blend --action-source "$v8" --render --out evidence/original-v8-action
+          "$blender" -b --python-exit-code 1 -P rig-experiments/anatomy_baseline.py -- --source "$v8" --render --out evidence/v8
+          "$blender" -b --python-exit-code 1 -P rig-experiments/anatomy_baseline.py -- --source "$r39" --render --out evidence/r39
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fare-anatomical-baseline-evidence
+          path: evidence/
