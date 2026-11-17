@@ -49,3 +49,8 @@ ChatGPT tarafından hazırlanan v6 ikili dosyası GitHub depoda henüz yoksa bu 
 - [Round 43 gerçek Godot AnimationPlayer CI](https://github.com/mehmetdem2005/Fare/actions/runs/44119489962): önceki Godot import testiyle yetinmeyip gerçek `MouseRig` animasyonunu `seek()` ile 1, 9, 10, 14, 15, 17, 25 karelerinde değerlendirdi.
 - Godot içinde `R39_F14_ORIGINAL_REFERENCE` animasyonlu shape key f14 **0.899999559**, f1/f25 **~0**, komşu karede ~3e-6. Kalça kemiği hareketli; Godot kuaterniyon döngü farkı max **0.000454**.
 - **49 kemik + 29 morph hedefi + gerçek oynatılan düzeltici kanallar PASS.** Gerçek Android/Mali GPU, zemin teması ve L4 karın görünüm onayı hâlâ **YAPILMADI**. Üretim modeline dokunulmadı.
+
+## Karın, omuz ve uzuvların anatomik incelemesi
+
+- Kök neden, ağırlık ve IK deneyleri ile görsel kabul sonucu [anatomi raporunda](ANATOMICAL_DEFORMATION_REPORT.md).
+- [24 fps karşılaştırma videosu](anatomy-evidence/sprint-comparison.mp4) ve [kare bazlı ölçümler](anatomy-evidence/measurements.json).
