@@ -43,23 +43,27 @@ def main():
     rig_animation.action = None
     for bone in rig.pose.bones:
         bone.matrix_basis = Matrix.Identity(4)
-    chest = rig.pose.bones["spine_05"]
-    for name, schedule in {
-        "breath": {1: 0, 12: .24, 23: .65, 31: .39, 41: .08, 49: 0},
-        "heartbeat": {1: 0, 7: 0, 9: .5, 12: 0, 25: 0, 28: .5, 31: 0, 45: 0, 49: 0},
-    }.items():
-        for frame, value in schedule.items():
-            chest[name] = float(value)
-            chest.keyframe_insert(data_path=f'["{name}"]', frame=frame, group=chest.name)
-    for side, phase in (("L", 0), ("R", 4)):
-        bone = rig.pose.bones[f"whisker_fan.{side}"]
-        bone.rotation_mode = "XYZ"
-        for frame, angle in ((1, 0), (10 + phase, 5), (17 + phase, -2), (28 + phase, 2), (49, 0)):
-            bone.rotation_euler.z = math.radians(angle)
-            bone.keyframe_insert(data_path="rotation_euler", frame=frame, group=bone.name)
-    idle = rig_animation.action
-    idle.name = IDLE
-    idle.use_fake_user = True
+    idle = bpy.data.actions.get(IDLE)
+    if idle is None:
+        chest = rig.pose.bones["spine_05"]
+        for name, schedule in {
+            "breath": {1: 0, 12: .24, 23: .65, 31: .39, 41: .08, 49: 0},
+            "heartbeat": {1: 0, 7: 0, 9: .5, 12: 0, 25: 0, 28: .5, 31: 0, 45: 0, 49: 0},
+        }.items():
+            for frame, value in schedule.items():
+                chest[name] = float(value)
+                chest.keyframe_insert(data_path=f'["{name}"]', frame=frame, group=chest.name)
+        for side, phase in (("L", 0), ("R", 4)):
+            bone = rig.pose.bones[f"whisker_fan.{side}"]
+            bone.rotation_mode = "XYZ"
+            for frame, angle in ((1, 0), (10 + phase, 5), (17 + phase, -2), (28 + phase, 2), (49, 0)):
+                bone.rotation_euler.z = math.radians(angle)
+                bone.keyframe_insert(data_path="rotation_euler", frame=frame, group=bone.name)
+        idle = rig_animation.action
+        idle.name = IDLE
+        idle.use_fake_user = True
+    else:
+        rig_animation.action = idle
     idle_slot = rig_animation.action_slot
     rig_animation.action = sprint
     sprint_slot = rig_animation.action_slot

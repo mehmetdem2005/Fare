@@ -247,14 +247,18 @@ def main():
                 "under_half": int((body_ratios < .5).sum()),
                 **body_intersections(points),
             }
-        if args.stage_probes and not args.rest_only and frame in (1, 7, 8, 9, 10, 14, 16, 17, 18, 19, 20, 25):
-            upstream = helpers["get_input"](obj, modifier)
-            report["stage_probes"].append({"frame": frame, "subframe": 0, "stage": "before_armature",
-                                           **body_intersections(upstream)})
+        if args.stage_probes and not args.rest_only:
+            if frame in (1, 7, 8, 9, 10, 14, 16, 17, 18, 19, 20, 25):
+                upstream = helpers["get_input"](obj, modifier)
+                report["stage_probes"].append({"frame": frame, "subframe": 0, "stage": "before_armature",
+                                               **body_intersections(upstream)})
             if frame < 25:
                 scene.frame_set(frame, subframe=.5)
                 midpoint = helpers["pts"](obj)
+                midpoint_z = array(midpoint)[:, 2]
                 report["stage_probes"].append({"frame": frame, "subframe": .5, "stage": "after_armature",
+                                               "paw_lowest_z": {name: float(midpoint_z[ids].min())
+                                                                for name, ids in paw_parts.items()},
                                                **body_intersections(midpoint)})
                 scene.frame_set(frame)
         if args.render:
