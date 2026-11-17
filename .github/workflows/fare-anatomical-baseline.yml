@@ -73,6 +73,25 @@ jobs:
           mkdir -p evidence/surface
           cp trials/surface/surface_trial.json evidence/surface/
           "$blender" -b -t 4 --python-exit-code 1 -P rig-experiments/anatomy_baseline.py -- --source trials/surface/VENTRAL_SURFACE_TRIAL_UNAPPROVED.blend --full-body-intersections --render --out evidence/surface
+          "$blender" -b -t 4 --python-exit-code 1 -P rig-experiments/anatomy_shoulder_motion_trial.py -- --source trials/wide/TORSO_WEIGHT_TRIAL_UNAPPROVED.blend --out trials/shoulder
+          mkdir -p evidence/shoulder
+          cp trials/shoulder/shoulder_motion_trial.json evidence/shoulder/
+          "$blender" -b -t 4 --python-exit-code 1 -P rig-experiments/anatomy_baseline.py -- --source trials/shoulder/SCAPULAR_MOTION_TRIAL_UNAPPROVED.blend --action run_sprint_v8_scapular_motion_TRIAL --full-body-intersections --out evidence/shoulder
+          for trial in down outside down12 both floor; do
+            case "$trial" in
+              down) args=(--direction down);;
+              outside) args=(--direction outside);;
+              down12) args=(--direction down --drop .012);;
+              both) args=(--direction down --drop .012 --hind);;
+              floor) args=(--direction down --drop .012 --floor-test);;
+            esac
+            "$blender" -b -t 4 --python-exit-code 1 -P rig-experiments/anatomy_swing_clearance_trial.py -- --source trials/shoulder/SCAPULAR_MOTION_TRIAL_UNAPPROVED.blend --out "trials/$trial" "${args[@]}"
+            mkdir -p "evidence/$trial"
+            cp "trials/$trial/swing_clearance_trial.json" "evidence/$trial/"
+            args=()
+            if [[ "$trial" == down12 ]]; then args=(--render); fi
+            "$blender" -b -t 4 --python-exit-code 1 -P rig-experiments/anatomy_baseline.py -- --source "trials/$trial/SWING_CLEARANCE_TRIAL_UNAPPROVED.blend" --action run_sprint_v8_swing_clearance_TRIAL --full-body-intersections --out "evidence/$trial" "${args[@]}"
+          done
           echo '173ca67a372f5c04f27d922ef02f37921bbaf184cff0094976df326b4ec095b6  deliver/mouse_rig.blend' | sha256sum -c
       - uses: actions/upload-artifact@v4
         if: always()
