@@ -16,3 +16,12 @@ ChatGPT tarafından hazırlanan v6 ikili dosyası GitHub depoda henüz yoksa bu 
 
 ## Kaynak
 `RIGGING_WEIGHTPAINT_EXPERIENCE.md` projenin teknik hafızasıdır. Deformasyon sonuçlarını L1 statik, L2 matematiksel, L3 bpy evaluated mesh, L4 Blender render, L5 GLB/oyun motoru olarak ayrı raporlayın.
+
+## Son doğrulanmış durum — 17 Kasım 2026 / Round 25
+
+- Bu turun üzerinde çalıştığı dosya **49 kemikli mevcut Fare modeli**, 19.466 verteksli v8 koşu animasyonudur; yukarıda sözü edilen **ayrı v6 adayının doğrulanmış onarımı olduğu iddia edilmez**.
+- [Round 23](ROUND_23_25_BONE_IK_SPATIAL_REPAIR_EXPERIMENTS_2026-11-17.md): 702 bağımsız IK/kemik poz denemesi gerçek Blender'da başarıyla çalıştı. f14 ve f17 karın alanı, **hips X −2°** tek-kare müdahaleyle ciddi iyileşti; bütün koşu için geçerli değildir.
+- Round 24: 36 farklı anatomik maske/ağırlık denemesi; **0 kabul edilen**.
+- Round 25: 32 yumuşak geçişli koşu/IK/kasık-kalça poz müdahalesi, 24+1 gerçek Blender karesi; **0 kabul edilen**.
+- [Ayrıntılı tamamlanmış teknik rapor](ROUND_23_25_BONE_IK_SPATIAL_REPAIR_EXPERIMENTS_2026-11-17.md) ve [Round22 kalıcı kök-neden kanıtları](ROUND_22_VERIFIED_FAILURE_FACE_BONE_TRACE_2026-11-17.md).
+- **Durum: ÇÖZÜLMEDİ.** İyi tek-kare sonuçları üretim BLEND/GLB dosyası sayma. Godot ve Android L5 hiç doğrulanmadı. Kaynak `deliver/`, `scripts/` ve varsayılan dal değişmedi.
