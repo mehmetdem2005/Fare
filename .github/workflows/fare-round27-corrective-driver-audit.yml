@@ -1,0 +1,65 @@
+name: Fare Round 27 existing corrective driver activation and manual trials
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - rig-experiments/round27_existing_corrective_driver_audit.py
+      - .github/workflows/fare-round27-corrective-driver-audit.yml
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  original-rig-corrective-driver-sensitivity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    env:
+      LIBGL_ALWAYS_SOFTWARE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify original repository model and script syntax
+        run: |
+          set -euo pipefail
+          echo '173ca67a372f5c04f27d922ef02f37921bbaf184cff0094976df326b4ec095b6  deliver/mouse_rig.blend' | sha256sum -c
+          python3 -m py_compile rig-experiments/{round27_existing_corrective_driver_audit.py,round20_full_cycle_geometry.py}
+          mkdir -p Round27
+      - name: Restore immutable saved v8 gait source
+        uses: actions/download-artifact@v4
+        with:
+          repository: mehmetdem2005/Fare
+          run-id: 43767152372
+          name: fare-round13-ik-phase-combined-review
+          path: OriginalV8
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Verify exact SHA256 of source file
+        run: |
+          echo '984a21447c0217bc8ff91d02f9af1509324aa94dfaf29c543abd3d92f9b12c70  OriginalV8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend' | sha256sum -c
+      - name: Install official Blender 5.1.2 with numpy
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 5 -o blender.tar.xz https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libegl1 libgl1 libgl1-mesa-dri libxi6 xvfb libxrender1
+      - name: Check 24 pose driver values plus 144 independent manual causal activations
+        run: |
+          set -euo pipefail
+          blender_runtime/blender-5.1.2-linux-x64/blender -b -P rig-experiments/round27_existing_corrective_driver_audit.py -- \
+            --baseline OriginalV8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend \
+            --out Round27
+          python3 - <<'PY'
+          import json
+          r=json.load(open('Round27/round27_driver_activation_and_manual_ablation.json'))
+          assert r['status']=='PASS_EXISTING_CORRECTIVE_DRIVER_CAUSAL_QA_NOT_A_REPAIR',r.get('traceback')
+          assert r['attempted']==144
+          print('Round27 completed: original corrective activation counts',r['24frame_active_counts'])
+          PY
+      - name: Preserve activation results, non-promotion warnings and zero-state leaks
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-round27-original-shape-driver-144-activation-trials
+          path: Round27/
+          retention-days: 30
+          if-no-files-found: warn
