@@ -52,12 +52,12 @@ def percentile(xs, p):
     xs.sort()
     return xs[round((len(xs) - 1) * p)]
 
-def collect(ob, arm):
+def collect(ob, arm, expected_bones=49):
     part = ob.data.attributes.get("part_id")
     if part is None:
         raise RuntimeError("part_id missing, cannot isolate body surface")
     v = ob.data.vertices
-    if len(v) != 19466 or len(arm.data.bones) != 49:
+    if len(v) != 19466 or len(arm.data.bones) != expected_bones:
         raise RuntimeError("Wrong rig identity: %d verts / %d bones" % (len(v),len(arm.data.bones)))
     def body(i):
         return part.data[i].value == 6

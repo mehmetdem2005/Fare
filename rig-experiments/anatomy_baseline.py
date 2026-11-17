@@ -68,6 +68,7 @@ def main():
     parser.add_argument("--rest-only", action="store_true")
     parser.add_argument("--full-body-intersections", action="store_true")
     parser.add_argument("--render", action="store_true")
+    parser.add_argument("--expected-bones", type=int, default=49)
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:])
     output = args.out.resolve()
     output.mkdir(parents=True, exist_ok=True)
@@ -89,7 +90,7 @@ def main():
         action = target.actions[0]
     else:
         action = None if args.rest_only else bpy.data.actions[args.action]
-    rois = anatomy["collect"](obj, arm)
+    rois = anatomy["collect"](obj, arm, args.expected_bones)
     rest = array([obj.matrix_world @ v.co for v in obj.data.vertices])
     polygons = []
     tris = []
