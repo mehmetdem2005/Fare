@@ -33,3 +33,13 @@ ChatGPT tarafından hazırlanan v6 ikili dosyası GitHub depoda henüz yoksa bu 
 - 9. karede alan eşiğini aşan üçgenler 465 ve 809 tespit edilerek eşik kaynaklı hata giderildi; 8. karede BVH regresyonu önlendi.
 - Son kalan engel: **14. karede BVH 27 → 30**; 16 yeni kesişen üçgen çifti ve 13 iyileşen çift; f14 minimum alan ve BVH aynı anda korunamıyor. Ön/arka parçalara bölünmüş 24 profil de elendi.
 - GitHub Actions yeşil = deney başarıyla çalıştırıldı; **0 yeni model tam L3 kabulüne ulaştı**. Hâlen L4/L5 yok; orijinal 49 kemikli model ve production GLB dokunulmadı.
+
+## Round 38–42 — Bağımsız kaydedilmiş aday ve Godot import (17 Kasım 2026)
+
+- [Gerçek Blender 5.1.2 / GLB / Godot 4.7.2 doğrulama raporu](ROUND_38_42_GODOT_L3_VERIFICATION_2026-11-17.md).
+- Round38 temas projeksiyonu: **0 kabul**, 14. kare BVH 30→30.
+- Round39: orijinal v8 pozunu 14. karede ters-skin shape key ile **4.47e−8** hata düzeyinde yeniden oluşturduk; 10 animasyon profilinden **6** tam 24-kare L3 kontrolünü geçti. Kaydedilmiş deneysel `.blend` SHA: `bf24c3c00367790af976e5f407cb9c3b20ad11754845bd0eb63d5cbe4042d07b`.
+- Round40: dosya bağımsız Blender işleminde yeniden açıldı, orijinal 49 kemik hareketi değişmedi; tekrar tam L3 başarı. Eski yanlış 'rest = constraints active, action=None' denetim hatası saptanıp düzeltildi.
+- Round41: 5,094,784 bayt GLB; 148 Blender animasyon kanalı, 29 morph hedefi, Blender yeniden import PASS. SHA `351a9475aeb6142331e4bc296aee957648cb055c7afc9988943a12c559c937d2`.
+- Round42: **gerçek Godot 4.7.2-stable** headless `PackedScene` import PASS: 49 kemik, 29 blendshape, 1 koşu animasyonu, 68 track (29 morph, 34 bone rotation).
+- **ÖNEMLİ:** L4 görünür gövde-kol kırışmaları halen inceleniyor; kullanıcı Android 11/Mali gerçek cihaz testleri YAPILMADI. Üretim `deliver/` ve eski orijinal model **korundu**, GLB/BLEND yalnız deneysel inceleme adayı.
