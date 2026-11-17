@@ -1,0 +1,79 @@
+name: Fare Round 23 isolated IK and bone rotation causal sensitivity
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - rig-experiments/round23_ik_bone_ablation.py
+      - .github/workflows/fare-round23-ik-bone-ablation.yml
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  original-49bone-anatomical-perturbations:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 85
+    env:
+      LIBGL_ALWAYS_SOFTWARE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Confirm original and compile experiment
+        run: |
+          set -euo pipefail
+          echo '173ca67a372f5c04f27d922ef02f37921bbaf184cff0094976df326b4ec095b6  deliver/mouse_rig.blend' | sha256sum -c
+          python3 -m py_compile rig-experiments/{round23_ik_bone_ablation.py,round20_full_cycle_geometry.py,round19e_clean_candidate_qa.py,round17_reopen_surface.py,round11_rootcause.py}
+          mkdir -p Round23
+      - name: Load verified immutable v8 original
+        uses: actions/download-artifact@v4
+        with:
+          repository: mehmetdem2005/Fare
+          run-id: 43767152372
+          name: fare-round13-ik-phase-combined-review
+          path: OriginalV8
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Load physically saved Round19D rejected 0.170 candidate
+        uses: actions/download-artifact@v4
+        with:
+          repository: mehmetdem2005/Fare
+          run-id: 43867305596
+          name: fare-round19d-clean-weight-readback-science
+          path: Clean
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Verify both exact Blender input digests
+        run: |
+          set -euo pipefail
+          echo '984a21447c0217bc8ff91d02f9af1509324aa94dfaf29c543abd3d92f9b12c70  OriginalV8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend' | sha256sum -c
+          echo 'cb67f61b9a1a771366df53b10b89e1bec827c81450e2bac300be2c96b52e85bc  Clean/Round19D_170/round19d_clean_0.170_REVIEW_ONLY.blend' | sha256sum -c
+      - name: Install genuine Blender 5.1.2
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 5 -o blender.tar.xz https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libegl1 libgl1 libgl1-mesa-dri libxi6 xvfb libxrender1
+      - name: Run true independent 9-frame actuator sweeps and expensive shortlisted BVH tests
+        run: |
+          set -euo pipefail
+          B=blender_runtime/blender-5.1.2-linux-x64/blender
+          "$B" -b -P rig-experiments/round23_ik_bone_ablation.py -- \
+            --baseline OriginalV8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend \
+            --candidate Clean/Round19D_170/round19d_clean_0.170_REVIEW_ONLY.blend \
+            --out Round23
+          python3 - <<'PY'
+          import json
+          r=json.load(open('Round23/round23_single_actuator_ablation.json'))
+          assert r['status']=='PASS_CONTROLLED_SINGLE_ACTUATOR_SENSITIVITY_NO_REPAIR',r.get('traceback')
+          assert len(r['frame_results'])==9,r
+          assert r['attempts']==9*(4*3*4+5*3*2),r
+          assert max(x['reset_max_vertex_drift'] for x in r['frame_results'])<1e-5
+          print('ROUND23 genuine bpy single-control screening; not approved for export',r['attempts'])
+          PY
+      - name: Preserve every failed perturbation and selected BVH trial
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-round23-IK-spine-single-bone-ablation
+          path: Round23/
+          retention-days: 30
+          if-no-files-found: warn
