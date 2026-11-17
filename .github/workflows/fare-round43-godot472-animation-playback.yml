@@ -1,0 +1,85 @@
+name: Fare Round 43 Godot 4.7.2 stable GLB skeletal morph runtime import
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - rig-experiments/round43_godot_sprint_playback.gd
+      - .github/workflows/fare-round43-godot472-animation-playback.yml
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  godot-472-headless-import:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Confirm original production is still untouched
+        run: |
+          set -euo pipefail
+          echo '173ca67a372f5c04f27d922ef02f37921bbaf184cff0094976df326b4ec095b6  deliver/mouse_rig.blend' | sha256sum -c
+          mkdir -p Round43 GodotImport
+      - name: Retrieve exact Round41 Blender-exported GLB and import validation record
+        uses: actions/download-artifact@v4
+        with:
+          repository: mehmetdem2005/Fare
+          run-id: 44117917452
+          name: fare-round41-corrected-sprint-review-glb-plus-reimport-check
+          path: Round41Saved
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Verify original GLB and source record digests before Godot import
+        run: |
+          set -euo pipefail
+          echo '351a9475aeb6142331e4bc296aee957648cb055c7afc9988943a12c559c937d2  Round41Saved/R41_FARE_49BONE_SPRINT_CORRECTED_REVIEW_ONLY.glb' | sha256sum -c
+          python3 - <<'PY'
+          import json
+          r=json.load(open('Round41Saved/round41_glb_export_reimport.json'))
+          assert r['status']=='PASS_EXPORTED_GLB_AND_REAL_BLENDER_REIMPORT_GODOT_L5_PENDING'
+          assert r['animated_morph_weight_channels']>=1 and r['animated_rotation_channels']>=15
+          PY
+          cp Round41Saved/R41_FARE_49BONE_SPRINT_CORRECTED_REVIEW_ONLY.glb GodotImport/
+          cp rig-experiments/round43_godot_sprint_playback.gd GodotImport/inspect.gd
+          cat > GodotImport/project.godot <<'PROJECT'
+          config_version=5
+          [application]
+          config/name="Fare Corrected Rig Import QA"
+          [rendering]
+          renderer/rendering_method="gl_compatibility"
+          renderer/rendering_method.mobile="gl_compatibility"
+          PROJECT
+      - name: Download exact official Godot 4.7.2-stable Linux executable
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 8 -o godot.zip 'https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip'
+          unzip -q godot.zip -d GodotBin
+          chmod +x GodotBin/Godot_v4.7.2-stable_linux.x86_64
+          GodotBin/Godot_v4.7.2-stable_linux.x86_64 --headless --version | tee Round43/godot_version.log
+          grep -q '4.7.2' Round43/godot_version.log
+      - name: Real editor import GLB, armature, blendshapes, animations
+        run: |
+          set -euo pipefail
+          timeout 240 GodotBin/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --editor --path GodotImport --import 2>&1 | tee Round43/godot_import.log
+      - name: Instantiate the imported scene and assert corrective blendshape animation tracks
+        run: |
+          set -euo pipefail
+          timeout 120 GodotBin/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path GodotImport --script res://inspect.gd \
+            2>&1 | tee Round43/godot_script_inspect.log
+          cp GodotImport/round43_godot_playback.json Round43/
+          python3 - <<'PY'
+          import json
+          r=json.load(open('Round43/round43_godot_playback.json'))
+          assert r['status']=='PASS_GODOT_472_REAL_HEADLESS_PLAYBACK_ANDROID_NOT_VERIFIED',r
+          assert r['f14_reference_weight_error']<0.04 and r['hips_frame1_25_quaternion_seam']<0.003
+          print('GODOT 4.7.2 actual AnimationPlayer frame14 f14-morph and 49-bone cyclic animation PASS; Android Mali device and human anatomy still NOT VERIFIED')
+          PY
+      - name: Preserve actual Godot logs, warnings, importer and scripted scene test
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-round43-godot472-live-anim-player-f14-correction-sampling
+          path: Round43/
+          retention-days: 30
+          if-no-files-found: warn
