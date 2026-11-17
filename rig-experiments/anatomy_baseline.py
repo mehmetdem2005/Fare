@@ -11,6 +11,7 @@ import bpy
 import numpy as np
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
+from mathutils.geometry import intersect_ray_tri
 
 HERE = Path(__file__).resolve().parent
 ACTION = "run_sprint_v8_ik_phase_NUMERIC_REVIEW"
@@ -33,6 +34,21 @@ def array(points):
 def normals(points, tris):
     a, b, c = points[tris].transpose(1, 0, 2)
     return np.cross(b - a, c - a)
+
+
+def crossing(triangle_a, triangle_b):
+    """Witness a non-coplanar intersection on a finite triangle edge."""
+    for source, target in ((triangle_a, triangle_b), (triangle_b, triangle_a)):
+        for index, start in enumerate(source):
+            edge = source[(index + 1) % 3] - start
+            if edge.length_squared < 1e-18:
+                continue
+            point = intersect_ray_tri(*target, edge, start, True)
+            if point is not None:
+                fraction = (point - start).dot(edge) / edge.length_squared
+                if -1e-6 <= fraction <= 1 + 1e-6:
+                    return list(point)
+    return None
 
 
 def render(scene, camera, frame, name, direction, center, scale, output):
@@ -97,6 +113,9 @@ def main():
     roi_edges = {name: np.array([i for i, (a, b) in enumerate(edges)
                                 if a in ids and b in ids and edge_lengths[i] > .001])
                  for name, ids in rois.items()}
+    part = obj.data.attributes["part_id"]
+    paw_parts = {label: np.array([v.index for v in obj.data.vertices if part.data[v.index].value == tag])
+                 for label, tag in {"fore_right": 2, "fore_left": 3, "hind_right": 7, "hind_left": 8}.items()}
     weights = [helpers["weights"](obj, i) for i in range(len(rest))]
     report = {
         "sha256": hashlib.sha256(args.source.read_bytes()).hexdigest(),
@@ -107,6 +126,7 @@ def main():
         "boundary_edges": sum(c == 1 for c in edge_counts.values()),
         "nonmanifold_edges": sum(c > 2 for c in edge_counts.values()),
         "legacy_triangles": len(tris),
+        "legacy_triangle_vertices": tris,
         "rest_bones": anatomy["bone_map"](obj, arm, rois),
         "sentinels": {
             i: {"polygon": polygons[i], "vertices": ids, "rest_centroid": rest[list(ids)].mean(axis=0).tolist(),
@@ -126,6 +146,7 @@ def main():
         scene.render.resolution_x = scene.render.resolution_y = 512
         scene.render.resolution_percentage = 100
         scene.render.image_settings.file_format = "PNG"
+        scene.display.render_aa = "FXAA"
         shading = scene.display.shading
         shading.color_type = "SINGLE"
         shading.single_color = (.54, .53, .51)
@@ -149,16 +170,31 @@ def main():
         orientation = np.einsum("ij,ij->i", posed_normals, corotated) / np.maximum(areas * posed_areas, 1e-25)
         tree = BVHTree.FromPolygons(points, tris, all_triangles=True)
         pairs = [(i, j) for i, j in tree.overlap(tree) if i < j and not set(tris[i]).intersection(tris[j])]
+        crossings = [
+            {"triangles": [i, j], "world_point": point}
+            for i, j in sorted(pairs)
+            if (point := crossing([points[v] for v in tris[i]], [points[v] for v in tris[j]])) is not None
+        ]
         strain = np.abs(np.linalg.norm(xyz[edges[:, 1]] - xyz[edges[:, 0]], axis=1) / np.maximum(edge_lengths, 1e-15) - 1)
         if first is None:
             first = xyz
         ratio = posed_areas / areas
         report["samples"].append({
             "frame": frame, "min_area_ratio": float(ratio.min()), "under_half": int((ratio < .5).sum()),
+            "worst_triangles": [
+                {"triangle": int(i), "vertices": tris[i], "polygon": polygons[i],
+                 "rest_centroid": rest[list(tris[i])].mean(axis=0).tolist(), "area_ratio": float(ratio[i])}
+                for i in np.argsort(ratio)[:10]
+            ],
             "negative_corotated_normal": np.flatnonzero(orientation < 0).tolist(),
             "bvh_pairs": sorted(pairs),
+            "noncoplanar_intersection_witnesses": crossings,
             "p95_edge_strain": {n: float(np.quantile(strain[ei], .95)) for n, ei in roi_edges.items()},
             "sentinels": {i: {"area_ratio": float(ratio[i]), "normal_cosine": float(orientation[i])} for i in SENTINELS},
+            "paws": {name: {"lowest_z": float(xyz[ids, 2].min()),
+                            "sole_centroid": xyz[ids[np.argsort(xyz[ids, 2])[:max(1, len(ids) // 10)]]].mean(axis=0).tolist()}
+                     for name, ids in paw_parts.items()},
+            "pose_matrices": {b.name: array(b.matrix).tolist() for b in arm.pose.bones},
             "shape_keys": {k.name: float(k.value) for k in list(obj.data.shape_keys.key_blocks)[1:]},
         })
         if args.render:
@@ -174,6 +210,15 @@ def main():
                 center = rest[sorted(rois[roi])].mean(axis=0)
                 render(scene, camera, frame, name, direction, center, .56, output)
     report["endpoint_max_vertex_delta"] = float(np.linalg.norm(xyz - first, axis=1).max())
+    if not args.rest_only:
+        scene.frame_set(1, subframe=.01)
+        after_start = array(helpers["pts"](obj))
+        scene.frame_set(24, subframe=.99)
+        before_end = array(helpers["pts"](obj))
+        incoming = (xyz - before_end) / .01
+        outgoing = (after_start - first) / .01
+        report["seam_velocity_max_delta_per_frame"] = float(np.linalg.norm(outgoing - incoming, axis=1).max())
+        report["seam_velocity_p95_delta_per_frame"] = float(np.quantile(np.linalg.norm(outgoing - incoming, axis=1), .95))
     (output / "baseline.json").write_text(json.dumps(report, indent=2) + "\n")
 
 

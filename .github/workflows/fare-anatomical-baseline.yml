@@ -39,6 +39,8 @@ jobs:
           984a21447c0217bc8ff91d02f9af1509324aa94dfaf29c543abd3d92f9b12c70  inputs/v8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend
           bf24c3c00367790af976e5f407cb9c3b20ad11754845bd0eb63d5cbe4042d07b  inputs/r39/R39_SAVED_NUMERIC_REVIEW_ONLY.blend
           SUMS
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libegl1 libgl1 libgl1-mesa-dri libxi6 libxrender1
           curl --fail --location --retry 3 https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz | tar -xJ
       - name: Render seven angles and five closeups per frame
         run: |
