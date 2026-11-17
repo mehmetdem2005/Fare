@@ -1,0 +1,81 @@
+name: Fare Round 40 actual saved candidate fresh reopen and cinematic anatomical QA
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - rig-experiments/round40_independent_reopen_qc.py
+      - .github/workflows/fare-round40-independent-reopen.yml
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  verified-saved-r39-candidate-reopen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 85
+    env:
+      LIBGL_ALWAYS_SOFTWARE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Confirm untouched production and compile all real Blender reopening checks
+        run: |
+          set -euo pipefail
+          echo '173ca67a372f5c04f27d922ef02f37921bbaf184cff0094976df326b4ec095b6  deliver/mouse_rig.blend' | sha256sum -c
+          python3 -m py_compile rig-experiments/{round40_independent_reopen_qc.py,round19e_clean_candidate_qa.py,round20_full_cycle_geometry.py,round17_reopen_surface.py}
+          mkdir -p Round40
+      - name: Download untouched saved v8 original
+        uses: actions/download-artifact@v4
+        with:
+          repository: mehmetdem2005/Fare
+          run-id: 43767152372
+          name: fare-round13-ik-phase-combined-review
+          path: OriginalV8
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download Round39 numerically accepted and actually SAVED BLEND
+        uses: actions/download-artifact@v4
+        with:
+          repository: mehmetdem2005/Fare
+          run-id: 44116055380
+          name: fare-round39-10-reference-restored-f14-review-files
+          path: Round39Saved
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Independently verify SHA256 and expected saved experiment record
+        run: |
+          set -euo pipefail
+          echo '984a21447c0217bc8ff91d02f9af1509324aa94dfaf29c543abd3d92f9b12c70  OriginalV8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend' | sha256sum -c
+          echo 'bf24c3c00367790af976e5f407cb9c3b20ad11754845bd0eb63d5cbe4042d07b  Round39Saved/R39_SAVED_NUMERIC_REVIEW_ONLY.blend' | sha256sum -c
+      - name: Install real official Blender 5.1.2
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 5 -o blender.tar.xz https://mirror.blender.org/release/Blender5.1/blender-5.1.2-linux-x64.tar.xz
+          mkdir blender_runtime
+          tar -xJf blender.tar.xz -C blender_runtime
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libegl1 libgl1 libgl1-mesa-dri libxi6 xvfb libxrender1
+      - name: Independent readback bone matrices, baked shape frames, full 24-frame strict L3 and L4 renders
+        run: |
+          set -euo pipefail
+          blender_runtime/blender-5.1.2-linux-x64/blender -b -P rig-experiments/round40_independent_reopen_qc.py -- \
+            --baseline OriginalV8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend \
+            --candidate Round39Saved/R39_SAVED_NUMERIC_REVIEW_ONLY.blend \
+            --expected Round39Saved/round39_reference_restore_full_gait.json \
+            --out Round40
+          python3 - <<'PY'
+          import json
+          r=json.load(open('Round40/round40_independent_saved_reopen.json'))
+          assert r['status']=='PASS_FRESH_REOPEN_L3_CANDIDATE_L4_AND_L5_PENDING',r.get('traceback',r.get('issues'))
+          assert len(r['frames'])==24
+          assert r['f14_saved_reference_value']>.89 and r['f14_saved_reference_value']<.91
+          assert r['candidate_seam']<1e-5 and r['original_seam']<1e-5
+          assert r['bone_action_all_sampled_matrix_max_drift']<1e-5
+          assert not r['issues'],r
+          print('Fresh reopened independent L3 PASS. Human L4 and Godot L5 still unapproved.')
+          PY
+      - name: Preserve numerical failures or the first independent L4 review images
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-round40-original-v8-vs-reopened-corrected-blend-visual-proof
+          path: Round40/
+          retention-days: 30
+          if-no-files-found: warn
