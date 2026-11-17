@@ -92,6 +92,11 @@ jobs:
             if [[ "$trial" == down12 ]]; then args=(--render); fi
             "$blender" -b -t 4 --python-exit-code 1 -P rig-experiments/anatomy_baseline.py -- --source "trials/$trial/SWING_CLEARANCE_TRIAL_UNAPPROVED.blend" --action run_sprint_v8_swing_clearance_TRIAL --full-body-intersections --out "evidence/$trial" "${args[@]}"
           done
+          "$blender" -b -t 4 --python-exit-code 1 -P rig-experiments/anatomy_ankle_basis_trial.py -- --source trials/down12/SWING_CLEARANCE_TRIAL_UNAPPROVED.blend --out trials/ankle
+          mkdir -p evidence/ankle
+          cp trials/ankle/ankle_basis_trial.json evidence/ankle/
+          "$blender" -b -t 4 --python-exit-code 1 -P rig-experiments/anatomy_baseline.py -- --source trials/ankle/ANKLE_BASIS_TRIAL_UNAPPROVED.blend --rest-only --full-body-intersections --out evidence/ankle/rest
+          "$blender" -b -t 4 --python-exit-code 1 -P rig-experiments/anatomy_baseline.py -- --source trials/ankle/ANKLE_BASIS_TRIAL_UNAPPROVED.blend --action run_sprint_v8_swing_clearance_TRIAL --full-body-intersections --render --out evidence/ankle
           echo '173ca67a372f5c04f27d922ef02f37921bbaf184cff0094976df326b4ec095b6  deliver/mouse_rig.blend' | sha256sum -c
       - uses: actions/upload-artifact@v4
         if: always()
