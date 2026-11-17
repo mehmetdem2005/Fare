@@ -1,0 +1,85 @@
+name: Fare Round 42 Godot 4.7.2 stable GLB skeletal morph runtime import
+on:
+  push:
+    branches: [rig-experiments/real-blender-ci]
+    paths:
+      - rig-experiments/round42_godot_glb_inspection.gd
+      - .github/workflows/fare-round42-godot472-glb-qa.yml
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  godot-472-headless-import:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Confirm original production is still untouched
+        run: |
+          set -euo pipefail
+          echo '173ca67a372f5c04f27d922ef02f37921bbaf184cff0094976df326b4ec095b6  deliver/mouse_rig.blend' | sha256sum -c
+          mkdir -p Round42 GodotImport
+      - name: Retrieve exact Round41 Blender-exported GLB and import validation record
+        uses: actions/download-artifact@v4
+        with:
+          repository: mehmetdem2005/Fare
+          run-id: 44117917452
+          name: fare-round41-corrected-sprint-review-glb-plus-reimport-check
+          path: Round41Saved
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Verify original GLB and source record digests before Godot import
+        run: |
+          set -euo pipefail
+          echo '351a9475aeb6142331e4bc296aee957648cb055c7afc9988943a12c559c937d2  Round41Saved/R41_FARE_49BONE_SPRINT_CORRECTED_REVIEW_ONLY.glb' | sha256sum -c
+          python3 - <<'PY'
+          import json
+          r=json.load(open('Round41Saved/round41_glb_export_reimport.json'))
+          assert r['status']=='PASS_EXPORTED_GLB_AND_REAL_BLENDER_REIMPORT_GODOT_L5_PENDING'
+          assert r['animated_morph_weight_channels']>=1 and r['animated_rotation_channels']>=15
+          PY
+          cp Round41Saved/R41_FARE_49BONE_SPRINT_CORRECTED_REVIEW_ONLY.glb GodotImport/
+          cp rig-experiments/round42_godot_glb_inspection.gd GodotImport/inspect.gd
+          cat > GodotImport/project.godot <<'PROJECT'
+          config_version=5
+          [application]
+          config/name="Fare Corrected Rig Import QA"
+          [rendering]
+          renderer/rendering_method="gl_compatibility"
+          renderer/rendering_method.mobile="gl_compatibility"
+          PROJECT
+      - name: Download exact official Godot 4.7.2-stable Linux executable
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 8 -o godot.zip 'https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip'
+          unzip -q godot.zip -d GodotBin
+          chmod +x GodotBin/Godot_v4.7.2-stable_linux.x86_64
+          GodotBin/Godot_v4.7.2-stable_linux.x86_64 --headless --version | tee Round42/godot_version.log
+          grep -q '4.7.2' Round42/godot_version.log
+      - name: Real editor import GLB, armature, blendshapes, animations
+        run: |
+          set -euo pipefail
+          timeout 240 GodotBin/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --editor --path GodotImport --import 2>&1 | tee Round42/godot_import.log
+      - name: Instantiate the imported scene and assert corrective blendshape animation tracks
+        run: |
+          set -euo pipefail
+          timeout 120 GodotBin/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path GodotImport --script res://inspect.gd \
+            2>&1 | tee Round42/godot_script_inspect.log
+          cp GodotImport/round42_godot_import.json Round42/
+          python3 - <<'PY'
+          import json
+          r=json.load(open('Round42/round42_godot_import.json'))
+          assert r['status']=='PASS_GODOT_472_HEADLESS_IMPORTED_MORPH_AND_ANIMATION_ANDROID_NOT_TESTED',r
+          assert r['reference_f14_morph_found'] and r['blend_shape_animation_tracks']>=1
+          print('GODOT 4.7.2 import and animation PASS; Android device GPU/playback and human anatomy remain UNVERIFIED')
+          PY
+      - name: Preserve actual Godot logs, warnings, importer and scripted scene test
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-round42-godot472-headless-real-import-anim-morph-evidence
+          path: Round42/
+          retention-days: 30
+          if-no-files-found: warn
