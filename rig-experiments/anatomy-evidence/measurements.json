@@ -2180,6 +2180,32 @@
    22,
    23,
    24
+  ],
+  "ankle_basis": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11,
+   12,
+   13,
+   14,
+   15,
+   16,
+   17,
+   18,
+   19,
+   20,
+   21,
+   22,
+   23,
+   24
   ]
  },
  "cases": {
@@ -33493,6 +33519,1064 @@
      "body_new_confirmed_pairs": 1
     }
    ]
+  },
+  "ankle_basis": {
+   "sha256": "0148ac2f140524fb9d441da9188d8b2ba8ddca151bef6b316ddd23688d524ca4",
+   "action": "run_sprint_v8_swing_clearance_TRIAL",
+   "endpoint_max_vertex_delta": 0.0,
+   "seam_velocity_p95_delta_per_frame": 7.841979317063376e-05,
+   "frames": [
+    {
+     "frame": 1,
+     "body_confirmed_pairs": 5,
+     "body_new_confirmed_pairs_vs_v8": 0,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.543922383396916,
+     "paws": {
+      "fore_right": {
+       "lowest_z": 0.006771067623049021,
+       "sole_centroid": [
+        -0.11220503770388089,
+        -0.32966214934220683,
+        0.010236574068235664
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.0058434586971998215,
+       "sole_centroid": [
+        0.10832947370680895,
+        -0.32726736556399955,
+        0.009175393222407862
+       ]
+      },
+      "hind_right": {
+       "lowest_z": -0.0011238550068810582,
+       "sole_centroid": [
+        -0.1552704172099338,
+        0.07654250805430553,
+        0.0027942548471722095
+       ]
+      },
+      "hind_left": {
+       "lowest_z": -0.0013059506891295314,
+       "sole_centroid": [
+        0.15462162652436426,
+        0.0795089325922377,
+        0.003047516194226987
+       ]
+      }
+     }
+    },
+    {
+     "frame": 2,
+     "body_confirmed_pairs": 6,
+     "body_new_confirmed_pairs_vs_v8": 0,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.5180866224942622,
+     "paws": {
+      "fore_right": {
+       "lowest_z": 0.006653321906924248,
+       "sole_centroid": [
+        -0.11183696956588672,
+        -0.32959486028322804,
+        0.01009665966893618
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.00668674660846591,
+       "sole_centroid": [
+        0.10874468399719758,
+        -0.32335277741605584,
+        0.01000076662749052
+       ]
+      },
+      "hind_right": {
+       "lowest_z": -0.000778552726842463,
+       "sole_centroid": [
+        -0.15540094489560408,
+        0.07912411676610218,
+        0.002890704369501156
+       ]
+      },
+      "hind_left": {
+       "lowest_z": 0.005099322181195021,
+       "sole_centroid": [
+        0.15529574997284834,
+        0.07975356440772029,
+        0.008989253163556843
+       ]
+      }
+     }
+    },
+    {
+     "frame": 3,
+     "body_confirmed_pairs": 4,
+     "body_new_confirmed_pairs_vs_v8": 0,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.5058882255381542,
+     "paws": {
+      "fore_right": {
+       "lowest_z": 0.006899720057845116,
+       "sole_centroid": [
+        -0.11146103476102535,
+        -0.3267067682284575,
+        0.010320835737869717
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.006890018004924059,
+       "sole_centroid": [
+        0.10901803834871812,
+        -0.3168880354274403,
+        0.010315189315852794
+       ]
+      },
+      "hind_right": {
+       "lowest_z": 0.004832948092371225,
+       "sole_centroid": [
+        -0.15606711094870288,
+        0.07954505375202964,
+        0.008194642541382243
+       ]
+      },
+      "hind_left": {
+       "lowest_z": 0.014075840823352337,
+       "sole_centroid": [
+        0.1560126057442497,
+        0.07735447850735748,
+        0.017424695544383105
+       ]
+      }
+     }
+    },
+    {
+     "frame": 4,
+     "body_confirmed_pairs": 4,
+     "body_new_confirmed_pairs_vs_v8": 0,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.5150188889417902,
+     "paws": {
+      "fore_right": {
+       "lowest_z": 0.006900204811245203,
+       "sole_centroid": [
+        -0.11107449591732942,
+        -0.32077354250045925,
+        0.01038958382112189
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.006908096373081207,
+       "sole_centroid": [
+        0.10866794681007212,
+        -0.30764006430452523,
+        0.010525600459765303
+       ]
+      },
+      "hind_right": {
+       "lowest_z": 0.013515223748981953,
+       "sole_centroid": [
+        -0.15494599167038411,
+        0.07940093754407238,
+        0.01651002567480592
+       ]
+      },
+      "hind_left": {
+       "lowest_z": 0.02254776656627655,
+       "sole_centroid": [
+        0.15653115598594441,
+        0.07030715076800655,
+        0.025847505602766486
+       ]
+      }
+     }
+    },
+    {
+     "frame": 5,
+     "body_confirmed_pairs": 5,
+     "body_new_confirmed_pairs_vs_v8": 4,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.40507478114487505,
+     "paws": {
+      "fore_right": {
+       "lowest_z": 0.006903865374624729,
+       "sole_centroid": [
+        -0.11072930263785216,
+        -0.311876329091879,
+        0.010523139642408261
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.006903526838868856,
+       "sole_centroid": [
+        0.10836698453534734,
+        -0.29821879646994853,
+        0.010684606576846405
+       ]
+      },
+      "hind_right": {
+       "lowest_z": 0.022058723494410515,
+       "sole_centroid": [
+        -0.15496139631551856,
+        0.0721509455538848,
+        0.02499126564053928
+       ]
+      },
+      "hind_left": {
+       "lowest_z": 0.029646003618836403,
+       "sole_centroid": [
+        0.15652841294513029,
+        0.060166372227318146,
+        0.032946309118586425
+       ]
+      }
+     }
+    },
+    {
+     "frame": 6,
+     "body_confirmed_pairs": 7,
+     "body_new_confirmed_pairs_vs_v8": 4,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.2989574521634343,
+     "paws": {
+      "fore_right": {
+       "lowest_z": 0.00688960263505578,
+       "sole_centroid": [
+        -0.1113511654906548,
+        -0.30075575640568364,
+        0.010621728303913888
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.006816691253334284,
+       "sole_centroid": [
+        0.10833597914739089,
+        -0.28573225682432,
+        0.010721721593290568
+       ]
+      },
+      "hind_right": {
+       "lowest_z": 0.029307080432772636,
+       "sole_centroid": [
+        -0.1549607178744148,
+        0.061801977411789055,
+        0.03223892761503949
+       ]
+      },
+      "hind_left": {
+       "lowest_z": 0.034353721886873245,
+       "sole_centroid": [
+        0.15600491236237918,
+        0.04748981748433674,
+        0.03766919795204612
+       ]
+      }
+     }
+    },
+    {
+     "frame": 7,
+     "body_confirmed_pairs": 12,
+     "body_new_confirmed_pairs_vs_v8": 2,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.28772295134549664,
+     "paws": {
+      "fore_right": {
+       "lowest_z": 0.006643534637987614,
+       "sole_centroid": [
+        -0.11127319645423156,
+        -0.2878156120960529,
+        0.01046211235762502
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.006411291193217039,
+       "sole_centroid": [
+        0.10876866579055786,
+        -0.2733758883042769,
+        0.010391579678451474
+       ]
+      },
+      "hind_right": {
+       "lowest_z": 0.03423629328608513,
+       "sole_centroid": [
+        -0.15496041546849643,
+        0.049125198987038696,
+        0.03717429821982103
+       ]
+      },
+      "hind_left": {
+       "lowest_z": 0.03599976375699043,
+       "sole_centroid": [
+        0.15600844428819768,
+        0.03370885979247225,
+        0.0393470399081707
+       ]
+      }
+     }
+    },
+    {
+     "frame": 8,
+     "body_confirmed_pairs": 10,
+     "body_new_confirmed_pairs_vs_v8": 2,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.24832186418833346,
+     "paws": {
+      "fore_right": {
+       "lowest_z": 0.00583433173596859,
+       "sole_centroid": [
+        -0.11133973945218784,
+        -0.27430488283817583,
+        0.00970674019593459
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.005384600255638361,
+       "sole_centroid": [
+        0.10859964950518175,
+        -0.2605796399441632,
+        0.009391134985807266
+       ]
+      },
+      "hind_right": {
+       "lowest_z": 0.03614183887839317,
+       "sole_centroid": [
+        -0.15608710173298332,
+        0.034120097289354924,
+        0.03909388732384233
+       ]
+      },
+      "hind_left": {
+       "lowest_z": 0.034353699535131454,
+       "sole_centroid": [
+        0.15531028877286351,
+        0.019557233899831772,
+        0.03774765488855979
+       ]
+      }
+     }
+    },
+    {
+     "frame": 9,
+     "body_confirmed_pairs": 7,
+     "body_new_confirmed_pairs_vs_v8": 1,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.36561230237686587,
+     "paws": {
+      "fore_right": {
+       "lowest_z": 0.004323197528719902,
+       "sole_centroid": [
+        -0.11154187012177247,
+        -0.26127064887147683,
+        0.00821413577068597
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.0038493312895298004,
+       "sole_centroid": [
+        0.10837834504517642,
+        -0.2492365146225149,
+        0.00783372742377899
+       ]
+      },
+      "hind_right": {
+       "lowest_z": 0.034756824374198914,
+       "sole_centroid": [
+        -0.15608862506992677,
+        0.019920638126923757,
+        0.03772922482560662
+       ]
+      },
+      "hind_left": {
+       "lowest_z": 0.02964598312973976,
+       "sole_centroid": [
+        0.15532145447590773,
+        0.006354016383342883,
+        0.03309558231164427
+       ]
+      }
+     }
+    },
+    {
+     "frame": 10,
+     "body_confirmed_pairs": 2,
+     "body_new_confirmed_pairs_vs_v8": 2,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.2905738062963655,
+     "paws": {
+      "fore_right": {
+       "lowest_z": 0.0028531907591968775,
+       "sole_centroid": [
+        -0.11186094711033198,
+        -0.2496771104633808,
+        0.006728881240213433
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.00252523273229599,
+       "sole_centroid": [
+        0.1077406033873558,
+        -0.2386389981616627,
+        0.0064396153204143046
+       ]
+      },
+      "hind_right": {
+       "lowest_z": 0.03027479350566864,
+       "sole_centroid": [
+        -0.15609127002603868,
+        0.006559275879579432,
+        0.0332722001873395
+       ]
+      },
+      "hind_left": {
+       "lowest_z": 0.022547701373696327,
+       "sole_centroid": [
+        0.15533433276064257,
+        -0.005025320281000698,
+        0.02605546195717419
+       ]
+      }
+     }
+    },
+    {
+     "frame": 11,
+     "body_confirmed_pairs": 1,
+     "body_new_confirmed_pairs_vs_v8": 1,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.2637879503918887,
+     "paws": {
+      "fore_right": {
+       "lowest_z": 0.0015711693558841944,
+       "sole_centroid": [
+        -0.11227099339549358,
+        -0.2403494119644165,
+        0.005399576142036284
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.0014292284613475204,
+       "sole_centroid": [
+        0.10676361620426178,
+        -0.23205242644656787,
+        0.005224347904070534
+       ]
+      },
+      "hind_right": {
+       "lowest_z": 0.023333653807640076,
+       "sole_centroid": [
+        -0.15609459096894546,
+        -0.005012766797752941,
+        0.026356964404968656
+       ]
+      },
+      "hind_left": {
+       "lowest_z": 0.014122329652309418,
+       "sole_centroid": [
+        0.1558369559400222,
+        -0.019003184709478826,
+        0.017679637473295717
+       ]
+      }
+     }
+    },
+    {
+     "frame": 12,
+     "body_confirmed_pairs": 1,
+     "body_new_confirmed_pairs_vs_v8": 1,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.27624537287380724,
+     "paws": {
+      "fore_right": {
+       "lowest_z": 0.0003192655276507139,
+       "sole_centroid": [
+        -0.11274261486071807,
+        -0.2339425809108294,
+        0.004069831297294093
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.00039154815021902323,
+       "sole_centroid": [
+        0.1074455587701364,
+        -0.2286229821768674,
+        0.00402315936093642
+       ]
+      },
+      "hind_right": {
+       "lowest_z": 0.014966778457164764,
+       "sole_centroid": [
+        -0.15609776351381752,
+        -0.013992742755833794,
+        0.0180131595910472
+       ]
+      },
+      "hind_left": {
+       "lowest_z": 0.005805432330816984,
+       "sole_centroid": [
+        0.15601120082771078,
+        -0.02577835715868894,
+        0.009392613851848771
+       ]
+      }
+     }
+    },
+    {
+     "frame": 13,
+     "body_confirmed_pairs": 1,
+     "body_new_confirmed_pairs_vs_v8": 0,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.18553147323704336,
+     "paws": {
+      "fore_right": {
+       "lowest_z": -0.0008190996013581753,
+       "sole_centroid": [
+        -0.11324435085631333,
+        -0.2309047169983387,
+        0.0028250259571135617
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.0024168521631509066,
+       "sole_centroid": [
+        0.10709059021689675,
+        -0.22947740744460712,
+        0.00585496831600639
+       ]
+      },
+      "hind_right": {
+       "lowest_z": 0.006577137857675552,
+       "sole_centroid": [
+        -0.15609997072640588,
+        -0.0197658810107147,
+        0.009641403918538023
+       ]
+      },
+      "hind_left": {
+       "lowest_z": -2.1604324729196378e-07,
+       "sole_centroid": [
+        0.15601404879023048,
+        -0.027651965136037154,
+        0.0036033437373736675
+       ]
+      }
+     }
+    },
+    {
+     "frame": 14,
+     "body_confirmed_pairs": 1,
+     "body_new_confirmed_pairs_vs_v8": 0,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.15481167852446065,
+     "paws": {
+      "fore_right": {
+       "lowest_z": 0.00032575358636677265,
+       "sole_centroid": [
+        -0.1139612952963664,
+        -0.23141273827506945,
+        0.0038437010505451607
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.006633376237004995,
+       "sole_centroid": [
+        0.10638970421119169,
+        -0.23381301760673523,
+        0.009865451053800907
+       ]
+      },
+      "hind_right": {
+       "lowest_z": 0.00034742715070024133,
+       "sole_centroid": [
+        -0.15759038206409007,
+        -0.02462526213596849,
+        0.0034203007289975444
+       ]
+      },
+      "hind_left": {
+       "lowest_z": -1.1417728273954708e-07,
+       "sole_centroid": [
+        0.1560138243086198,
+        -0.025778004746226702,
+        0.00360014141900084
+       ]
+      }
+     }
+    },
+    {
+     "frame": 15,
+     "body_confirmed_pairs": 0,
+     "body_new_confirmed_pairs_vs_v8": 0,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.19930982697038485,
+     "paws": {
+      "fore_right": {
+       "lowest_z": 0.0049325283616781235,
+       "sole_centroid": [
+        -0.11505256134730119,
+        -0.23538343149882096,
+        0.008318319451063871
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.006429010536521673,
+       "sole_centroid": [
+        0.10535524473948912,
+        -0.2412724486806176,
+        0.009612139983272011
+       ]
+      },
+      "hind_right": {
+       "lowest_z": 0.00015256002370733768,
+       "sole_centroid": [
+        -0.15758970379829407,
+        -0.023051434448536703,
+        0.003223240067531793
+       ]
+      },
+      "hind_left": {
+       "lowest_z": -1.798068183234136e-07,
+       "sole_centroid": [
+        0.15601160456152524,
+        -0.020285348331227023,
+        0.0035877597421604688
+       ]
+      }
+     }
+    },
+    {
+     "frame": 16,
+     "body_confirmed_pairs": 0,
+     "body_new_confirmed_pairs_vs_v8": 0,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.2604998891860364,
+     "paws": {
+      "fore_right": {
+       "lowest_z": 0.0068710241466760635,
+       "sole_centroid": [
+        -0.11619217665149616,
+        -0.24251170513721612,
+        0.010210690464681158
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.00642407638952136,
+       "sole_centroid": [
+        0.10425576513463801,
+        -0.2514245263554833,
+        0.009630017245019024
+       ]
+      },
+      "hind_right": {
+       "lowest_z": 0.0001525525003671646,
+       "sole_centroid": [
+        -0.15609799264108434,
+        -0.015156525899382198,
+        0.0032151524970472295
+       ]
+      },
+      "hind_left": {
+       "lowest_z": -0.000618254067376256,
+       "sole_centroid": [
+        0.15506792235023836,
+        -0.0137234224116101,
+        0.0034355739200049463
+       ]
+      }
+     }
+    },
+    {
+     "frame": 17,
+     "body_confirmed_pairs": 0,
+     "body_new_confirmed_pairs_vs_v8": 0,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.20708787551233226,
+     "paws": {
+      "fore_right": {
+       "lowest_z": 0.006092682480812073,
+       "sole_centroid": [
+        -0.11632266597679028,
+        -0.25215928743665034,
+        0.009454238953856895
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.009408635087311268,
+       "sole_centroid": [
+        0.10337876013734124,
+        -0.26363372884013436,
+        0.012650756470181726
+       ]
+      },
+      "hind_right": {
+       "lowest_z": -0.0002355661999899894,
+       "sole_centroid": [
+        -0.15547101190861534,
+        -0.008488668019280714,
+        0.0031276251925566397
+       ]
+      },
+      "hind_left": {
+       "lowest_z": -0.0012285236734896898,
+       "sole_centroid": [
+        0.1550292655825615,
+        -0.0012477273340610897,
+        0.0032543500310138742
+       ]
+      }
+     }
+    },
+    {
+     "frame": 18,
+     "body_confirmed_pairs": 0,
+     "body_new_confirmed_pairs_vs_v8": 0,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.2569890929099376,
+     "paws": {
+      "fore_right": {
+       "lowest_z": 0.008108317852020264,
+       "sole_centroid": [
+        -0.11697731023797622,
+        -0.26415346620174557,
+        0.011501535970287828
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.011911517940461636,
+       "sole_centroid": [
+        0.10290961678732526,
+        -0.2770451160994443,
+        0.015197009694847193
+       ]
+      },
+      "hind_right": {
+       "lowest_z": -0.0006619103951379657,
+       "sole_centroid": [
+        -0.15544876517618403,
+        0.0010117350255741792,
+        0.0030046238214708866
+       ]
+      },
+      "hind_left": {
+       "lowest_z": -0.001746130408719182,
+       "sole_centroid": [
+        0.1536401324412402,
+        0.014378868941875065,
+        0.0030838808400885146
+       ]
+      }
+     }
+    },
+    {
+     "frame": 19,
+     "body_confirmed_pairs": 0,
+     "body_new_confirmed_pairs_vs_v8": 0,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.2981020329969233,
+     "paws": {
+      "fore_right": {
+       "lowest_z": 0.0117112398147583,
+       "sole_centroid": [
+        -0.11716365069150925,
+        -0.2773888515165219,
+        0.015146665579567734
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.012801972217857838,
+       "sole_centroid": [
+        0.1034587254578417,
+        -0.2909629675475034,
+        0.016124861992218277
+       ]
+      },
+      "hind_right": {
+       "lowest_z": -0.0010294478852301836,
+       "sole_centroid": [
+        -0.1553079044994186,
+        0.013998129887177664,
+        0.0028848245329059223
+       ]
+      },
+      "hind_left": {
+       "lowest_z": -0.0021403946448117495,
+       "sole_centroid": [
+        0.1531988865312408,
+        0.028224152928519555,
+        0.00293414687655647
+       ]
+      }
+     }
+    },
+    {
+     "frame": 20,
+     "body_confirmed_pairs": 2,
+     "body_new_confirmed_pairs_vs_v8": 2,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.36168881296279703,
+     "paws": {
+      "fore_right": {
+       "lowest_z": 0.013740504160523415,
+       "sole_centroid": [
+        -0.11683051717969087,
+        -0.2907947496725963,
+        0.017213688214094594
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.011843550950288773,
+       "sole_centroid": [
+        0.10399979759346355,
+        -0.3036630549214103,
+        0.015191084942357106
+       ]
+      },
+      "hind_right": {
+       "lowest_z": -0.0013147915014997125,
+       "sole_centroid": [
+        -0.1550658684443025,
+        0.0266732684281819,
+        0.002787106664276079
+       ]
+      },
+      "hind_left": {
+       "lowest_z": -0.0023901539389044046,
+       "sole_centroid": [
+        0.15320172152098488,
+        0.04203886859776343,
+        0.0028250955497188604
+       ]
+      }
+     }
+    },
+    {
+     "frame": 21,
+     "body_confirmed_pairs": 5,
+     "body_new_confirmed_pairs_vs_v8": 4,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.3327045350287965,
+     "paws": {
+      "fore_right": {
+       "lowest_z": 0.013747124001383781,
+       "sole_centroid": [
+        -0.11603915347502781,
+        -0.3032532362983777,
+        0.017244566661807206
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.00894455797970295,
+       "sole_centroid": [
+        0.10492638159881938,
+        -0.31439308578317815,
+        0.012300381521609697
+       ]
+      },
+      "hind_right": {
+       "lowest_z": -0.0015003856969997287,
+       "sole_centroid": [
+        -0.15474325392176122,
+        0.040068431423210045,
+        0.0027177121880573823
+       ]
+      },
+      "hind_left": {
+       "lowest_z": -0.00248229643329978,
+       "sole_centroid": [
+        0.15378483121885972,
+        0.054493392960113636,
+        0.0027675565715660068
+       ]
+      }
+     }
+    },
+    {
+     "frame": 22,
+     "body_confirmed_pairs": 0,
+     "body_new_confirmed_pairs_vs_v8": 0,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.2798527540489075,
+     "paws": {
+      "fore_right": {
+       "lowest_z": 0.011465216055512428,
+       "sole_centroid": [
+        -0.11495164796136893,
+        -0.3137931227684021,
+        0.014969115002224078
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.006127620115876198,
+       "sole_centroid": [
+        0.10603797408667477,
+        -0.32231910987333817,
+        0.009483003023673187
+       ]
+      },
+      "hind_right": {
+       "lowest_z": -0.0015750630991533399,
+       "sole_centroid": [
+        -0.1547130591729108,
+        0.05221428817466778,
+        0.002682217804249376
+       ]
+      },
+      "hind_left": {
+       "lowest_z": -0.0024123769253492355,
+       "sole_centroid": [
+        0.1537799142739352,
+        0.06463423351592877,
+        0.0027646113419905307
+       ]
+      }
+     }
+    },
+    {
+     "frame": 23,
+     "body_confirmed_pairs": 2,
+     "body_new_confirmed_pairs_vs_v8": 0,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.24048212996787152,
+     "paws": {
+      "fore_right": {
+       "lowest_z": 0.007377573288977146,
+       "sole_centroid": [
+        -0.11379647613144837,
+        -0.3217953472183301,
+        0.01087012925507644
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.006821043323725462,
+       "sole_centroid": [
+        0.10709473626180128,
+        -0.32703102989630267,
+        0.010180798164484176
+       ]
+      },
+      "hind_right": {
+       "lowest_z": -0.0015345767606049776,
+       "sole_centroid": [
+        -0.15472950286724987,
+        0.06234828665414277,
+        0.002684387274990406
+       ]
+      },
+      "hind_left": {
+       "lowest_z": -0.002183787524700165,
+       "sole_centroid": [
+        0.153770911693573,
+        0.07191146355779732,
+        0.002816555603845593
+       ]
+      }
+     }
+    },
+    {
+     "frame": 24,
+     "body_confirmed_pairs": 5,
+     "body_new_confirmed_pairs_vs_v8": 0,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.37780866000860225,
+     "paws": {
+      "fore_right": {
+       "lowest_z": 0.006229065358638763,
+       "sole_centroid": [
+        -0.11281544156372547,
+        -0.32706506779560673,
+        0.009709017530370217
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.005480761639773846,
+       "sole_centroid": [
+        0.1078775703907013,
+        -0.3285748465494676,
+        0.008827354123985226
+       ]
+      },
+      "hind_right": {
+       "lowest_z": -0.0013810788514092565,
+       "sole_centroid": [
+        -0.15503978773074992,
+        0.0701799190877115,
+        0.0027236419476513916
+       ]
+      },
+      "hind_left": {
+       "lowest_z": -0.001808183384127915,
+       "sole_centroid": [
+        0.15464681176578296,
+        0.07772408601115732,
+        0.002915634955827366
+       ]
+      }
+     }
+    },
+    {
+     "frame": 25,
+     "body_confirmed_pairs": 5,
+     "body_new_confirmed_pairs_vs_v8": 0,
+     "body_new_confirmed_pairs_vs_swing_down_012": 0,
+     "underbody_confirmed_pairs": 0,
+     "min_area_ratio": 0.543922383396916,
+     "paws": {
+      "fore_right": {
+       "lowest_z": 0.006771067623049021,
+       "sole_centroid": [
+        -0.11220503770388089,
+        -0.32966214934220683,
+        0.010236574068235664
+       ]
+      },
+      "fore_left": {
+       "lowest_z": 0.0058434586971998215,
+       "sole_centroid": [
+        0.10832947370680895,
+        -0.32726736556399955,
+        0.009175393222407862
+       ]
+      },
+      "hind_right": {
+       "lowest_z": -0.0011238550068810582,
+       "sole_centroid": [
+        -0.1552704172099338,
+        0.07654250805430553,
+        0.0027942548471722095
+       ]
+      },
+      "hind_left": {
+       "lowest_z": -0.0013059506891295314,
+       "sole_centroid": [
+        0.15462162652436426,
+        0.0795089325922377,
+        0.003047516194226987
+       ]
+      }
+     }
+    }
+   ]
   }
  },
  "godot_r41": {
@@ -33630,6 +34714,1122 @@
  },
  "android_test": false,
  "godot_unapproved_swing_down_012": {
+  "bones": 49,
+  "clips": [
+   "MouseRig"
+  ],
+  "duration": 1.04166662693024,
+  "godot_version": "4.7.2-stable (official)",
+  "hand_R_quaternions": [
+   [
+    0.0592956580221653,
+    0.209456086158752,
+    0.0995626598596573,
+    0.970927178859711
+   ],
+   [
+    0.537198483943939,
+    0.126854255795479,
+    0.159509316086769,
+    0.818463504314423
+   ],
+   [
+    0.498718768358231,
+    0.130424827337265,
+    0.162091001868248,
+    0.841424643993378
+   ],
+   [
+    0.0320982970297337,
+    0.21357449889183,
+    0.116454347968102,
+    0.969429790973663
+   ],
+   [
+    0.0524385534226894,
+    0.210008531808853,
+    0.0988131910562515,
+    0.971278846263885
+   ]
+  ],
+  "morphs": 14,
+  "sample_frames": [
+   1,
+   11,
+   14,
+   20,
+   25
+  ],
+  "total_tracks": 55
+ },
+ "right_shin_isolation": {
+  "7": {
+   "triangles": [
+    [
+     10364,
+     10312,
+     10533
+    ],
+    [
+     10927,
+     10501,
+     10258
+    ]
+   ],
+   "basis_intersection": null,
+   "baseline_intersection": [
+    -0.15112973749637604,
+    0.18358096480369568,
+    0.10039796680212021
+   ],
+   "readback_error": 2.9802322387695312e-08,
+   "isolated_trials": [
+    {
+     "bone": "thigh.R",
+     "axis": "X",
+     "degrees": -15,
+     "intersection": null
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "X",
+     "degrees": -10,
+     "intersection": null
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "X",
+     "degrees": -5,
+     "intersection": null
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "X",
+     "degrees": 0,
+     "intersection": [
+      -0.15112975239753723,
+      0.18358094990253448,
+      0.10039795935153961
+     ]
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "X",
+     "degrees": 5,
+     "intersection": null
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "X",
+     "degrees": 10,
+     "intersection": null
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "X",
+     "degrees": 15,
+     "intersection": null
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Y",
+     "degrees": -15,
+     "intersection": null
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Y",
+     "degrees": -10,
+     "intersection": null
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Y",
+     "degrees": -5,
+     "intersection": null
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Y",
+     "degrees": 0,
+     "intersection": [
+      -0.15112975239753723,
+      0.18358094990253448,
+      0.10039795935153961
+     ]
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Y",
+     "degrees": 5,
+     "intersection": [
+      -0.1470654159784317,
+      0.18451502919197083,
+      0.09885776042938232
+     ]
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Y",
+     "degrees": 10,
+     "intersection": null
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Y",
+     "degrees": 15,
+     "intersection": null
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Z",
+     "degrees": -15,
+     "intersection": null
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Z",
+     "degrees": -10,
+     "intersection": null
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Z",
+     "degrees": -5,
+     "intersection": null
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Z",
+     "degrees": 0,
+     "intersection": [
+      -0.15112975239753723,
+      0.18358094990253448,
+      0.10039795935153961
+     ]
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Z",
+     "degrees": 5,
+     "intersection": [
+      -0.14724721014499664,
+      0.18546991050243378,
+      0.09911802411079407
+     ]
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Z",
+     "degrees": 10,
+     "intersection": [
+      -0.14647983014583588,
+      0.18361909687519073,
+      0.09844003617763519
+     ]
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Z",
+     "degrees": 15,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "X",
+     "degrees": -15,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "X",
+     "degrees": -10,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "X",
+     "degrees": -5,
+     "intersection": [
+      -0.1508769392967224,
+      0.18761684000492096,
+      0.10812459886074066
+     ]
+    },
+    {
+     "bone": "shin.R",
+     "axis": "X",
+     "degrees": 0,
+     "intersection": [
+      -0.15112975239753723,
+      0.18358094990253448,
+      0.10039795935153961
+     ]
+    },
+    {
+     "bone": "shin.R",
+     "axis": "X",
+     "degrees": 5,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "X",
+     "degrees": 10,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "X",
+     "degrees": 15,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Y",
+     "degrees": -15,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Y",
+     "degrees": -10,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Y",
+     "degrees": -5,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Y",
+     "degrees": 0,
+     "intersection": [
+      -0.15112975239753723,
+      0.18358094990253448,
+      0.10039795935153961
+     ]
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Y",
+     "degrees": 5,
+     "intersection": [
+      -0.14614227414131165,
+      0.18644286692142487,
+      0.10185971111059189
+     ]
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Y",
+     "degrees": 10,
+     "intersection": [
+      -0.14294613897800446,
+      0.18690939247608185,
+      0.10350070148706436
+     ]
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Y",
+     "degrees": 15,
+     "intersection": [
+      -0.13970422744750977,
+      0.18712599575519562,
+      0.10492933541536331
+     ]
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Z",
+     "degrees": -15,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Z",
+     "degrees": -10,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Z",
+     "degrees": -5,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Z",
+     "degrees": 0,
+     "intersection": [
+      -0.15112975239753723,
+      0.18358094990253448,
+      0.10039795935153961
+     ]
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Z",
+     "degrees": 5,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Z",
+     "degrees": 10,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Z",
+     "degrees": 15,
+     "intersection": null
+    },
+    {
+     "bone": "foot.R",
+     "axis": "X",
+     "degrees": -15,
+     "intersection": [
+      -0.15043793618679047,
+      0.18360526859760284,
+      0.10087360441684723
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "X",
+     "degrees": -10,
+     "intersection": [
+      -0.14871668815612793,
+      0.18578174710273743,
+      0.10040176659822464
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "X",
+     "degrees": -5,
+     "intersection": [
+      -0.14901964366436005,
+      0.18573611974716187,
+      0.1002107560634613
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "X",
+     "degrees": 0,
+     "intersection": [
+      -0.15112975239753723,
+      0.1835809350013733,
+      0.10039795935153961
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "X",
+     "degrees": 5,
+     "intersection": null
+    },
+    {
+     "bone": "foot.R",
+     "axis": "X",
+     "degrees": 10,
+     "intersection": null
+    },
+    {
+     "bone": "foot.R",
+     "axis": "X",
+     "degrees": 15,
+     "intersection": null
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Y",
+     "degrees": -15,
+     "intersection": null
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Y",
+     "degrees": -10,
+     "intersection": null
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Y",
+     "degrees": -5,
+     "intersection": [
+      -0.1504981368780136,
+      0.18368594348430634,
+      0.10081692785024643
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Y",
+     "degrees": 0,
+     "intersection": [
+      -0.15112975239753723,
+      0.1835809350013733,
+      0.10039795935153961
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Y",
+     "degrees": 5,
+     "intersection": [
+      -0.15164102613925934,
+      0.18356139957904816,
+      0.099936343729496
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Y",
+     "degrees": 10,
+     "intersection": [
+      -0.15196402370929718,
+      0.18370774388313293,
+      0.09941494464874268
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Y",
+     "degrees": 15,
+     "intersection": [
+      -0.15224570035934448,
+      0.18384864926338196,
+      0.0988689661026001
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Z",
+     "degrees": -15,
+     "intersection": [
+      -0.14850610494613647,
+      0.18701884150505066,
+      0.09935580939054489
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Z",
+     "degrees": -10,
+     "intersection": [
+      -0.14878708124160767,
+      0.18660373985767365,
+      0.09961802512407303
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Z",
+     "degrees": -5,
+     "intersection": [
+      -0.1490575224161148,
+      0.18615205585956573,
+      0.0998414009809494
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Z",
+     "degrees": 0,
+     "intersection": [
+      -0.15112975239753723,
+      0.1835809350013733,
+      0.10039795935153961
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Z",
+     "degrees": 5,
+     "intersection": null
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Z",
+     "degrees": 10,
+     "intersection": null
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Z",
+     "degrees": 15,
+     "intersection": null
+    }
+   ]
+  },
+  "20": {
+   "triangles": [
+    [
+     9534,
+     9855,
+     9335
+    ],
+    [
+     9558,
+     9440,
+     9561
+    ]
+   ],
+   "basis_intersection": [
+    -0.12377364188432693,
+    0.15924184024333954,
+    0.045193858444690704
+   ],
+   "baseline_intersection": [
+    -0.12376634776592255,
+    0.15749625861644745,
+    0.04509975016117096
+   ],
+   "readback_error": 1.5359765386647212e-08,
+   "isolated_trials": [
+    {
+     "bone": "thigh.R",
+     "axis": "X",
+     "degrees": -15,
+     "intersection": null
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "X",
+     "degrees": -10,
+     "intersection": null
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "X",
+     "degrees": -5,
+     "intersection": null
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "X",
+     "degrees": 0,
+     "intersection": [
+      -0.12376634776592255,
+      0.15749624371528625,
+      0.045099757611751556
+     ]
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "X",
+     "degrees": 5,
+     "intersection": [
+      -0.12383168935775757,
+      0.15737862884998322,
+      0.045107390731573105
+     ]
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "X",
+     "degrees": 10,
+     "intersection": [
+      -0.12388484179973602,
+      0.15727901458740234,
+      0.04511449113488197
+     ]
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "X",
+     "degrees": 15,
+     "intersection": [
+      -0.12392602860927582,
+      0.15719789266586304,
+      0.04512123391032219
+     ]
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Y",
+     "degrees": -15,
+     "intersection": null
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Y",
+     "degrees": -10,
+     "intersection": null
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Y",
+     "degrees": -5,
+     "intersection": null
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Y",
+     "degrees": 0,
+     "intersection": [
+      -0.12376634776592255,
+      0.15749624371528625,
+      0.045099757611751556
+     ]
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Y",
+     "degrees": 5,
+     "intersection": [
+      -0.12380959838628769,
+      0.15741634368896484,
+      0.045104604214429855
+     ]
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Y",
+     "degrees": 10,
+     "intersection": [
+      -0.12384777516126633,
+      0.15734224021434784,
+      0.04510917887091637
+     ]
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Y",
+     "degrees": 15,
+     "intersection": [
+      -0.12388096749782562,
+      0.15727421641349792,
+      0.04511360079050064
+     ]
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Z",
+     "degrees": -15,
+     "intersection": null
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Z",
+     "degrees": -10,
+     "intersection": null
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Z",
+     "degrees": -5,
+     "intersection": null
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Z",
+     "degrees": 0,
+     "intersection": [
+      -0.12376634776592255,
+      0.15749624371528625,
+      0.045099757611751556
+     ]
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Z",
+     "degrees": 5,
+     "intersection": [
+      -0.12378295511007309,
+      0.15746398270130157,
+      0.045101597905159
+     ]
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Z",
+     "degrees": 10,
+     "intersection": [
+      -0.12378829717636108,
+      0.15745095908641815,
+      0.04510238394141197
+     ]
+    },
+    {
+     "bone": "thigh.R",
+     "axis": "Z",
+     "degrees": 15,
+     "intersection": [
+      -0.12378275394439697,
+      0.15745753049850464,
+      0.04510212689638138
+     ]
+    },
+    {
+     "bone": "shin.R",
+     "axis": "X",
+     "degrees": -15,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "X",
+     "degrees": -10,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "X",
+     "degrees": -5,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "X",
+     "degrees": 0,
+     "intersection": [
+      -0.12376635521650314,
+      0.15749624371528625,
+      0.04509975388646126
+     ]
+    },
+    {
+     "bone": "shin.R",
+     "axis": "X",
+     "degrees": 5,
+     "intersection": [
+      -0.12287235260009766,
+      0.15167565643787384,
+      0.040306732058525085
+     ]
+    },
+    {
+     "bone": "shin.R",
+     "axis": "X",
+     "degrees": 10,
+     "intersection": [
+      -0.12200925499200821,
+      0.14479433000087738,
+      0.035450100898742676
+     ]
+    },
+    {
+     "bone": "shin.R",
+     "axis": "X",
+     "degrees": 15,
+     "intersection": [
+      -0.12091593444347382,
+      0.13774414360523224,
+      0.030655819922685623
+     ]
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Y",
+     "degrees": -15,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Y",
+     "degrees": -10,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Y",
+     "degrees": -5,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Y",
+     "degrees": 0,
+     "intersection": [
+      -0.12376635521650314,
+      0.15749624371528625,
+      0.04509975388646126
+     ]
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Y",
+     "degrees": 5,
+     "intersection": [
+      -0.12307000905275345,
+      0.15762990713119507,
+      0.04537577927112579
+     ]
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Y",
+     "degrees": 10,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Y",
+     "degrees": 15,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Z",
+     "degrees": -15,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Z",
+     "degrees": -10,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Z",
+     "degrees": -5,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Z",
+     "degrees": 0,
+     "intersection": [
+      -0.12376635521650314,
+      0.15749624371528625,
+      0.04509975388646126
+     ]
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Z",
+     "degrees": 5,
+     "intersection": [
+      -0.1177166998386383,
+      0.15747389197349548,
+      0.047341953963041306
+     ]
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Z",
+     "degrees": 10,
+     "intersection": null
+    },
+    {
+     "bone": "shin.R",
+     "axis": "Z",
+     "degrees": 15,
+     "intersection": null
+    },
+    {
+     "bone": "foot.R",
+     "axis": "X",
+     "degrees": -15,
+     "intersection": [
+      -0.12319517880678177,
+      0.157188281416893,
+      0.045492932200431824
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "X",
+     "degrees": -10,
+     "intersection": [
+      -0.12337765097618103,
+      0.15731140971183777,
+      0.04536707326769829
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "X",
+     "degrees": -5,
+     "intersection": [
+      -0.12356854975223541,
+      0.15741431713104248,
+      0.04523567855358124
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "X",
+     "degrees": 0,
+     "intersection": [
+      -0.12376633286476135,
+      0.15749624371528625,
+      0.04509975388646126
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "X",
+     "degrees": 5,
+     "intersection": [
+      -0.1239641010761261,
+      0.15756776928901672,
+      0.044955331832170486
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "X",
+     "degrees": 10,
+     "intersection": [
+      -0.12415911257266998,
+      0.15763379633426666,
+      0.04480019211769104
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "X",
+     "degrees": 15,
+     "intersection": null
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Y",
+     "degrees": -15,
+     "intersection": null
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Y",
+     "degrees": -10,
+     "intersection": null
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Y",
+     "degrees": -5,
+     "intersection": null
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Y",
+     "degrees": 0,
+     "intersection": [
+      -0.12376633286476135,
+      0.15749624371528625,
+      0.04509975388646126
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Y",
+     "degrees": 5,
+     "intersection": [
+      -0.12417832016944885,
+      0.15770119428634644,
+      0.04476763308048248
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Y",
+     "degrees": 10,
+     "intersection": [
+      -0.12455400079488754,
+      0.15791989862918854,
+      0.044394150376319885
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Y",
+     "degrees": 15,
+     "intersection": null
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Z",
+     "degrees": -15,
+     "intersection": [
+      -0.12313998490571976,
+      0.15863709151744843,
+      0.044587377458810806
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Z",
+     "degrees": -10,
+     "intersection": [
+      -0.12336774915456772,
+      0.15827703475952148,
+      0.044791996479034424
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Z",
+     "degrees": -5,
+     "intersection": [
+      -0.12357725948095322,
+      0.15789560973644257,
+      0.04496315121650696
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Z",
+     "degrees": 0,
+     "intersection": [
+      -0.12376633286476135,
+      0.15749624371528625,
+      0.04509975388646126
+     ]
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Z",
+     "degrees": 5,
+     "intersection": null
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Z",
+     "degrees": 10,
+     "intersection": null
+    },
+    {
+     "bone": "foot.R",
+     "axis": "Z",
+     "degrees": 15,
+     "intersection": null
+    }
+   ]
+  }
+ },
+ "ankle_basis_change": {
+  "source_sha256": "c18890da32ef3d3689f384084316fdf0e07f3c1fbd1f63af31a5f3344a3a4254",
+  "trial_sha256": "0148ac2f140524fb9d441da9188d8b2ba8ddca151bef6b316ddd23688d524ca4",
+  "vertex": 9440,
+  "opposing_triangle": [
+   9534,
+   9855,
+   9335
+  ],
+  "basis_signed_distance_before": -6.78173964843154e-05,
+  "basis_signed_distance_after": 0.0006499961018562317,
+  "offset": [
+   0.00014623244351241738,
+   -0.00033054451341740787,
+   -0.0006201759097166359
+  ],
+  "reopened_changed_vertices": [
+   9440
+  ],
+  "reopened_topology_equal": true,
+  "reopened_morph_delta_max": 0
+ },
+ "ankle_basis_rest_witnesses": [],
+ "godot_unapproved_ankle_basis": {
   "bones": 49,
   "clips": [
    "MouseRig"
