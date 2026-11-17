@@ -43,3 +43,9 @@ ChatGPT tarafından hazırlanan v6 ikili dosyası GitHub depoda henüz yoksa bu 
 - Round41: 5,094,784 bayt GLB; 148 Blender animasyon kanalı, 29 morph hedefi, Blender yeniden import PASS. SHA `351a9475aeb6142331e4bc296aee957648cb055c7afc9988943a12c559c937d2`.
 - Round42: **gerçek Godot 4.7.2-stable** headless `PackedScene` import PASS: 49 kemik, 29 blendshape, 1 koşu animasyonu, 68 track (29 morph, 34 bone rotation).
 - **ÖNEMLİ:** L4 görünür gövde-kol kırışmaları halen inceleniyor; kullanıcı Android 11/Mali gerçek cihaz testleri YAPILMADI. Üretim `deliver/` ve eski orijinal model **korundu**, GLB/BLEND yalnız deneysel inceleme adayı.
+
+## Round 43 — Godot 4.7.2 gerçek animasyon oynatma denetimi
+
+- [Round 43 gerçek Godot AnimationPlayer CI](https://github.com/mehmetdem2005/Fare/actions/runs/44119489962): önceki Godot import testiyle yetinmeyip gerçek `MouseRig` animasyonunu `seek()` ile 1, 9, 10, 14, 15, 17, 25 karelerinde değerlendirdi.
+- Godot içinde `R39_F14_ORIGINAL_REFERENCE` animasyonlu shape key f14 **0.899999559**, f1/f25 **~0**, komşu karede ~3e-6. Kalça kemiği hareketli; Godot kuaterniyon döngü farkı max **0.000454**.
+- **49 kemik + 29 morph hedefi + gerçek oynatılan düzeltici kanallar PASS.** Gerçek Android/Mali GPU, zemin teması ve L4 karın görünüm onayı hâlâ **YAPILMADI**. Üretim modeline dokunulmadı.
