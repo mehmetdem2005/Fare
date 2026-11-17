@@ -44,3 +44,23 @@
 - All future appearance fixes require the entire independent 24-frame Blender, GLB and Godot test chain rerun. Keep both source SHA and saved candidate evidence for regressions.
 
 **Status: saved and independently verified corrected experimental model/GLB, Godot importer PASS. Production NOT APPROVED.**
+
+## Round43 — Godot imported animation PLAYER actually runs the f14 morph
+
+[Official Godot 4.7.2 real headless AnimationPlayer run 44119489962](https://github.com/mehmetdem2005/Fare/actions/runs/44119489962), artifact `fare-round43-godot472-live-anim-player-f14-correction-sampling` with source logs and `round43_godot_playback.json`.
+
+After **instantiating the imported GLB's PackedScene**, the actual Godot `AnimationPlayer` played `MouseRig`, was explicitly `seek()`-sampled at **source frame / 24 seconds** (GLB f1 starts at 1/24, not time zero) and evaluated a real `MeshInstance3D.get_blend_shape_value` for named shape `R39_F14_ORIGINAL_REFERENCE`:
+
+| Original sprint frame | Godot blendshape weight |
+|---:|---:|
+| 1 | approximately 0 |
+| 9 | 0.000002236 |
+| 10 | 0.000002515 |
+| **14** | **0.899999559** |
+| 15 | 0.000003354 |
+| 17 | 0.000002683 |
+| 25 | **0.0** |
+
+Godot also sampled actual moving `hips` bone quaternion (f1→f14 max component difference **.016982257**), and f1→f25 hip quaternion max component seam **.000453889**, within experiment tolerance **.003** (not exactly mathematically zero). 49 bones, `MouseRig` action, all 29 imported blendshapes and dynamic corrective keyframes survived runtime sampling; **no Godot-headless script-reported issues**.
+
+**This verifies genuinely animated skeletal/morph playback inside Linux-headless Godot, beyond R42 static import.** It does **not** establish anatomically pleasing underbelly appearance, physical foot contact, Android Mali phone rendering, mobile FPS, memory footprint, or game-device crash safety. The review GLB stays unpromoted until those checks are complete.
