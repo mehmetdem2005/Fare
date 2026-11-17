@@ -4,7 +4,7 @@ on:
     branches: [rig-experiments/anatomical-deformation-repair]
     paths:
       - .github/workflows/fare-anatomical-baseline.yml
-      - rig-experiments/anatomy_baseline.py
+      - rig-experiments/anatomy_*.py
   workflow_dispatch:
 permissions:
   actions: read
@@ -12,7 +12,7 @@ permissions:
 jobs:
   exact-input-comparison:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
       LIBGL_ALWAYS_SOFTWARE: '1'
     steps:
@@ -48,10 +48,32 @@ jobs:
           blender=./blender-5.1.2-linux-x64/blender
           v8=inputs/v8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend
           r39=inputs/r39/R39_SAVED_NUMERIC_REVIEW_ONLY.blend
-          "$blender" -b --python-exit-code 1 -P rig-experiments/anatomy_baseline.py -- --source deliver/mouse_rig.blend --rest-only --render --out evidence/rest
+          "$blender" -b --python-exit-code 1 -P rig-experiments/anatomy_baseline.py -- --source deliver/mouse_rig.blend --rest-only --full-body-intersections --render --out evidence/rest
           "$blender" -b --python-exit-code 1 -P rig-experiments/anatomy_baseline.py -- --source deliver/mouse_rig.blend --action-source "$v8" --render --out evidence/original-v8-action
-          "$blender" -b --python-exit-code 1 -P rig-experiments/anatomy_baseline.py -- --source "$v8" --render --out evidence/v8
-          "$blender" -b --python-exit-code 1 -P rig-experiments/anatomy_baseline.py -- --source "$r39" --render --out evidence/r39
+          "$blender" -b --python-exit-code 1 -P rig-experiments/anatomy_baseline.py -- --source "$v8" --full-body-intersections --render --out evidence/v8
+          "$blender" -b --python-exit-code 1 -P rig-experiments/anatomy_baseline.py -- --source "$r39" --full-body-intersections --render --out evidence/r39
+      - name: Repeat limb controls and rejected weight and surface trials
+        run: |
+          set -euo pipefail
+          blender=./blender-5.1.2-linux-x64/blender
+          v8=inputs/v8/Round13/run_sprint_v8_ik_phase_NUMERIC_REVIEW.blend
+          "$blender" -b -t 4 --python-exit-code 1 -P rig-experiments/anatomy_ablations.py -- --source "$v8" --out evidence/ablations
+          for trial in half full wide; do
+            args=(--strength 0.5)
+            if [[ "$trial" == full ]]; then args=(--strength 1.0); fi
+            if [[ "$trial" == wide ]]; then args+=(--wide-transition); fi
+            "$blender" -b -t 4 --python-exit-code 1 -P rig-experiments/anatomy_torso_weight_trial.py -- --source "$v8" --out "trials/$trial" "${args[@]}"
+            mkdir -p "evidence/$trial"
+            cp "trials/$trial/weight_trial.json" "evidence/$trial/"
+            args=()
+            if [[ "$trial" == wide ]]; then args=(--render); fi
+            "$blender" -b -t 4 --python-exit-code 1 -P rig-experiments/anatomy_baseline.py -- --source "trials/$trial/TORSO_WEIGHT_TRIAL_UNAPPROVED.blend" --full-body-intersections --out "evidence/$trial" "${args[@]}"
+          done
+          "$blender" -b -t 4 --python-exit-code 1 -P rig-experiments/anatomy_surface_trial.py -- --source trials/wide/TORSO_WEIGHT_TRIAL_UNAPPROVED.blend --out trials/surface
+          mkdir -p evidence/surface
+          cp trials/surface/surface_trial.json evidence/surface/
+          "$blender" -b -t 4 --python-exit-code 1 -P rig-experiments/anatomy_baseline.py -- --source trials/surface/VENTRAL_SURFACE_TRIAL_UNAPPROVED.blend --full-body-intersections --render --out evidence/surface
+          echo '173ca67a372f5c04f27d922ef02f37921bbaf184cff0094976df326b4ec095b6  deliver/mouse_rig.blend' | sha256sum -c
       - uses: actions/upload-artifact@v4
         if: always()
         with:
