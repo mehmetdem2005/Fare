@@ -16,6 +16,7 @@ var detail_noise: FastNoiseLite = FastNoiseLite.new()
 var player: CharacterBody3D
 var model_holder: Node3D
 var rig: Skeleton3D
+var mouse_animation: AnimationPlayer
 var view_camera: Camera3D
 var hud: Control
 var terrain_mat: ShaderMaterial
@@ -123,10 +124,15 @@ func _create_actor() -> void:
     player.add_child(model_holder)
     # A real Blender-exported GLB from the original rig repository.
     # NO home-made UV reversal, no reconstructed joint matrices.
+    var corrected_source: PackedScene = null
+    if ResourceLoader.exists("res://assets/mouse/mouse_r39_corrected.glb"):
+        corrected_source = load("res://assets/mouse/mouse_r39_corrected.glb") as PackedScene
     var rigged_source: PackedScene = load("res://assets/mouse/mouse_rigged.glb") as PackedScene
     var clean_source: PackedScene = load("res://assets/mouse/mouse_original.glb") as PackedScene
     var imported: Node3D = null
-    if rigged_source != null:
+    if corrected_source != null:
+        imported = corrected_source.instantiate() as Node3D
+    if imported == null and rigged_source != null:
         imported = rigged_source.instantiate() as Node3D
     if imported == null and clean_source != null:
         imported = clean_source.instantiate() as Node3D
@@ -135,6 +141,15 @@ func _create_actor() -> void:
         var skeletons: Array[Node] = imported.find_children("*", "Skeleton3D", true, false)
         if not skeletons.is_empty():
             rig = skeletons[0] as Skeleton3D
+        var players: Array[Node] = imported.find_children("*", "AnimationPlayer", true, false)
+        for node in players:
+            var candidate: AnimationPlayer = node as AnimationPlayer
+            if candidate != null and candidate.has_animation("MouseRig"):
+                mouse_animation = candidate
+                var clip: Animation = mouse_animation.get_animation("MouseRig")
+                if clip != null:
+                    clip.loop_mode = Animation.LOOP_LINEAR
+                break
     else:
         push_error("Mouse GLB missing from the project!")
 
@@ -175,7 +190,7 @@ func _process(delta: float) -> void:
         hud.set("chunk_count", chunks.size())
         hud.set("sprinting", running)
         hud.set("jumping", not player.is_on_floor())
-        hud.set("rig_status", "BONES %d" % rig.get_bone_count() if rig != null else "STATIC")
+        hud.set("rig_status", ("%dB ANIM" % rig.get_bone_count()) if mouse_animation != null and rig != null else ("BONES %d" % rig.get_bone_count() if rig != null else "STATIC"))
 
 func _physics_process(delta: float) -> void:
     if player == null:
@@ -333,7 +348,17 @@ func _animate_mouse(delta: float) -> void:
     var horizontal_speed: float = Vector2(player.velocity.x, player.velocity.z).length()
     var moving: float = clampf(horizontal_speed / WALK_SPEED, 0.0, 1.0)
     phase += delta * (13.0 if running else 8.1) * moving
-    model_holder.position.y = -0.41 + 0.018 * sin(phase * 2.0) * moving
+    model_holder.position.y = -0.41 + 0.012 * sin(phase * 2.0) * moving
+    # Preserve the genuine 49-bone Blender action AND the corrective morph tracks.
+    # Old handmade rotations bypassed corrective shapekeys and bent the abdomen.
+    if mouse_animation != null:
+        if moving > 0.10:
+            if not mouse_animation.is_playing():
+                mouse_animation.play("MouseRig")
+            mouse_animation.speed_scale = 1.5 if running else 0.80
+        elif mouse_animation.is_playing():
+            mouse_animation.stop()
+        return
     if rig == null:
         return
     var stride: float = 0.18 * moving

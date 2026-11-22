@@ -20,8 +20,16 @@ jobs:
         run: python3 -m pip install --break-system-packages pillow numpy
       - name: Download original CC0 PBR color textures from Poly Haven API
         run: python3 tools/fetch_polyhaven.py
-      - name: Verify original Blender GLB UV and skin bind matrices
-        run: python3 tools/validate_gltf.py assets/mouse/mouse_rigged.glb
+      - name: Retrieve 49-bone R39 corrected mouse GLB with genuine exported animation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/fare-r41
+          gh run download 44117917452 --repo mehmetdem2005/Fare --name fare-round41-corrected-sprint-review-glb-plus-reimport-check --dir /tmp/fare-r41
+          echo "351a9475aeb6142331e4bc296aee957648cb055c7afc9988943a12c559c937d2  /tmp/fare-r41/R41_FARE_49BONE_SPRINT_CORRECTED_REVIEW_ONLY.glb" | sha256sum -c -
+          cp /tmp/fare-r41/R41_FARE_49BONE_SPRINT_CORRECTED_REVIEW_ONLY.glb assets/mouse/mouse_r39_corrected.glb
+      - name: Verify corrected 49-bone GLB UV and skin bind matrices
+        run: python3 tools/validate_gltf.py assets/mouse/mouse_r39_corrected.glb
       - name: Install Godot 4.7.2 stable headless-capable editor
         run: |
           curl -fL --retry 3 -o /tmp/godot.zip "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip"
@@ -43,9 +51,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/ground/*.jpg
+          git add assets/ground/*.jpg assets/mouse/mouse_r39_corrected.glb
           if ! git diff --staged --quiet; then
-            git commit -m "assets: bundle original Poly Haven CC0 terrain textures"
+            git commit -m "assets: bundle Poly Haven CC0 maps and 49-bone corrected R39 rig"
             git push origin HEAD:game/godot-mobile-mouse-valley-clean
           fi
       - uses: actions/upload-artifact@v4

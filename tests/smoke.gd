@@ -31,8 +31,12 @@ func _test_scene() -> void:
             _fail("real Poly Haven image not bundled: " + name)
             return
     var rig: Skeleton3D = game.get("rig") as Skeleton3D
-    if rig == null or rig.get_bone_count() < 10:
+    if rig == null or rig.get_bone_count() != 49:
         _fail("rigged mouse did not import as Skeleton3D")
+        return
+    var mouse_animation: AnimationPlayer = game.get("mouse_animation") as AnimationPlayer
+    if mouse_animation == null or not mouse_animation.has_animation("MouseRig"):
+        _fail("49-bone corrective motion clip MouseRig not available")
         return
     # Exercise actual controller entry points and physics, not only scene parsing.
     var hud: Control = game.get("hud") as Control
@@ -52,6 +56,9 @@ func _test_scene() -> void:
     var traveled: float = Vector2(actor.global_position.x - origin.x, actor.global_position.z - origin.z).length()
     if traveled < 0.1:
         _fail("joystick did not move the mouse: " + str(traveled))
+        return
+    if not mouse_animation.is_playing():
+        _fail("real imported mouse animation did not play during movement")
         return
     var release: InputEventScreenTouch = InputEventScreenTouch.new()
     release.index = 0
@@ -75,5 +82,5 @@ func _test_scene() -> void:
     if absf(float(game.get("look_yaw")) - cam_start) < 0.1:
         _fail("camera drag did not orbit")
         return
-    print("SMOKE_OK rig=", rig.get_bone_count(), " touch_walk=", traveled, " camera_orbit=ok textures=4")
+    print("SMOKE_OK rig=", rig.get_bone_count(), " touch_walk=", traveled, " camera_orbit=ok corrective_animation=ok textures=4")
     quit(0)
