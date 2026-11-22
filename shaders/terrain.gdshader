@@ -11,6 +11,8 @@ uniform sampler2D grass_nr : filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D forest_nr : filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D cliff_nr : filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D riverbed_nr : filter_linear_mipmap_anisotropic, repeat_enable;
+uniform sampler2D wave_map : filter_linear_mipmap, repeat_enable;
+uniform float caustic_strength : hint_range(0.0,1.0) = 0.22;
 
 varying vec3 world_position;
 varying vec3 world_normal;
@@ -55,5 +57,15 @@ void fragment() {
     vec3 perturbed_world_normal = normalize(t*tangent_normal.x + b*tangent_normal.y + n*tangent_normal.z);
     NORMAL = normalize((VIEW_MATRIX * vec4(perturbed_world_normal,0.0)).xyz);
     ROUGHNESS = clamp(mix(nr.a,nr.a*0.66,wet),0.22,0.99);
+    // UV2.x is actual analytic bed depth from the S1 RiverProfile, not a
+    // fake shoreline distance. Caustic light patterns live on the real BED.
+    float bed_depth = max(UV2.x,0.0);
+    float immersed = smoothstep(0.025,0.095,bed_depth);
+    float light_fade = exp(-bed_depth*1.65);
+    vec2 water_uv = world_position.xz*0.38;
+    vec4 c1 = texture(wave_map,water_uv+vec2(0.041,0.073)*TIME);
+    vec4 c2 = texture(wave_map,water_uv*0.71+vec2(-0.031,0.058)*TIME);
+    float caustic = pow(max(0.0,c1.a*c2.a-0.24),1.9);
+    EMISSION = vec3(0.34,0.52,0.39)*caustic*light_fade*immersed*caustic_strength;
     METALLIC=0.0;
 }

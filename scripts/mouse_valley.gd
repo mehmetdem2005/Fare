@@ -17,6 +17,8 @@ var river_surface_builder: RiverSurfaceBuilder = RiverSurfaceBuilder.new()
 var shore_substrate: ShoreSubstrate = ShoreSubstrate.new()
 var river_flow_field: RiverFlowField = RiverFlowField.new()
 var river_obstacles: RiverObstacles = RiverObstacles.new()
+var water_quality: WaterQualitySettings = WaterQualitySettings.new()
+var wave_texture: Texture2D
 var height_noise: FastNoiseLite = FastNoiseLite.new()
 var detail_noise: FastNoiseLite = FastNoiseLite.new()
 var player: CharacterBody3D
@@ -114,6 +116,14 @@ func _materials() -> void:
         terrain_mat.set_shader_parameter(shader_name + "_nr", load("res://assets/ground/" + label + "_nrough.png") as Texture2D)
     water_mat = ShaderMaterial.new()
     water_mat.shader = load("res://shaders/river.gdshader") as Shader
+    wave_texture = load("res://assets/water/wave_caustics_rgba.png") as Texture2D
+    if wave_texture == null:
+        push_error("Water wave normal/caustic texture missing. Run tools/build_water_normals.py")
+    else:
+        water_mat.set_shader_parameter("wave_map",wave_texture)
+    water_quality.configure(water_mat,WaterQualitySettings.BALANCED)
+    terrain_mat.set_shader_parameter("wave_map",wave_texture)
+    terrain_mat.set_shader_parameter("caustic_strength",0.22)
 
 func _create_actor() -> void:
     player = CharacterBody3D.new()
@@ -446,6 +456,7 @@ func _add_chunk(co: Vector2i) -> void:
     var verts: PackedVector3Array = PackedVector3Array()
     var normals: PackedVector3Array = PackedVector3Array()
     var uv: PackedVector2Array = PackedVector2Array()
+    var uv2: PackedVector2Array = PackedVector2Array()
     var colors: PackedColorArray = PackedColorArray()
     var indices: PackedInt32Array = PackedInt32Array()
     var x_grid: PackedFloat32Array = _terrain_x_grid(root.position.x)
@@ -464,6 +475,7 @@ func _add_chunk(co: Vector2i) -> void:
             var info: Dictionary = river_profile.ground_sample(Vector2(wx, wz), _base_height(wx, wz))
             verts.append(Vector3(lx, float(info["terrain_y"]), lz))
             uv.append(Vector2(wx, wz) * 0.1)
+            uv2.append(Vector2(maxf(0.0,float(info["depth"])),0.0))
             var sediment: Dictionary = shore_substrate.sample(info, Vector2(wx, wz))
             colors.append(Color(float(sediment["gravel"]), float(sediment["wetness"]), float(sediment["silt"]), float(sediment["forest"])))
     for iz in range(rows):
@@ -494,6 +506,7 @@ func _add_chunk(co: Vector2i) -> void:
     arrays[Mesh.ARRAY_VERTEX] = verts
     arrays[Mesh.ARRAY_NORMAL] = normals
     arrays[Mesh.ARRAY_TEX_UV] = uv
+    arrays[Mesh.ARRAY_TEX_UV2] = uv2
     arrays[Mesh.ARRAY_COLOR] = colors
     arrays[Mesh.ARRAY_INDEX] = indices
     var mesh: ArrayMesh = ArrayMesh.new()
@@ -532,6 +545,8 @@ func _water(root: Node3D, co: Vector2i) -> void:
     chunk_material.set_shader_parameter("flow_atlas",ImageTexture.create_from_image(atlas))
     chunk_material.set_shader_parameter("chunk_origin",origin)
     chunk_material.set_shader_parameter("chunk_size",CELL)
+    chunk_material.set_shader_parameter("wave_map",wave_texture)
+    water_quality.configure(chunk_material,WaterQualitySettings.BALANCED)
     water_instance.material_override = chunk_material
     water_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     root.add_child(water_instance)

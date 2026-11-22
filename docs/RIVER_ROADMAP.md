@@ -14,7 +14,7 @@ This is the authoritative non-skippable roadmap for the river engineering projec
 | S1 | Spline center, variable asymmetric bed, shoreline, mesh/collision continuity | CODE + HEADLESS PASS; ANDROID OPEN | 1,534 depth/shore/seam samples passed, 49-bone gameplay smoke passed, shoreline collider probes added; Android visual acceptance open |
 | S2 | Poly Haven normal+roughness PBR, sediment classification, wet/dry, 3D pebbles | IMPLEMENTED; CI + ANDROID PENDING | Packed CC0 PBR + provenance + spatial sediment tests; Android visual/tile repetition and rock LOD still require review |
 | S3 | Flow vectors, boulder flow wake, RGBA8 GPU atlases and causal foam | FIRST IMPLEMENTATION; CI + ANDROID PENDING | Deterministic geometry and physical velocity/foam correlation; visual water/running physics and device checks open |
-| S4 | Mobile water optics: absorption, refraction, Fresnel, caustics | NOT STARTED | Shallow/deep clear; no parallel sine stripes; device GPU cost |
+| S4 | Mobile depth absorption, limited safe refraction, Fresnel sky and real-bed caustics | CODE IN REVIEW; CI/ANDROID NOT YET ACCEPTED | 256px normal-caustic tile + S1 depth metadata; numeric shader/quality tests; visual water/fragment GPU budget open |
 | S5 | Sun/sky, forest shadows, fog, color, time-of-day | NOT STARTED | Scene coherent and bright on device |
 | S6 | Mouse probes, swimming/buoyancy/drag, underwater camera/wet fur | NOT STARTED | Walk/shallow/swim states, no state oscillation |
 | S7 | Spatial audio, footprints, droplets, leaves, bubbles, micro events | NOT STARTED | Event/lifetime bounded, camera-linked sound |

@@ -19,6 +19,8 @@ jobs:
           persist-credentials: true
       - name: Install Python texture tools
         run: python3 -m pip install --break-system-packages pillow numpy
+      - name: Build original seamless water normal and caustics texture
+        run: python3 tools/build_water_normals.py
       - name: Download genuine Poly Haven albedo, OpenGL normals and roughness
         run: python3 tools/fetch_polyhaven.py
       - name: Validate real PBR packed images and source provenance
@@ -68,12 +70,18 @@ jobs:
           timeout 100 godot --headless --path . --script res://tests/river_s3_test.gd 2>&1 | tee /tmp/river_s3.log
           grep -q RIVER_S3_OK /tmp/river_s3.log
           if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|RIVER_S3_FAIL' /tmp/river_s3.log; then exit 1; fi
+      - name: S4 Mobile depth/refraction/caustics shader + terrain tests
+        run: |
+          set -o pipefail
+          timeout 100 godot --headless --path . --script res://tests/river_s4_test.gd 2>&1 | tee /tmp/river_s4.log
+          grep -q RIVER_S4_OK /tmp/river_s4.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|RIVER_S4_FAIL' /tmp/river_s4.log; then exit 1; fi
       - name: Commit downloaded Poly Haven PBR to this feature branch
         if: github.ref == 'refs/heads/feat/river-s0-s1-geomorphology'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/ground/*.jpg assets/ground/*_nrough.png assets/ground/polyhaven_sources.json
+          git add assets/ground/*.jpg assets/ground/*_nrough.png assets/ground/polyhaven_sources.json assets/water/wave_caustics_rgba.png
           if ! git diff --staged --quiet; then
             git commit -m "assets(S2): bundle verified Poly Haven CC0 normal-roughness PBR"
             git push origin HEAD:feat/river-s0-s1-geomorphology
@@ -98,4 +106,5 @@ jobs:
             /tmp/river_s1.log
             /tmp/shore_s2.log
             /tmp/river_s3.log
+            /tmp/river_s4.log
           if-no-files-found: ignore
