@@ -18,6 +18,10 @@ func _run() -> void:
         if texture == null or texture.get_width() != 1024 or texture.get_height() != 1024:
             _bad("invalid packed map "+packed)
             return
+    var terrain_shader: Shader=load("res://shaders/terrain.gdshader") as Shader
+    if terrain_shader==null or not terrain_shader.code.contains("side_world_normal") or not terrain_shader.code.contains("world_position.zy"):
+        _bad("steep bank texture projection missing or normal basis not aligned")
+        return
     var near_wet: float = 0.0
     var far_wet: float = 0.0
     var min_gravel: float = 2.0

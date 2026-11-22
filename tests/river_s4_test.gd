@@ -35,6 +35,10 @@ func _run() -> void:
     if float(material.get_shader_parameter("refraction_strength"))<=0.45:
         _fail("HIGH profile lacks stronger refraction")
         return
+    var bed_shader: Shader=load("res://shaders/terrain.gdshader") as Shader
+    if bed_shader==null or not bed_shader.code.contains("sunlit_caustics") or not bed_shader.code.contains("EMISSION = vec3(0.0)"):
+        _fail("underwater caustics must be shaded by real scene lighting, not emissive glow")
+        return
     var scene: PackedScene = load("res://scenes/main.tscn") as PackedScene
     var game: Node3D = scene.instantiate() as Node3D
     root.add_child(game)
