@@ -15,3 +15,6 @@ This is a **diagnostics debug APK**, not a production or Google Play Store relea
 Open the APK on Android 11, wait for chunks, then tap **FPS** in the top-right. Measure p95/p99 frame times and memory with water covering half the screen; cross shallow rapids, swim, return to shore, and walk far enough to force streaming. Repeat after 12 minutes of heat. Tap **KOPYALA** and paste the JSON report into chat. Godot reports frame time and memory, not GPU occupancy or battery temperature.
 
 Do not call the device optimized or the 30 FPS goal met until on-phone measurements and screenshots arrive.
+
+### APK metadata tool compatibility
+First signed APK built at 79,005,519 bytes and passed ZIP/ARM64/AndroidManifest and apksigner validation, but legacy `aapt dump badging` raised `android:required attribute is not an integer value` against Godot 4.7's manifest. The old `aapt` step was removed; signature plus archive validation remains blocking. Real Android installation will still be checked independently.
