@@ -31,6 +31,7 @@ func _check() -> void:
 	if not pine.has_node("Collision/TrunkShape"):
 		_fail("Missing collision")
 		return
+	print("PINE_DEBUG height=", pine.get("height"), " trunk=", pine.get_node("Geometry/Wood/Trunk").mesh.get_aabb(), " branch=", pine.get_node("Geometry/Wood/Branches").mesh.get_aabb(), " crown=", pine.get_node("Geometry/Crown/Foliage_LOD0").mesh.get_aabb())
 	var branches: Mesh = pine.get_node("Geometry/Wood/Branches").mesh
 	if branches == null or branches.get_surface_count() == 0:
 		_fail("Missing branches mesh")
