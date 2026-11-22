@@ -1,6 +1,6 @@
 shader_type spatial;
 render_mode blend_mix, depth_draw_never, cull_disabled, diffuse_burley, specular_schlick_ggx;
-// S8-A distant water: no hint_screen_texture or hint_depth_texture reads.
+// S8-A distant water: reflection from palette + flow atlas; never samples the opaque framebuffer.
 uniform sampler2D flow_atlas : filter_linear, repeat_disable;
 uniform sampler2D wave_map : filter_linear_mipmap, repeat_enable;
 uniform vec2 chunk_origin = vec2(0.0);

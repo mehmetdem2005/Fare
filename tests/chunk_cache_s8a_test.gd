@@ -48,20 +48,20 @@ func _run() -> void:
     if near==null:
         _fail("missing near water")
         return
-    if not (near.material_override as ShaderMaterial).shader.code.contains("hint_depth_texture"):
+    if not (near.material_override as ShaderMaterial).shader.code.contains("uniform sampler2D opaque_depth"):
         _fail("near water lost real S4 refraction")
         return
     game.call("_add_chunk",Vector2i(0,2))
     game.call("_update_chunk_lod")
     var remote: Node3D = game.get_node_or_null("Chunk_0_2") as Node3D
     var far: MeshInstance3D = remote.get_node_or_null("FlowingWater") as MeshInstance3D
-    if far==null or (far.material_override as ShaderMaterial).shader.code.contains("hint_screen_texture"):
+    if far==null or (far.material_override as ShaderMaterial).shader.code.contains("uniform sampler2D opaque_screen"):
         _fail("far water still uses expensive screen copies")
         return
     var actor: CharacterBody3D = game.get_node("MousePlayer") as CharacterBody3D
     actor.global_position=Vector3(20.0,5.0,96.0)
     game.call("_update_chunk_lod")
-    if not (far.material_override as ShaderMaterial).shader.code.contains("hint_depth_texture"):
+    if not (far.material_override as ShaderMaterial).shader.code.contains("uniform sampler2D opaque_depth"):
         _fail("near water detail not restored after approach")
         return
     actor.global_position=Vector3(20.0,5.0,16.0)
