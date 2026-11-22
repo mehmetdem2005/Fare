@@ -1,0 +1,92 @@
+name: Video Exact Sapling Small Pine - Blender to Godot 4.7.2
+
+on:
+  push:
+    branches:
+      - feat/sapling-video-exact-godot-472
+    paths:
+      - 'sapling_video/**'
+      - '.github/workflows/sapling-video-exact.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  blender-sapling-godot-render:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: sapling_video
+          sparse-checkout-cone-mode: true
+
+      - name: Install real Blender, OpenGL, and offscreen X11
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq blender xvfb libgl1-mesa-dri libgl1 libx11-6 libxcursor1 libxinerama1 libxrandr2 libxi6 libasound2t64
+          blender --version | head -n 3 | tee blender-version.txt
+
+      - name: Download upstream Sapling Tree Gen extension and original Small Pine preset
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/blender_addons/add_curve_sapling/presets
+          BASE=https://raw.githubusercontent.com/blender/blender-addons/main/add_curve_sapling
+          curl --fail --location --retry 4 "$BASE/__init__.py" -o /tmp/blender_addons/add_curve_sapling/__init__.py
+          curl --fail --location --retry 4 "$BASE/utils.py" -o /tmp/blender_addons/add_curve_sapling/utils.py
+          curl --fail --location --retry 4 "$BASE/presets/small_pine.py" -o /tmp/blender_addons/add_curve_sapling/presets/small_pine.py
+          python3 - <<'PY'
+          from pathlib import Path
+          assert "levels': 3" in Path('/tmp/blender_addons/add_curve_sapling/presets/small_pine.py').read_text()
+          PY
+
+      - name: Generate authentic Sapling geometry from video settings
+        run: |
+          set -o pipefail
+          mkdir -p sapling_video/godot/out
+          SAPLING_ADDON_DIR=/tmp/blender_addons SAPLING_OUTPUT_DIR="$GITHUB_WORKSPACE/sapling_video/godot" timeout 360 blender -b --factory-startup --python sapling_video/build_sapling.py 2>&1 | tee sapling-generate.log
+          grep -q 'SAPLING_VIDEO_EXACT_OK' sapling-generate.log
+          test -s sapling_video/godot/sapling_pine.glb
+          test -s sapling_video/godot/sapling_small_pine_exact.blend
+          test -s sapling_video/godot/recipe.json
+
+      - name: Install actual Godot v4.7.2 stable
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 -o /tmp/godot472.zip "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip"
+          unzip -q /tmp/godot472.zip -d /tmp
+          sudo install -m 755 /tmp/Godot_v4.7.2-stable_linux.x86_64 /usr/local/bin/godot
+          godot --version | tee godot-version.txt
+          grep -q '^4.7.2.stable' godot-version.txt
+
+      - name: Import authentic Blender GLB into Godot
+        run: |
+          set -o pipefail
+          timeout 120 godot --headless --audio-driver Dummy --editor --path sapling_video/godot --import --quit 2>&1 | tee godot-import.log
+          if grep -Ei 'SCRIPT ERROR|Parse Error|ERROR:' godot-import.log; then exit 1; fi
+
+      - name: Render real engine PNG screenshot
+        run: |
+          set -o pipefail
+          timeout 120 xvfb-run -a -s '-screen 0 1280x1000x24' godot --audio-driver Dummy --rendering-driver opengl3 --rendering-method gl_compatibility --path sapling_video/godot --script res://render_sapling.gd 2>&1 | tee godot-render.log
+          grep -q 'VIDEO_SAPLING_RENDER_OK' godot-render.log
+          test -s sapling_video/godot/out/sapling_video_exact_godot472.png
+
+      - name: Upload the REAL Blender model, recipe, Godot PNG, and sources
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sapling-video-exact-blender-godot472
+          path: |
+            sapling_video/godot/out/*.png
+            sapling_video/godot/*.glb
+            sapling_video/godot/*.blend
+            sapling_video/godot/recipe.json
+            sapling_video/build_sapling.py
+            sapling-generate.log
+            godot-import.log
+            godot-render.log
+            blender-version.txt
+            godot-version.txt
+          if-no-files-found: warn
