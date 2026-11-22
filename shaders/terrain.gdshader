@@ -67,5 +67,6 @@ void fragment() {
     vec4 c2 = texture(wave_map,water_uv*0.71+vec2(-0.031,0.058)*TIME);
     float caustic = pow(max(0.0,c1.a*c2.a-0.24),1.9);
     EMISSION = vec3(0.34,0.52,0.39)*caustic*light_fade*immersed*caustic_strength;
+    AO = clamp(UV2.y,0.84,1.0);
     METALLIC=0.0;
 }

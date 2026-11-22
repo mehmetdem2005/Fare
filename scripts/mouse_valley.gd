@@ -39,6 +39,13 @@ var view_camera: Camera3D
 var hud: Control
 var terrain_mat: ShaderMaterial
 var water_mat: ShaderMaterial
+var water_lite_mat: ShaderMaterial
+var chunk_cache: ChunkBakeCache = ChunkBakeCache.new()
+var pending_cache_writes: Array[Vector2i] = []
+var chunk_cache_hit_count: int = 0
+var chunk_cache_miss_count: int = 0
+var cache_write_timer: float = 0.0
+var lod_update_timer: float = 0.0
 var pine_mesh: Mesh
 var grass_mesh: Mesh
 var pebble_mesh: Mesh
@@ -125,12 +132,15 @@ func _materials() -> void:
         terrain_mat.set_shader_parameter(shader_name + "_nr", load("res://assets/ground/" + label + "_nrough.png") as Texture2D)
     water_mat = ShaderMaterial.new()
     water_mat.shader = load("res://shaders/river.gdshader") as Shader
+    water_lite_mat = ShaderMaterial.new()
+    water_lite_mat.shader = load("res://shaders/river_lite.gdshader") as Shader
     wave_texture = load("res://assets/water/wave_caustics_rgba.png") as Texture2D
     if wave_texture == null:
         push_error("Water wave normal/caustic texture missing. Run tools/build_water_normals.py")
     else:
         water_mat.set_shader_parameter("wave_map",wave_texture)
     water_quality.configure(water_mat,WaterQualitySettings.BALANCED)
+    water_lite_mat.set_shader_parameter("wave_map",wave_texture)
     terrain_mat.set_shader_parameter("wave_map",wave_texture)
     terrain_mat.set_shader_parameter("caustic_strength",atmosphere.caustics_energy())
     atmosphere.configure_river(water_mat)
@@ -266,6 +276,14 @@ func _process(delta: float) -> void:
     if chunk_timer > 0.33:
         chunk_timer = 0.0
         _queue_chunks()
+    lod_update_timer+=delta
+    if lod_update_timer>0.40:
+        lod_update_timer=0.0
+        _update_chunk_lod()
+    cache_write_timer+=delta
+    if cache_write_timer>1.1 and queue.is_empty():
+        cache_write_timer=0.0
+        _save_one_cache_chunk()
     if not queue.is_empty():
         var next: Vector2i = queue.pop_front()
         if not chunks.has(next) and _near(next):
@@ -522,73 +540,24 @@ func _add_chunk(co: Vector2i) -> void:
     root.position = Vector3(float(co.x) * CELL, 0.0, float(co.y) * CELL)
     add_child(root)
     chunks[co] = root
-    var verts: PackedVector3Array = PackedVector3Array()
-    var normals: PackedVector3Array = PackedVector3Array()
-    var uv: PackedVector2Array = PackedVector2Array()
-    var uv2: PackedVector2Array = PackedVector2Array()
-    var colors: PackedColorArray = PackedColorArray()
-    var indices: PackedInt32Array = PackedInt32Array()
-    var x_grid: PackedFloat32Array = _terrain_x_grid(root.position.x)
-    var columns: int = x_grid.size()
-    var rows: int = GRID + 1
-    var dz: float = CELL / float(GRID)
-    # Generate color + height using ONE RiverProfile sample per vertex.
-    # Approximate smooth interior normals from neighboring vertices rather
-    # than calling the expensive spline sampler four more times per vertex.
-    for iz in range(rows):
-        for ix in range(columns):
-            var lx: float = x_grid[ix]
-            var lz: float = float(iz) * dz
-            var wx: float = root.position.x + lx
-            var wz: float = root.position.z + lz
-            var info: Dictionary = river_profile.ground_sample(Vector2(wx, wz), _base_height(wx, wz))
-            verts.append(Vector3(lx, float(info["terrain_y"]), lz))
-            uv.append(Vector2(wx, wz) * 0.1)
-            uv2.append(Vector2(maxf(0.0,float(info["depth"])),0.0))
-            var sediment: Dictionary = shore_substrate.sample(info, Vector2(wx, wz))
-            colors.append(Color(float(sediment["gravel"]), float(sediment["wetness"]), float(sediment["silt"]), float(sediment["forest"])))
-    for iz in range(rows):
-        for ix in range(columns):
-            var ix0: int = maxi(ix - 1, 0)
-            var ix1: int = mini(ix + 1, columns - 1)
-            var iz0: int = maxi(iz - 1, 0)
-            var iz1: int = mini(iz + 1, rows - 1)
-            var dx_vec: Vector3 = verts[iz * columns + ix1] - verts[iz * columns + ix0]
-            var dz_vec: Vector3 = verts[iz1 * columns + ix] - verts[iz0 * columns + ix]
-            var n: Vector3 = dz_vec.cross(dx_vec).normalized()
-            if ix == 0 or ix == columns - 1 or iz == 0 or iz == rows - 1:
-                # Use identical world-space finite differences for neighboring
-                # chunks so perimeter normal interpolation has no visible seam.
-                var v: Vector3 = verts[iz * columns + ix]
-                var wx: float = root.position.x + v.x
-                var wz: float = root.position.z + v.z
-                var slope_x: float = _height(wx + 0.2, wz) - _height(wx - 0.2, wz)
-                var slope_z: float = _height(wx, wz + 0.2) - _height(wx, wz - 0.2)
-                n = Vector3(-slope_x, 0.4, -slope_z).normalized()
-            normals.append(n)
-    for iz in range(GRID):
-        for ix in range(columns - 1):
-            var a: int = iz * columns + ix
-            indices.append_array(PackedInt32Array([a, a + 1, a + columns, a + 1, a + columns + 1, a + columns]))
-    var arrays: Array = []
-    arrays.resize(Mesh.ARRAY_MAX)
-    arrays[Mesh.ARRAY_VERTEX] = verts
-    arrays[Mesh.ARRAY_NORMAL] = normals
-    arrays[Mesh.ARRAY_TEX_UV] = uv
-    arrays[Mesh.ARRAY_TEX_UV2] = uv2
-    arrays[Mesh.ARRAY_COLOR] = colors
-    arrays[Mesh.ARRAY_INDEX] = indices
-    var mesh: ArrayMesh = ArrayMesh.new()
-    mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+    var cached: Dictionary = chunk_cache.load_chunk(co)
+    var mesh: ArrayMesh = cached["terrain"] if cached.has("terrain") else _generate_terrain_mesh(root)
+    if cached.is_empty():
+        chunk_cache_miss_count+=1
+        pending_cache_writes.append(co)
+    else:
+        chunk_cache_hit_count+=1
     var instance: MeshInstance3D = MeshInstance3D.new()
     instance.name = "Terrain"
     instance.mesh = mesh
     instance.material_override = terrain_mat
     root.add_child(instance)
     var collider_body: StaticBody3D = StaticBody3D.new()
+    collider_body.name = "TerrainCollider"
     collider_body.collision_layer = 1
     var terrain_collision: CollisionShape3D = CollisionShape3D.new()
-    terrain_collision.shape = mesh.create_trimesh_shape()
+    terrain_collision.name = "TerrainCollisionShape"
+    terrain_collision.shape = cached["collision"] if cached.has("collision") else mesh.create_trimesh_shape()
     collider_body.add_child(terrain_collision)
     root.add_child(collider_body)
     _trees(root, co)
@@ -596,13 +565,45 @@ func _add_chunk(co: Vector2i) -> void:
     # The actual water is clipped to each owning terrain chunk. No duplicate
     # full-width surfaces and no disappearing negative-X bank.
     if co.x >= -1 and co.x <= 0:
-        _water(root, co)
+        _water(root,co,cached)
         _rocks(root, co)
         _major_rocks(root, co)
         _river_mist(root,co)
+    _apply_chunk_lod(co,root)
 
-func _water(root: Node3D, co: Vector2i) -> void:
-    var water_mesh: ArrayMesh = river_surface_builder.build_chunk(river_profile, co, CELL)
+func _apply_chunk_lod(co: Vector2i, chunk: Node3D) -> void:
+    if player == null:
+        return
+    var center: Vector2 = Vector2(float(co.x)*CELL+CELL*0.5,float(co.y)*CELL+CELL*0.5)
+    var distance: float = Vector2(player.global_position.x,player.global_position.z).distance_to(center)
+    var river: MeshInstance3D = chunk.get_node_or_null("FlowingWater") as MeshInstance3D
+    if river != null:
+        var low: bool = bool(river.get_meta("water_lite",false))
+        if (not low and distance>66.0) or (low and distance>56.0):
+            river.material_override = river.get_meta("low_water_material")
+            river.set_meta("water_lite",true)
+        elif low:
+            river.material_override = river.get_meta("high_water_material")
+            river.set_meta("water_lite",false)
+    var pines: MultiMeshInstance3D = chunk.get_node_or_null("Pines") as MultiMeshInstance3D
+    if pines != null:
+        var active: bool = pines.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+        var enable: bool = distance < (70.0 if active else 55.0)
+        pines.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if enable else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+func _update_chunk_lod() -> void:
+    for co in chunks.keys():
+        _apply_chunk_lod(co,chunks[co])
+
+func _save_one_cache_chunk() -> void:
+    while not pending_cache_writes.is_empty():
+        var co: Vector2i = pending_cache_writes.pop_front()
+        if chunks.has(co):
+            chunk_cache.save_chunk(co,chunks[co],false)
+            break
+
+func _water(root: Node3D, co: Vector2i, cached: Dictionary = {}) -> void:
+    var water_mesh: ArrayMesh = cached["water"] if cached.has("water") else river_surface_builder.build_chunk(river_profile, co, CELL)
     if water_mesh.get_surface_count() == 0:
         return
     var water_instance: MeshInstance3D = MeshInstance3D.new()
@@ -611,13 +612,23 @@ func _water(root: Node3D, co: Vector2i) -> void:
     # Per-chunk RGBA8 flow atlas; CPU/physics and GPU visual sample the same field.
     var chunk_material: ShaderMaterial = water_mat.duplicate() as ShaderMaterial
     var origin: Vector2 = Vector2(root.position.x,root.position.z)
-    var atlas: Image = river_flow_field.build_atlas(river_profile,origin,CELL)
-    chunk_material.set_shader_parameter("flow_atlas",ImageTexture.create_from_image(atlas))
+    var atlas: Image = cached["flow"] if cached.has("flow") else river_flow_field.build_atlas(river_profile,origin,CELL)
+    var atlas_texture: Texture2D = ImageTexture.create_from_image(atlas)
+    water_instance.set_meta("flow_image",atlas)
+    chunk_material.set_shader_parameter("flow_atlas",atlas_texture)
     chunk_material.set_shader_parameter("chunk_origin",origin)
     chunk_material.set_shader_parameter("chunk_size",CELL)
     chunk_material.set_shader_parameter("wave_map",wave_texture)
     water_quality.configure(chunk_material,WaterQualitySettings.BALANCED)
     atmosphere.configure_river(chunk_material)
+    water_instance.set_meta("high_water_material",chunk_material)
+    var lite: ShaderMaterial = water_lite_mat.duplicate() as ShaderMaterial
+    lite.set_shader_parameter("flow_atlas",atlas_texture)
+    lite.set_shader_parameter("wave_map",wave_texture)
+    lite.set_shader_parameter("chunk_origin",origin)
+    lite.set_shader_parameter("chunk_size",CELL)
+    atmosphere.configure_river(lite)
+    water_instance.set_meta("low_water_material",lite)
     water_instance.material_override = chunk_material
     water_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     root.add_child(water_instance)
@@ -830,4 +841,73 @@ func _multimesh(root: Node3D, source: Mesh, label: String, xforms: Array[Transfo
     instance.name = label
     instance.multimesh = mm
     instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if label == "Pines" else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    if label == "Grass":
+        instance.visibility_range_end = 62.0
+    elif label == "FinePebbles":
+        instance.visibility_range_end = 38.0
+    elif label == "Cobbles":
+        instance.visibility_range_end = 55.0
     root.add_child(instance)
+
+func _generate_terrain_mesh(root: Node3D) -> ArrayMesh:
+    var verts: PackedVector3Array = PackedVector3Array()
+    var normals: PackedVector3Array = PackedVector3Array()
+    var uv: PackedVector2Array = PackedVector2Array()
+    var uv2: PackedVector2Array = PackedVector2Array()
+    var colors: PackedColorArray = PackedColorArray()
+    var indices: PackedInt32Array = PackedInt32Array()
+    var x_grid: PackedFloat32Array = _terrain_x_grid(root.position.x)
+    var columns: int = x_grid.size()
+    var rows: int = GRID + 1
+    var dz: float = CELL / float(GRID)
+    # Generate color + height using ONE RiverProfile sample per vertex.
+    # Approximate smooth interior normals from neighboring vertices rather
+    # than calling the expensive spline sampler four more times per vertex.
+    for iz in range(rows):
+        for ix in range(columns):
+            var lx: float = x_grid[ix]
+            var lz: float = float(iz) * dz
+            var wx: float = root.position.x + lx
+            var wz: float = root.position.z + lz
+            var info: Dictionary = river_profile.ground_sample(Vector2(wx, wz), _base_height(wx, wz))
+            verts.append(Vector3(lx, float(info["terrain_y"]), lz))
+            uv.append(Vector2(wx, wz) * 0.1)
+            uv2.append(Vector2(maxf(0.0,float(info["depth"])),0.0))
+            var sediment: Dictionary = shore_substrate.sample(info, Vector2(wx, wz))
+            colors.append(Color(float(sediment["gravel"]), float(sediment["wetness"]), float(sediment["silt"]), float(sediment["forest"])))
+    for iz in range(rows):
+        for ix in range(columns):
+            var ix0: int = maxi(ix - 1, 0)
+            var ix1: int = mini(ix + 1, columns - 1)
+            var iz0: int = maxi(iz - 1, 0)
+            var iz1: int = mini(iz + 1, rows - 1)
+            var dx_vec: Vector3 = verts[iz * columns + ix1] - verts[iz * columns + ix0]
+            var dz_vec: Vector3 = verts[iz1 * columns + ix] - verts[iz0 * columns + ix]
+            var n: Vector3 = dz_vec.cross(dx_vec).normalized()
+            if ix == 0 or ix == columns - 1 or iz == 0 or iz == rows - 1:
+                # Use identical world-space finite differences for neighboring
+                # chunks so perimeter normal interpolation has no visible seam.
+                var v: Vector3 = verts[iz * columns + ix]
+                var wx: float = root.position.x + v.x
+                var wz: float = root.position.z + v.z
+                var slope_x: float = _height(wx + 0.2, wz) - _height(wx - 0.2, wz)
+                var slope_z: float = _height(wx, wz + 0.2) - _height(wx, wz - 0.2)
+                n = Vector3(-slope_x, 0.4, -slope_z).normalized()
+            normals.append(n)
+            var metadata: Vector2 = uv2[iz*columns+ix]
+            uv2[iz*columns+ix] = Vector2(metadata.x,clampf(0.97-0.10*(1.0-n.y),0.84,1.0))
+    for iz in range(GRID):
+        for ix in range(columns - 1):
+            var a: int = iz * columns + ix
+            indices.append_array(PackedInt32Array([a, a + 1, a + columns, a + 1, a + columns + 1, a + columns]))
+    var arrays: Array = []
+    arrays.resize(Mesh.ARRAY_MAX)
+    arrays[Mesh.ARRAY_VERTEX] = verts
+    arrays[Mesh.ARRAY_NORMAL] = normals
+    arrays[Mesh.ARRAY_TEX_UV] = uv
+    arrays[Mesh.ARRAY_TEX_UV2] = uv2
+    arrays[Mesh.ARRAY_COLOR] = colors
+    arrays[Mesh.ARRAY_INDEX] = indices
+    var mesh: ArrayMesh = ArrayMesh.new()
+    mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+    return mesh

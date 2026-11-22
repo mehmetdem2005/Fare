@@ -46,6 +46,12 @@ jobs:
           set -o pipefail
           godot --headless --editor --path . --import --quit 2>&1 | tee /tmp/import.log
           if grep -E 'Parse Error|SCRIPT ERROR|Failed to load script|Shader compilation failed|ERROR:' /tmp/import.log; then exit 1; fi
+      - name: S8-A bake startup 5x5 chunk resource pack
+        run: |
+          set -o pipefail
+          timeout 180 godot --headless --path . --script res://tools/bake_world_chunks.gd 2>&1 | tee /tmp/chunk_bake.log
+          grep -q CHUNK_PACK_READY /tmp/chunk_bake.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|CHUNK_BAKE_FAIL' /tmp/chunk_bake.log; then exit 1; fi
       - name: Headless game smoke test
         run: |
           set -o pipefail
@@ -88,6 +94,12 @@ jobs:
           timeout 100 godot --headless --path . --script res://tests/river_s6_test.gd 2>&1 | tee /tmp/river_s6.log
           grep -q WATER_S6_OK /tmp/river_s6.log
           if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|WATER_S6_FAIL' /tmp/river_s6.log; then exit 1; fi
+      - name: S8-A precompiled resources and water/shadow LOD regression
+        run: |
+          set -o pipefail
+          timeout 120 godot --headless --path . --script res://tests/chunk_cache_s8a_test.gd 2>&1 | tee /tmp/chunk_cache_s8a.log
+          grep -q CACHE_S8A_OK /tmp/chunk_cache_s8a.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|CACHE_S8A_FAIL' /tmp/chunk_cache_s8a.log; then exit 1; fi
       # Optional real Vulkan render proof, separate from strict headless tests.
       # Software GPU is not Android; do not treat success as device visual QA.
       - name: Install software Vulkan and virtual display for visual probe
@@ -114,7 +126,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/ground/*.jpg assets/ground/*_nrough.png assets/ground/polyhaven_sources.json assets/water/wave_caustics_rgba.png
+          git add assets/ground/*.jpg assets/ground/*_nrough.png assets/ground/polyhaven_sources.json assets/water/wave_caustics_rgba.png assets/baked_chunks/v3/
           if ! git diff --staged --quiet; then
             git commit -m "assets(S2): bundle verified Poly Haven CC0 normal-roughness PBR"
             git push origin HEAD:feat/river-s0-s1-geomorphology
@@ -142,6 +154,8 @@ jobs:
             /tmp/river_s4.log
             /tmp/atmos_s5.log
             /tmp/river_s6.log
+            /tmp/chunk_bake.log
+            /tmp/chunk_cache_s8a.log
             /tmp/s4_vulkan_render.log
             /tmp/s4_mobile_vulkan.png
           if-no-files-found: ignore
