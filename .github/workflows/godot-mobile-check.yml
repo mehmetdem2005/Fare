@@ -19,8 +19,10 @@ jobs:
           persist-credentials: true
       - name: Install Python texture tools
         run: python3 -m pip install --break-system-packages pillow numpy
-      - name: Download original CC0 PBR color textures from Poly Haven API
+      - name: Download genuine Poly Haven albedo, OpenGL normals and roughness
         run: python3 tools/fetch_polyhaven.py
+      - name: Validate real PBR packed images and source provenance
+        run: python3 tools/check_ground_pbr.py
       - name: Retrieve 49-bone R39 corrected mouse GLB with genuine exported animation
         env:
           GH_TOKEN: ${{ github.token }}
@@ -54,7 +56,23 @@ jobs:
           timeout 100 godot --headless --path . --script res://tests/river_s1_test.gd 2>&1 | tee /tmp/river_s1.log
           grep -q RIVER_S1_OK /tmp/river_s1.log
           if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|RIVER_S1_FAIL' /tmp/river_s1.log; then exit 1; fi
-      - name: Commit downloaded Poly Haven textures on this isolated branch
+      - name: S2 sediment spatial variation and texture contracts
+        run: |
+          set -o pipefail
+          timeout 100 godot --headless --path . --script res://tests/shore_s2_test.gd 2>&1 | tee /tmp/shore_s2.log
+          grep -q SHORE_S2_OK /tmp/shore_s2.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|SHORE_S2_FAIL' /tmp/shore_s2.log; then exit 1; fi
+      - name: Commit downloaded Poly Haven PBR to this feature branch
+        if: github.ref == 'refs/heads/feat/river-s0-s1-geomorphology'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/ground/*.jpg assets/ground/*_nrough.png assets/ground/polyhaven_sources.json
+          if ! git diff --staged --quiet; then
+            git commit -m "assets(S2): bundle verified Poly Haven CC0 normal-roughness PBR"
+            git push origin HEAD:feat/river-s0-s1-geomorphology
+          fi
+      - name: Legacy branch-only asset commit
         if: github.ref == 'refs/heads/game/godot-mobile-mouse-valley-clean'
         run: |
           git config user.name "github-actions[bot]"
@@ -72,4 +90,5 @@ jobs:
             /tmp/import.log
             /tmp/smoke.log
             /tmp/river_s1.log
+            /tmp/shore_s2.log
           if-no-files-found: ignore

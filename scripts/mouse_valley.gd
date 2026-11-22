@@ -14,6 +14,7 @@ const SPAWN_HEIGHT_ABOVE_TERRAIN: float = 3.5
 
 var river_profile: RiverProfile = RiverProfile.new()
 var river_surface_builder: RiverSurfaceBuilder = RiverSurfaceBuilder.new()
+var shore_substrate: ShoreSubstrate = ShoreSubstrate.new()
 var height_noise: FastNoiseLite = FastNoiseLite.new()
 var detail_noise: FastNoiseLite = FastNoiseLite.new()
 var player: CharacterBody3D
@@ -106,6 +107,9 @@ func _materials() -> void:
     terrain_mat.set_shader_parameter("forest_tex", _image_texture("res://assets/ground/forest.jpg", Color(0.28, 0.32, 0.19)))
     terrain_mat.set_shader_parameter("cliff_tex", _image_texture("res://assets/ground/rock.jpg", Color(0.41, 0.40, 0.36)))
     terrain_mat.set_shader_parameter("riverbed_tex", _image_texture("res://assets/ground/pebbles.jpg", Color(0.49, 0.48, 0.42)))
+    for label in ["grass", "forest", "rock", "pebbles"]:
+        var shader_name: String = "cliff" if label == "rock" else ("riverbed" if label == "pebbles" else label)
+        terrain_mat.set_shader_parameter(shader_name + "_nr", load("res://assets/ground/" + label + "_nrough.png") as Texture2D)
     water_mat = ShaderMaterial.new()
     water_mat.shader = load("res://shaders/river.gdshader") as Shader
 
@@ -458,7 +462,8 @@ func _add_chunk(co: Vector2i) -> void:
             var info: Dictionary = river_profile.ground_sample(Vector2(wx, wz), _base_height(wx, wz))
             verts.append(Vector3(lx, float(info["terrain_y"]), lz))
             uv.append(Vector2(wx, wz) * 0.1)
-            colors.append(Color(clampf(float(info["shore_gravel"]), 0.0, 1.0), clampf(float(info["wetness"]), 0.0, 1.0), 0.0, 1.0))
+            var sediment: Dictionary = shore_substrate.sample(info, Vector2(wx, wz))
+            colors.append(Color(float(sediment["gravel"]), float(sediment["wetness"]), float(sediment["silt"]), float(sediment["forest"])))
     for iz in range(rows):
         for ix in range(columns):
             var ix0: int = maxi(ix - 1, 0)
@@ -621,20 +626,37 @@ func _grass(root: Node3D, co: Vector2i) -> void:
     _multimesh(root, grass_mesh, "Grass", xforms)
 
 func _rocks(root: Node3D, co: Vector2i) -> void:
+    # Deterministic regional sediment placement: no continuous gravel bands.
+    # Small stones remain instanced and non-physical. S3 will register the
+    # large obstructing rocks for flow deflection and localized foam.
     var rng: RandomNumberGenerator = RandomNumberGenerator.new()
     rng.seed = 80333 + (co.x * 528319 + co.y * 851111) * 3
-    var xforms: Array[Transform3D] = []
-    for i in range(190):
+    var pebbles: Array[Transform3D] = []
+    var cobbles: Array[Transform3D] = []
+    for i in range(280):
         var x: float = rng.randf_range(0.0, CELL)
         var z: float = rng.randf_range(0.0, CELL)
         var wx: float = root.position.x + x
         var wz: float = root.position.z + z
-        var shoreline_distance: float = river_profile.shore_distance(Vector2(wx, wz))
-        if shoreline_distance < -1.1 or shoreline_distance > 4.2:
+        var p: Vector2 = Vector2(wx, wz)
+        var state: Dictionary = river_profile.sample(p)
+        var sediment: Dictionary = shore_substrate.sample(state, p)
+        var sdf: float = float(state["shore_sdf"])
+        if sdf > 5.5 or sdf < -4.5:
             continue
-        var scale: float = rng.randf_range(0.14, 0.43)
-        xforms.append(Transform3D(Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3(scale * 1.5, scale * 0.48, scale)), Vector3(x, _height(wx, wz) + scale * 0.13, z)))
-    _multimesh(root, pebble_mesh, "BankStones", xforms)
+        if rng.randf() > float(sediment["stone_density"]):
+            continue
+        var y: float = _height(wx, wz)
+        var spin: float = rng.randf_range(0.0, TAU)
+        var base: Basis = Basis(Vector3.UP,spin)
+        if rng.randf() < 0.75:
+            var size: float = rng.randf_range(0.08,0.27)
+            pebbles.append(Transform3D(base.scaled(Vector3(size*1.45,size*0.47,size)),Vector3(x,y+size*0.10,z)))
+        else:
+            var size: float = rng.randf_range(0.27,0.78)
+            cobbles.append(Transform3D(base.scaled(Vector3(size*1.20,size*0.55,size)),Vector3(x,y+size*0.18,z)))
+    _multimesh(root,pebble_mesh,"FinePebbles",pebbles)
+    _multimesh(root,pebble_mesh,"Cobbles",cobbles)
 
 func _multimesh(root: Node3D, source: Mesh, label: String, xforms: Array[Transform3D]) -> void:
     if xforms.is_empty():
