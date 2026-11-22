@@ -42,7 +42,7 @@ func _run() -> void:
         _fail("JSON file save inaccessible")
         return
     var parsed: Variant=JSON.parse_string(FileAccess.get_file_as_string(path))
-    if typeof(parsed)!=TYPE_DICTIONARY or parsed.get("format","")!="fare-s8-device-metrics-v1":
+    if typeof(parsed)!=TYPE_DICTIONARY or parsed.get("format","")!="fare-s9-device-metrics-v1":
         _fail("telemetry not valid JSON")
         return
     if int(parsed.get("long_frame_500ms_total",-1))!=1 or float(parsed.get("longest_frame_ms",0.0))<749.9:

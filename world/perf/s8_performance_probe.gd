@@ -16,6 +16,7 @@ var panel: PanelContainer
 var toggle: Button
 var label: Label
 var quality_selector: OptionButton
+var fixed_scene_checkbox: CheckBox
 var snapshot: Dictionary = {}
 var last_save_path: String = ""
 var session_start_ms: int = 0
@@ -41,7 +42,7 @@ func _ready() -> void:
     panel.offset_left=-316.0
     panel.offset_right=-8.0
     panel.offset_top=50.0
-    panel.offset_bottom=390.0
+    panel.offset_bottom=480.0
     panel.visible=false
     add_child(panel)
     var v: VBoxContainer=VBoxContainer.new()
@@ -59,6 +60,10 @@ func _ready() -> void:
     quality_selector.select(int(game.get("mobile_quality_level")))
     quality_selector.item_selected.connect(_change_quality)
     v.add_child(quality_selector)
+    fixed_scene_checkbox=CheckBox.new()
+    fixed_scene_checkbox.text="SABIT SAHNE (25 chunk tamamlaninca)"
+    fixed_scene_checkbox.toggled.connect(_set_fixed_scene)
+    v.add_child(fixed_scene_checkbox)
     var buttons: HBoxContainer=HBoxContainer.new()
     v.add_child(buttons)
     var copy: Button=Button.new()
@@ -75,6 +80,14 @@ func _change_quality(level: int) -> void:
     if game!=null:
         game.call("set_mobile_quality",level)
         _refresh_snapshot()
+
+func _set_fixed_scene(enabled: bool) -> void:
+    if game==null:
+        return
+    var accepted: bool=bool(game.call("set_s9_fixed_scene",enabled))
+    if enabled and not accepted:
+        fixed_scene_checkbox.set_pressed_no_signal(false)
+    _refresh_snapshot()
 
 func _toggle() -> void:
     panel.visible=not panel.visible
@@ -101,6 +114,7 @@ func _process(delta: float) -> void:
         refresh=0.0
         if panel.visible:
             _refresh_snapshot()
+            fixed_scene_checkbox.set_pressed_no_signal(bool(game.get("s9_fixed_scene")))
 
 func _percentile(sorted_values: Array[float], ratio: float) -> float:
     if sorted_values.is_empty():
@@ -123,8 +137,15 @@ func _refresh_snapshot() -> void:
     var draw_calls: float=Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)
     var video_mem_mb: float=Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED)/1048576.0
     var static_mb: float=Performance.get_monitor(Performance.MEMORY_STATIC)/1048576.0
+    var trace: S9ChunkTrace=game.get("s9_trace") as S9ChunkTrace
     snapshot={
-        "format":"fare-s8-device-metrics-v1",
+        "format":"fare-s9-device-metrics-v1",
+        "game_build_sha":S9BuildIdentity.BUILD_SHA,
+        "game_build_tag":S9BuildIdentity.BUILD_TAG,
+        "metrics_version":9,
+        "fixed_scene_mode":bool(game.get("s9_fixed_scene")),
+        "stream_queue_length":(game.get("queue") as Array).size(),
+        "chunk_trace":trace.get_report() if trace!=null else {},
         "engine":str(Engine.get_version_info().get("string","unknown")),
         "platform":OS.get_name(),
         "renderer":str(ProjectSettings.get_setting("rendering/renderer/rendering_method","unknown")),
@@ -156,7 +177,7 @@ func _refresh_snapshot() -> void:
         "position_x":snappedf(actor.global_position.x,0.1) if actor!=null else 0.0,
         "position_z":snappedf(actor.global_position.z,0.1) if actor!=null else 0.0
     }
-    var text_value: String="GODOT 4.7.2 • S8 / TELEFON\n"
+    var text_value: String="GODOT 4.7.2 • "+S9BuildIdentity.BUILD_TAG+" / TELEFON\n"
     text_value+="FPS ~ %.1f  Ortalama %.2f ms\n" % [fps,mean]
     text_value+="p95 %.2f ms  p99 %.2f ms\n" % [float(snapshot["frame_p95_ms"]),float(snapshot["frame_p99_ms"])]
     text_value+="Max %.0f ms  >50ms %d  >=500ms %d\n" % [longest_frame_ms,frame_over_50ms_total,long_frame_500ms_total]
@@ -165,11 +186,14 @@ func _refresh_snapshot() -> void:
     text_value+="Hazir %d  Uretilen %d\n" % [int(snapshot["cache_pack_or_user_hits"]),int(snapshot["cache_generated_misses"])]
     text_value+="Chunk max %.1f ms  Disk max %.1f ms\n" % [float(snapshot["max_chunk_load_ms"]),float(snapshot["max_cache_save_ms"])]
     text_value+="Q%d  3D %.2f  Script max %.0fms\n" % [int(snapshot["quality_level"]),float(snapshot["render_scale_3d"]),float(snapshot["script_process_work_ms_peak"])]
+    text_value+="Sabit sahne %s  Sirada %d\n" % [str(snapshot["fixed_scene_mode"]),int(snapshot["stream_queue_length"])]
     text_value+="Chunk stages ms: "+str(snapshot["chunk_stage_peak_ms"])+"\n"
     text_value+="* Godot'un raporladigi; GPU zamani degil\n"
     if not last_save_path.is_empty():
         text_value+="Kayit: "+last_save_path.get_file()
     label.text=text_value
+    if fixed_scene_checkbox!=null and fixed_scene_checkbox.button_pressed!=bool(game.get("s9_fixed_scene")):
+        fixed_scene_checkbox.set_pressed_no_signal(bool(game.get("s9_fixed_scene")))
 
 func _copy_report() -> void:
     _refresh_snapshot()

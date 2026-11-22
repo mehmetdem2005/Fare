@@ -62,6 +62,11 @@ var chunks: Dictionary = {}
 var queue: Array[Vector2i] = []
 var chunk_timer: float = 0.0
 var s8_probe: S8PerformanceProbe
+var s9_trace: S9ChunkTrace = S9ChunkTrace.new()
+var s9_current_chunk_stages: Dictionary = {}
+var s9_queue_requested_usec: Dictionary = {}
+var s9_fixed_scene: bool = false
+var s9_fixed_scene_center: Vector2i = Vector2i.ZERO
 var max_chunk_load_ms: float = 0.0
 var last_chunk_load_ms: float = 0.0
 var max_cache_save_ms: float = 0.0
@@ -160,6 +165,15 @@ func set_mobile_quality(level: int) -> void:
 func _record_chunk_stage(name: String, began_usec: int) -> void:
     var elapsed_ms: float=float(Time.get_ticks_usec()-began_usec)*0.001
     chunk_stage_peak_ms[name]=maxf(float(chunk_stage_peak_ms.get(name,0.0)),elapsed_ms)
+    s9_current_chunk_stages[name]=elapsed_ms
+
+func set_s9_fixed_scene(enabled: bool) -> bool:
+    if enabled and (chunks.size()!=25 or not queue.is_empty()):
+        return false
+    s9_fixed_scene=enabled
+    s9_fixed_scene_center=_current_chunk() if enabled else Vector2i.ZERO
+    return true
+
 
 func _image_texture(path: String, fallback: Color) -> Texture2D:
     if ResourceLoader.exists(path):
@@ -264,6 +278,7 @@ func _create_hud() -> void:
     add_child(overlay)
     hud = Control.new()
     hud.set_script(load("res://scripts/controls.gd"))
+    hud.set("build_tag", S9BuildIdentity.BUILD_TAG)
     overlay.add_child(hud)
 
 func _setup_river_audio_and_micro() -> void:
@@ -359,10 +374,15 @@ func _emit_water_ripples(delta: float) -> void:
 func _process(delta: float) -> void:
     var script_start_usec: int=Time.get_ticks_usec()
     elapsed += delta
+    # Fixed-scene A/B mode is for stationary render testing only. Leaving
+    # the source chunk automatically restores collision-safe streaming.
+    if s9_fixed_scene and _current_chunk()!=s9_fixed_scene_center:
+        s9_fixed_scene=false
     chunk_timer += delta
     if chunk_timer > 0.33:
         chunk_timer = 0.0
-        _queue_chunks()
+        if not s9_fixed_scene:
+            _queue_chunks()
     lod_update_timer+=delta
     if lod_update_timer>0.40:
         lod_update_timer=0.0
@@ -382,10 +402,12 @@ func _process(delta: float) -> void:
     if can_save:
         cache_write_timer=0.0
         _save_one_cache_chunk()
-    if not queue.is_empty():
+    if not s9_fixed_scene and not queue.is_empty():
         var next: Vector2i = queue.pop_front()
         if not chunks.has(next) and _near(next):
             _add_chunk(next)
+        else:
+            s9_queue_requested_usec.erase(next)
     _update_camera(delta)
     if camera_water != null:
         camera_water.update_camera(view_camera.global_position,delta)
@@ -639,6 +661,7 @@ func _queue_chunks() -> void:
             var co: Vector2i = center + Vector2i(x, z)
             if not chunks.has(co) and not queue.has(co):
                 queue.append(co)
+                s9_queue_requested_usec[co]=Time.get_ticks_usec()
     for key in chunks.keys():
         var co: Vector2i = key
         if not _near(co):
@@ -650,6 +673,9 @@ func _add_chunk(co: Vector2i) -> void:
     if chunks.has(co):
         return
     var started_usec: int=Time.get_ticks_usec()
+    var queued_usec: int=int(s9_queue_requested_usec.get(co,started_usec))
+    s9_queue_requested_usec.erase(co)
+    s9_current_chunk_stages={}
     var root: Node3D = Node3D.new()
     root.name = "Chunk_%d_%d" % [co.x, co.y]
     root.position = Vector3(float(co.x) * CELL, 0.0, float(co.y) * CELL)
@@ -694,9 +720,15 @@ func _add_chunk(co: Vector2i) -> void:
         _major_rocks(root, co)
         _river_mist(root,co)
     _record_chunk_stage("river_fx",phase_usec)
+    phase_usec=Time.get_ticks_usec()
     _apply_chunk_lod(co,root)
+    _record_chunk_stage("publish",phase_usec)
     last_chunk_load_ms=float(Time.get_ticks_usec()-started_usec)*0.001
     max_chunk_load_ms=maxf(max_chunk_load_ms,last_chunk_load_ms)
+    s9_trace.record_chunk(co,str(cached.get("source","generated")),
+        float(started_usec-queued_usec)*0.001,last_chunk_load_ms,
+        s9_current_chunk_stages,mobile_quality_level,
+        player.global_position if player!=null else Vector3.ZERO)
 
 func _apply_chunk_lod(co: Vector2i, chunk: Node3D) -> void:
     if player == null:

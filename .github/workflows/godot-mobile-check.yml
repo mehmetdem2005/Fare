@@ -42,6 +42,9 @@ jobs:
           unzip -q /tmp/godot.zip -d /tmp/godot
           sudo install -m 755 /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 /usr/local/bin/godot
           godot --version
+      - name: Stamp S9 diagnostics build with unique package and source SHA
+        if: github.ref == 'refs/heads/feat/river-s0-s1-geomorphology'
+        run: python3 tools/stamp_s9_diagnostics.py "$GITHUB_SHA"
       - name: Godot import and script/shader parse checks
         run: |
           set -o pipefail
@@ -138,6 +141,13 @@ jobs:
           timeout 120 godot --headless --path . --script res://tests/s8_mobile_rescue_test.gd 2>&1 | tee /tmp/s8_mobile_rescue.log
           grep -q S8_MOBILE_RESCUE_OK /tmp/s8_mobile_rescue.log
           if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S8_MOBILE_RESCUE_FAIL' /tmp/s8_mobile_rescue.log; then exit 1; fi
+      - name: S9 stream phase statistics and stamped APK identity regression
+        if: github.ref == 'refs/heads/feat/river-s0-s1-geomorphology'
+        run: |
+          set -o pipefail
+          timeout 100 godot --headless --path . --script res://tests/s9_baseline_test.gd 2>&1 | tee /tmp/s9_baseline.log
+          grep -q S9_BASELINE_OK /tmp/s9_baseline.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S9_BASELINE_FAIL' /tmp/s9_baseline.log; then exit 1; fi
       - name: Select JDK 17 for Android diagnostics APK
         if: github.ref == 'refs/heads/feat/river-s0-s1-geomorphology'
         uses: actions/setup-java@v4
@@ -291,6 +301,7 @@ jobs:
             /tmp/s8_stream.log
             /tmp/s8_metrics.log
             /tmp/s8_mobile_rescue.log
+            /tmp/s9_baseline.log
             /tmp/s8_far_terrain.log
             /tmp/s5_sun_sync.log
             /tmp/s8_apk_export.log
