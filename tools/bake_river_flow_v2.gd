@@ -1,5 +1,5 @@
 extends SceneTree
-## Only flow resources change. Do not rebuild 25 heavy terrain/physics chunks.
+## Rebuild flow v2 for the extended 7x7 baked corridor (14 river chunks).
 func _initialize() -> void:
     call_deferred("_build")
 func _build() -> void:
@@ -11,7 +11,7 @@ func _build() -> void:
         quit(2)
         return
     var count: int=0
-    for z in range(-2,3):
+    for z in range(-3,4):
         for x in [-1,0]:
             var co: Vector2i=Vector2i(x,z)
             var img: Image=flow.build_atlas(profile,Vector2(float(x)*40.0,float(z)*40.0),40.0,32)

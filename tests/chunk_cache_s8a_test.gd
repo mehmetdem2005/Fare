@@ -8,8 +8,8 @@ func _fail(reason: String) -> void:
 func _run() -> void:
     var cache: ChunkBakeCache = ChunkBakeCache.new()
     var count: int = 0
-    for x in range(-2,3):
-        for z in range(-2,3):
+    for x in range(-3,4):
+        for z in range(-3,4):
             var co: Vector2i = Vector2i(x,z)
             var item: Dictionary = cache.load_chunk(co)
             if item.get("source","") != "pack":
@@ -28,6 +28,9 @@ func _run() -> void:
                     _fail("flow atlas wrong resolution")
                     return
             count+=1
+    if count!=49:
+        _fail("expected complete 7x7 baked world, got "+str(count))
+        return
     var scene: PackedScene = load("res://scenes/main.tscn") as PackedScene
     var game: Node3D = scene.instantiate() as Node3D
     root.add_child(game)

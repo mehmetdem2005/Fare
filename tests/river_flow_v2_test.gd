@@ -9,7 +9,7 @@ func _run() -> void:
     var field: RiverFlowField=RiverFlowField.new()
     var cache: RiverFlowAtlasCache=RiverFlowAtlasCache.new()
     var checked: int=0
-    for z in range(-2,3):
+    for z in range(-3,4):
         for x in [-1,0]:
             var co: Vector2i=Vector2i(x,z)
             var img: Image=cache.fetch(co,profile,field,40.0)
@@ -24,8 +24,8 @@ func _run() -> void:
                 _fail("cached GPU v2 vector differs from real physics "+str(co))
                 return
             checked+=1
-    if cache.loaded_packed!=10 or cache.regenerated>0:
-        _fail("10 assets not actually precompiled; packed="+str(cache.loaded_packed)+" rebuilt="+str(cache.regenerated))
+    if cache.loaded_packed!=14 or cache.regenerated>0:
+        _fail("14 assets not actually precompiled; packed="+str(cache.loaded_packed)+" rebuilt="+str(cache.regenerated))
         return
     var scene: PackedScene=load("res://scenes/main.tscn") as PackedScene
     var game: Node3D=scene.instantiate() as Node3D
