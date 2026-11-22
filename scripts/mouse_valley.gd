@@ -175,7 +175,7 @@ func _process(delta: float) -> void:
         hud.set("chunk_count", chunks.size())
         hud.set("sprinting", running)
         hud.set("jumping", not player.is_on_floor())
-        hud.set("rig_status", "49 BONE" if rig != null else "STATIC")
+        hud.set("rig_status", "BONES %d" % rig.get_bone_count() if rig != null else "STATIC")
 
 func _physics_process(delta: float) -> void:
     if player == null:
@@ -260,6 +260,9 @@ func _input(event: InputEvent) -> void:
             follow_distance = minf(6.5, follow_distance + 0.35)
         elif click.button_index == MOUSE_BUTTON_LEFT:
             if click.pressed:
+                # Android may synthesize a second mouse event from an existing finger.
+                if stick_pointer >= 0 or run_pointer >= 0 or jump_pointer >= 0 or look_pointer >= 0:
+                    return
                 var pos: Vector2 = click.position
                 if pos.distance_to(hud.call("stick_center")) < float(hud.call("stick_radius")) * 1.9:
                     mouse_action = "stick"
@@ -429,8 +432,9 @@ func _add_chunk(co: Vector2i) -> void:
     _trees(root, co)
     _grass(root, co)
     # River can wander across 2 neighboring x chunks; build clipping piece per chunk.
-    if absi(co.x) <= 1:
+    if co.x == 0:
         _water(root, co)
+    if co.x == 0 or co.x == -1:
         _rocks(root, co)
 
 func _water(root: Node3D, co: Vector2i) -> void:

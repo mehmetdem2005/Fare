@@ -17,9 +17,11 @@ jobs:
         with:
           persist-credentials: true
       - name: Install Python texture tools
-        run: python3 -m pip install --break-system-packages pillow
+        run: python3 -m pip install --break-system-packages pillow numpy
       - name: Download original CC0 PBR color textures from Poly Haven API
         run: python3 tools/fetch_polyhaven.py
+      - name: Verify original Blender GLB UV and skin bind matrices
+        run: python3 tools/validate_gltf.py assets/mouse/mouse_rigged.glb
       - name: Install Godot 4.7.2 stable headless-capable editor
         run: |
           curl -fL --retry 3 -o /tmp/godot.zip "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip"
