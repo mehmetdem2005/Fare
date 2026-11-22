@@ -54,6 +54,11 @@ var pebble_mesh: Mesh
 var chunks: Dictionary = {}
 var queue: Array[Vector2i] = []
 var chunk_timer: float = 0.0
+var s8_probe: S8PerformanceProbe
+var max_chunk_load_ms: float = 0.0
+var last_chunk_load_ms: float = 0.0
+var max_cache_save_ms: float = 0.0
+var cache_saves: int = 0
 var look_yaw: float = 0.0
 var look_pitch: float = 0.15
 var follow_distance: float = 3.4
@@ -87,6 +92,7 @@ func _ready() -> void:
     _create_hud()
     _setup_water_fx()
     _setup_river_audio_and_micro()
+    _setup_performance_probe()
     # Build 3x3 chunks before the first frame; stream the outer ring later.
     var center: Vector2i = _current_chunk()
     for cz in range(-1, 2):
@@ -232,6 +238,14 @@ func _setup_river_audio_and_micro() -> void:
     river_micro.mouse_water=mouse_water
     river_micro.height_sampler=Callable(self,"_height")
     add_child(river_micro)
+
+func _setup_performance_probe() -> void:
+    if DisplayServer.get_name()=="headless":
+        return
+    s8_probe=S8PerformanceProbe.new()
+    s8_probe.name="S8PerformanceProbe"
+    s8_probe.game=self
+    add_child(s8_probe)
 
 func _setup_water_fx() -> void:
     camera_water = UnderwaterCameraFX.new()
@@ -558,6 +572,7 @@ func _queue_chunks() -> void:
 func _add_chunk(co: Vector2i) -> void:
     if chunks.has(co):
         return
+    var started_usec: int=Time.get_ticks_usec()
     var root: Node3D = Node3D.new()
     root.name = "Chunk_%d_%d" % [co.x, co.y]
     root.position = Vector3(float(co.x) * CELL, 0.0, float(co.y) * CELL)
@@ -593,6 +608,8 @@ func _add_chunk(co: Vector2i) -> void:
         _major_rocks(root, co)
         _river_mist(root,co)
     _apply_chunk_lod(co,root)
+    last_chunk_load_ms=float(Time.get_ticks_usec()-started_usec)*0.001
+    max_chunk_load_ms=maxf(max_chunk_load_ms,last_chunk_load_ms)
 
 func _apply_chunk_lod(co: Vector2i, chunk: Node3D) -> void:
     if player == null:
@@ -622,7 +639,12 @@ func _save_one_cache_chunk() -> void:
     while not pending_cache_writes.is_empty():
         var co: Vector2i = pending_cache_writes.pop_front()
         if chunks.has(co):
-            chunk_cache.save_chunk(co,chunks[co],false)
+            var begin_usec: int=Time.get_ticks_usec()
+            var ok: bool=chunk_cache.save_chunk(co,chunks[co],false)
+            var took_ms: float=float(Time.get_ticks_usec()-begin_usec)*0.001
+            max_cache_save_ms=maxf(max_cache_save_ms,took_ms)
+            if ok:
+                cache_saves+=1
             break
 
 func _water(root: Node3D, co: Vector2i, cached: Dictionary = {}) -> void:

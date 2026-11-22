@@ -108,6 +108,19 @@ jobs:
           timeout 100 godot --headless --path . --script res://tests/river_s7_test.gd 2>&1 | tee /tmp/river_s7.log
           grep -q RIVER_S7_OK /tmp/river_s7.log
           if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|RIVER_S7_FAIL' /tmp/river_s7.log; then exit 1; fi
+
+      - name: S8 actual chunk streaming and cache return stress (CPU-only)
+        run: |
+          set -o pipefail
+          timeout 150 godot --headless --path . --script res://tests/s8_stream_stress_test.gd 2>&1 | tee /tmp/s8_stream.log
+          grep -q S8_STREAM_OK /tmp/s8_stream.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S8_STREAM_FAIL' /tmp/s8_stream.log; then exit 1; fi
+      - name: S8 JSON/p95-p99 telemetry unit and integration regression
+        run: |
+          set -o pipefail
+          timeout 100 godot --headless --path . --script res://tests/s8_metrics_test.gd 2>&1 | tee /tmp/s8_metrics.log
+          grep -q S8_METRICS_OK /tmp/s8_metrics.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S8_METRICS_FAIL' /tmp/s8_metrics.log; then exit 1; fi
       # Optional real Vulkan render proof, separate from strict headless tests.
       # Software GPU is not Android; do not treat success as device visual QA.
       - name: Install software Vulkan and virtual display for visual probe
@@ -165,6 +178,8 @@ jobs:
             /tmp/chunk_bake.log
             /tmp/chunk_cache_s8a.log
             /tmp/river_s7.log
+            /tmp/s8_stream.log
+            /tmp/s8_metrics.log
             /tmp/s4_vulkan_render.log
             /tmp/s4_mobile_vulkan.png
           if-no-files-found: ignore
