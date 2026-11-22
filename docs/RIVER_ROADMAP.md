@@ -13,7 +13,7 @@ This is the authoritative non-skippable roadmap for the river engineering projec
 | S0 | Baseline references, measurement route, test fixtures | DOCUMENTED; ANDROID OPEN | Baseline doc, deterministic reference positions and feature matrix drafted; real Android capture + device frametime still open |
 | S1 | Spline center, variable asymmetric bed, shoreline, mesh/collision continuity | CODE + HEADLESS PASS; ANDROID OPEN | 1,534 depth/shore/seam samples passed, 49-bone gameplay smoke passed, shoreline collider probes added; Android visual acceptance open |
 | S2 | Poly Haven normal+roughness PBR, sediment classification, wet/dry, 3D pebbles | IMPLEMENTED; CI + ANDROID PENDING | Packed CC0 PBR + provenance + spatial sediment tests; Android visual/tile repetition and rock LOD still require review |
-| S3 | Flow vectors, obstacle wake, causal foam | NOT STARTED | CPU/GPU same flow, stationary pool no whitewater |
+| S3 | Flow vectors, boulder flow wake, RGBA8 GPU atlases and causal foam | FIRST IMPLEMENTATION; CI + ANDROID PENDING | Deterministic geometry and physical velocity/foam correlation; visual water/running physics and device checks open |
 | S4 | Mobile water optics: absorption, refraction, Fresnel, caustics | NOT STARTED | Shallow/deep clear; no parallel sine stripes; device GPU cost |
 | S5 | Sun/sky, forest shadows, fog, color, time-of-day | NOT STARTED | Scene coherent and bright on device |
 | S6 | Mouse probes, swimming/buoyancy/drag, underwater camera/wet fur | NOT STARTED | Walk/shallow/swim states, no state oscillation |

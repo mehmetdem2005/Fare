@@ -15,6 +15,8 @@ const SPAWN_HEIGHT_ABOVE_TERRAIN: float = 3.5
 var river_profile: RiverProfile = RiverProfile.new()
 var river_surface_builder: RiverSurfaceBuilder = RiverSurfaceBuilder.new()
 var shore_substrate: ShoreSubstrate = ShoreSubstrate.new()
+var river_flow_field: RiverFlowField = RiverFlowField.new()
+var river_obstacles: RiverObstacles = RiverObstacles.new()
 var height_noise: FastNoiseLite = FastNoiseLite.new()
 var detail_noise: FastNoiseLite = FastNoiseLite.new()
 var player: CharacterBody3D
@@ -514,6 +516,7 @@ func _add_chunk(co: Vector2i) -> void:
     if co.x >= -1 and co.x <= 0:
         _water(root, co)
         _rocks(root, co)
+        _major_rocks(root, co)
 
 func _water(root: Node3D, co: Vector2i) -> void:
     var water_mesh: ArrayMesh = river_surface_builder.build_chunk(river_profile, co, CELL)
@@ -522,7 +525,14 @@ func _water(root: Node3D, co: Vector2i) -> void:
     var water_instance: MeshInstance3D = MeshInstance3D.new()
     water_instance.name = "FlowingWater"
     water_instance.mesh = water_mesh
-    water_instance.material_override = water_mat
+    # Per-chunk RGBA8 flow atlas; CPU/physics and GPU visual sample the same field.
+    var chunk_material: ShaderMaterial = water_mat.duplicate() as ShaderMaterial
+    var origin: Vector2 = Vector2(root.position.x,root.position.z)
+    var atlas: Image = river_flow_field.build_atlas(river_profile,origin,CELL)
+    chunk_material.set_shader_parameter("flow_atlas",ImageTexture.create_from_image(atlas))
+    chunk_material.set_shader_parameter("chunk_origin",origin)
+    chunk_material.set_shader_parameter("chunk_size",CELL)
+    water_instance.material_override = chunk_material
     water_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     root.add_child(water_instance)
 
@@ -657,6 +667,30 @@ func _rocks(root: Node3D, co: Vector2i) -> void:
             cobbles.append(Transform3D(base.scaled(Vector3(size*1.20,size*0.55,size)),Vector3(x,y+size*0.18,z)))
     _multimesh(root,pebble_mesh,"FinePebbles",pebbles)
     _multimesh(root,pebble_mesh,"Cobbles",cobbles)
+
+func _major_rocks(root: Node3D, co: Vector2i) -> void:
+    # Same RiverObstacles contract is sampled in the flow atlas and used to
+    # draw and collide the visible rocks. No invisible random foam sources.
+    for rock in river_obstacles.in_chunk(co,CELL,river_profile):
+        var p: Vector2 = rock["xz"]
+        var r: float = float(rock["radius"])
+        var local_xz: Vector2 = p-Vector2(root.position.x,root.position.z)
+        var body: StaticBody3D = StaticBody3D.new()
+        body.name = "RiverBoulder_%d" % int(rock["index"])
+        body.collision_layer = 1
+        body.position = Vector3(local_xz.x,_height(p.x,p.y)+r*0.34,local_xz.y)
+        var rock_visual: MeshInstance3D = MeshInstance3D.new()
+        rock_visual.name = "Stone"
+        rock_visual.mesh = pebble_mesh
+        rock_visual.scale = Vector3(r*1.95,r*2.6,r*1.85)
+        rock_visual.rotation.y = float(rock["index"])*1.13
+        body.add_child(rock_visual)
+        var shape_node: CollisionShape3D = CollisionShape3D.new()
+        var shape: SphereShape3D = SphereShape3D.new()
+        shape.radius = r*0.67
+        shape_node.shape = shape
+        body.add_child(shape_node)
+        root.add_child(body)
 
 func _multimesh(root: Node3D, source: Mesh, label: String, xforms: Array[Transform3D]) -> void:
     if xforms.is_empty():

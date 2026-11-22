@@ -62,6 +62,12 @@ jobs:
           timeout 100 godot --headless --path . --script res://tests/shore_s2_test.gd 2>&1 | tee /tmp/shore_s2.log
           grep -q SHORE_S2_OK /tmp/shore_s2.log
           if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|SHORE_S2_FAIL' /tmp/shore_s2.log; then exit 1; fi
+      - name: S3 river flow field, obstacle correlation and atlas checks
+        run: |
+          set -o pipefail
+          timeout 100 godot --headless --path . --script res://tests/river_s3_test.gd 2>&1 | tee /tmp/river_s3.log
+          grep -q RIVER_S3_OK /tmp/river_s3.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|RIVER_S3_FAIL' /tmp/river_s3.log; then exit 1; fi
       - name: Commit downloaded Poly Haven PBR to this feature branch
         if: github.ref == 'refs/heads/feat/river-s0-s1-geomorphology'
         run: |
@@ -91,4 +97,5 @@ jobs:
             /tmp/smoke.log
             /tmp/river_s1.log
             /tmp/shore_s2.log
+            /tmp/river_s3.log
           if-no-files-found: ignore
