@@ -38,7 +38,7 @@ func _run() -> void:
         _fail("Sparse vegetation after density/scale patch")
         return
     var water: ShaderMaterial=game.get("water_lite_mat") as ShaderMaterial
-    if water==null or water.shader==null or water.shader.code.find("wave2")<0:
+    if water==null or water.shader==null or water.shader.code.find("vec4 w2=")<0:
         _fail("Fast water wave normal shader missing")
         return
     var rig: Skeleton3D=game.get("rig") as Skeleton3D
