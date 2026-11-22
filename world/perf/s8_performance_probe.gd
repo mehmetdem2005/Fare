@@ -101,7 +101,7 @@ func _refresh_snapshot() -> void:
         "format":"fare-s8-device-metrics-v1",
         "engine":str(Engine.get_version_info().get("string","unknown")),
         "platform":OS.get_name(),
-        "renderer":str(RenderingServer.get_rendering_method()),
+        "renderer":str(ProjectSettings.get_setting("rendering/renderer/rendering_method","unknown")),
         "uptime_seconds":float(Time.get_ticks_msec()-session_start_ms)*0.001,
         "sample_count":samples,
         "fps_estimated":snappedf(fps,0.1),
