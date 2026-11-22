@@ -178,6 +178,12 @@ jobs:
           timeout 150 godot --headless --path . --script res://tests/s9_cache_integrity_test.gd 2>&1 | tee /tmp/s9_cache_integrity.log
           grep -q S9_CACHE_INTEGRITY_OK /tmp/s9_cache_integrity.log
           if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S9_CACHE_INTEGRITY_FAIL' /tmp/s9_cache_integrity.log; then exit 1; fi
+      - name: S9.5 collision-first priority and stale teleport queue regression
+        run: |
+          set -o pipefail
+          timeout 110 godot --headless --path . --script res://tests/s9_priority_queue_test.gd 2>&1 | tee /tmp/s9_priority_queue.log
+          grep -q S9_PRIORITY_QUEUE_OK /tmp/s9_priority_queue.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S9_PRIORITY_QUEUE_FAIL' /tmp/s9_priority_queue.log; then exit 1; fi
       - name: Select JDK 17 for Android diagnostics APK
         if: github.ref == 'refs/heads/feat/river-s0-s1-geomorphology'
         uses: actions/setup-java@v4
@@ -337,6 +343,7 @@ jobs:
             /tmp/s9_pure_worker.log
             /tmp/s9_cpu_prefetch.log
             /tmp/s9_cache_integrity.log
+            /tmp/s9_priority_queue.log
             /tmp/s8_far_terrain.log
             /tmp/s5_sun_sync.log
             /tmp/s8_apk_export.log

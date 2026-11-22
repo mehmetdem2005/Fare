@@ -707,17 +707,43 @@ func _near(co: Vector2i) -> bool:
     return absi(current.x - co.x) <= RADIUS and absi(current.y - co.y) <= RADIUS
 
 func _queue_chunks() -> void:
-    var center: Vector2i = _current_chunk()
-    for z in range(-RADIUS, RADIUS + 1):
-        for x in range(-RADIUS, RADIUS + 1):
-            var co: Vector2i = center + Vector2i(x, z)
+    var center: Vector2i=_current_chunk()
+    # Clear outdated work immediately after turns and teleports. An outdated
+    # queue entry must never hold up current/adjacent collision tiles.
+    for i in range(queue.size()-1,-1,-1):
+        var co: Vector2i=queue[i]
+        if chunks.has(co) or maxi(absi(co.x-center.x),absi(co.y-center.y))>RADIUS:
+            queue.remove_at(i)
+            s9_queue_requested_usec.erase(co)
+    for z in range(-RADIUS,RADIUS+1):
+        for x in range(-RADIUS,RADIUS+1):
+            var co: Vector2i=center+Vector2i(x,z)
             if not chunks.has(co) and not queue.has(co):
                 queue.append(co)
                 s9_queue_requested_usec[co]=Time.get_ticks_usec()
+    var velocity: Vector2=Vector2(player.velocity.x,player.velocity.z)
+    var predicted: Vector2i=Vector2i(
+        floori((player.global_position.x+velocity.x*2.0)/CELL),
+        floori((player.global_position.z+velocity.y*2.0)/CELL))
+    # Inner 3x3 collision ring takes absolute precedence over the outer ring.
+    # Within each safety class, predicted movement breaks ties, then stable
+    # world-coordinate order prevents queue oscillation.
+    queue.sort_custom(func(a: Vector2i,b: Vector2i) -> bool:
+        var ad: int=maxi(absi(a.x-center.x),absi(a.y-center.y))
+        var bd: int=maxi(absi(b.x-center.x),absi(b.y-center.y))
+        if ad!=bd:
+            return ad<bd
+        var ahead_a: int=absi(a.x-predicted.x)+absi(a.y-predicted.y)
+        var ahead_b: int=absi(b.x-predicted.x)+absi(b.y-predicted.y)
+        if ahead_a!=ahead_b:
+            return ahead_a<ahead_b
+        if a.y!=b.y:
+            return a.y<b.y
+        return a.x<b.x)
     for key in chunks.keys():
-        var co: Vector2i = key
-        if not _near(co):
-            var part: Node3D = chunks[co]
+        var co: Vector2i=key
+        if maxi(absi(co.x-center.x),absi(co.y-center.y))>RADIUS:
+            var part: Node3D=chunks[co]
             part.queue_free()
             chunks.erase(co)
 
