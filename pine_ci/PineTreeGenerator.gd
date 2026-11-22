@@ -381,7 +381,7 @@ func _trunk_center(y: float) -> Vector3:
         0.0,
         _noise.get_noise_2d(y * 0.35, 71.3)
     ) * gnarl * t
-    return lean_offset + wobble
+    return Vector3(lean_offset.x + wobble.x, y, lean_offset.z + wobble.z)
 
 
 func _gen_trunk() -> ArrayMesh:
