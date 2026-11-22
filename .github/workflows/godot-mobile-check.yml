@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - game/godot-mobile-mouse-valley-clean
+      - feat/river-s0-s1-geomorphology
   workflow_dispatch:
 
 permissions:
@@ -11,23 +12,28 @@ permissions:
 jobs:
   build-and-check:
     runs-on: ubuntu-24.04
-    timeout-minutes: 18
+    timeout-minutes: 29
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: true
       - name: Install Python texture tools
         run: python3 -m pip install --break-system-packages pillow numpy
-      - name: Download original CC0 PBR color textures from Poly Haven API
+      - name: Generate original looping spatial river audio at build time
+        run: python3 tools/build_river_audio.py
+      - name: Build original seamless water normal and caustics texture
+        run: python3 tools/build_water_normals.py
+      - name: Download genuine Poly Haven albedo, OpenGL normals and roughness
         run: python3 tools/fetch_polyhaven.py
-      - name: Retrieve 49-bone R39 corrected mouse GLB with genuine exported animation
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Validate real PBR packed images and source provenance
+        run: python3 tools/check_ground_pbr.py
+      - name: Use reviewed repository-pinned 49-bone mouse GLB
         run: |
-          mkdir -p /tmp/fare-r41
-          gh run download 44117917452 --repo mehmetdem2005/Fare --name fare-round41-corrected-sprint-review-glb-plus-reimport-check --dir /tmp/fare-r41
-          echo "351a9475aeb6142331e4bc296aee957648cb055c7afc9988943a12c559c937d2  /tmp/fare-r41/R41_FARE_49BONE_SPRINT_CORRECTED_REVIEW_ONLY.glb" | sha256sum -c -
-          cp /tmp/fare-r41/R41_FARE_49BONE_SPRINT_CORRECTED_REVIEW_ONLY.glb assets/mouse/mouse_r39_corrected.glb
+          set -euo pipefail
+          test -s assets/mouse/mouse_r39_corrected.glb
+          # Git blob identity guards against accidental model substitution.
+          test "$(git hash-object assets/mouse/mouse_r39_corrected.glb)" = "ff16a733387aafb48951917aed650a0a53787b5f"
+          echo "MOUSE_GLB_PINNED_OK"
       - name: Verify corrected 49-bone GLB UV and skin bind matrices
         run: python3 tools/validate_gltf.py assets/mouse/mouse_r39_corrected.glb
       - name: Install Godot 4.7.2 stable headless-capable editor
@@ -36,18 +42,271 @@ jobs:
           unzip -q /tmp/godot.zip -d /tmp/godot
           sudo install -m 755 /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 /usr/local/bin/godot
           godot --version
+      - name: Stamp S9 diagnostics build with unique package and source SHA
+        if: github.ref == 'refs/heads/feat/river-s0-s1-geomorphology'
+        run: python3 tools/stamp_s9_diagnostics.py "$GITHUB_SHA"
       - name: Godot import and script/shader parse checks
         run: |
           set -o pipefail
           godot --headless --editor --path . --import --quit 2>&1 | tee /tmp/import.log
           if grep -E 'Parse Error|SCRIPT ERROR|Failed to load script|Shader compilation failed|ERROR:' /tmp/import.log; then exit 1; fi
+      - name: S8-A bake startup 5x5 chunk resource pack
+        run: |
+          set -o pipefail
+          timeout 180 godot --headless --path . --script res://tools/bake_world_chunks.gd 2>&1 | tee /tmp/chunk_bake.log
+          grep -q CHUNK_PACK_READY /tmp/chunk_bake.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|CHUNK_BAKE_FAIL' /tmp/chunk_bake.log; then exit 1; fi
+      - name: Prebake S3 vortex/eddy atlases independently of the heavy terrain pack
+        run: |
+          set -o pipefail
+          timeout 100 godot --headless --path . --script res://tools/bake_river_flow_v2.gd 2>&1 | tee /tmp/s3_flow_bake.log
+          grep -q RIVER_FLOW_V2_BAKE_OK /tmp/s3_flow_bake.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|RIVER_FLOW_V2_BAKE_FAIL' /tmp/s3_flow_bake.log; then exit 1; fi
       - name: Headless game smoke test
         run: |
           set -o pipefail
           timeout 100 godot --headless --path . --script res://tests/smoke.gd 2>&1 | tee /tmp/smoke.log
           grep -q SMOKE_OK /tmp/smoke.log
           if grep -E 'Parse Error|SCRIPT ERROR|Invalid call|ERROR:' /tmp/smoke.log; then exit 1; fi
-      - name: Commit downloaded Poly Haven textures on this isolated branch
+      - name: S1 geometry, bank intersections, chunk water seams
+        run: |
+          set -o pipefail
+          timeout 100 godot --headless --path . --script res://tests/river_s1_test.gd 2>&1 | tee /tmp/river_s1.log
+          grep -q RIVER_S1_OK /tmp/river_s1.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|RIVER_S1_FAIL' /tmp/river_s1.log; then exit 1; fi
+      - name: S2 sediment spatial variation and texture contracts
+        run: |
+          set -o pipefail
+          timeout 100 godot --headless --path . --script res://tests/shore_s2_test.gd 2>&1 | tee /tmp/shore_s2.log
+          grep -q SHORE_S2_OK /tmp/shore_s2.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|SHORE_S2_FAIL' /tmp/shore_s2.log; then exit 1; fi
+      - name: S3 river flow field, obstacle correlation and atlas checks
+        run: |
+          set -o pipefail
+          timeout 100 godot --headless --path . --script res://tests/river_s3_test.gd 2>&1 | tee /tmp/river_s3.log
+          grep -q RIVER_S3_OK /tmp/river_s3.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|RIVER_S3_FAIL' /tmp/river_s3.log; then exit 1; fi
+      - name: S3 packaged vortex atlas equals true mouse current and visual shader
+        run: |
+          set -o pipefail
+          timeout 120 godot --headless --path . --script res://tests/river_flow_v2_test.gd 2>&1 | tee /tmp/s3_flow_v2.log
+          grep -q S3_FLOW_V2_OK /tmp/s3_flow_v2.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S3_FLOW_V2_FAIL' /tmp/s3_flow_v2.log; then exit 1; fi
+      - name: S4 Mobile depth/refraction/caustics shader + terrain tests
+        run: |
+          set -o pipefail
+          timeout 100 godot --headless --path . --script res://tests/river_s4_test.gd 2>&1 | tee /tmp/river_s4.log
+          grep -q RIVER_S4_OK /tmp/river_s4.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|RIVER_S4_FAIL' /tmp/river_s4.log; then exit 1; fi
+      - name: S5 daylight sky, real forest shadows and local mist regression
+        run: |
+          set -o pipefail
+          timeout 100 godot --headless --path . --script res://tests/atmos_s5_test.gd 2>&1 | tee /tmp/atmos_s5.log
+          grep -q ATMOS_S5_OK /tmp/atmos_s5.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|ATMOS_S5_FAIL' /tmp/atmos_s5.log; then exit 1; fi
+      - name: S6 mouse wading/swimming current, underwater camera and ripple regression
+        run: |
+          set -o pipefail
+          timeout 100 godot --headless --path . --script res://tests/river_s6_test.gd 2>&1 | tee /tmp/river_s6.log
+          grep -q WATER_S6_OK /tmp/river_s6.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|WATER_S6_FAIL' /tmp/river_s6.log; then exit 1; fi
+      - name: S8-A precompiled resources and water/shadow LOD regression
+        run: |
+          set -o pipefail
+          timeout 120 godot --headless --path . --script res://tests/chunk_cache_s8a_test.gd 2>&1 | tee /tmp/chunk_cache_s8a.log
+          grep -q CACHE_S8A_OK /tmp/chunk_cache_s8a.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|CACHE_S8A_FAIL' /tmp/chunk_cache_s8a.log; then exit 1; fi
+      - name: S7 audio low-pass, spatial streams, flow leaves and wet footprints
+        run: |
+          set -o pipefail
+          timeout 100 godot --headless --path . --script res://tests/river_s7_test.gd 2>&1 | tee /tmp/river_s7.log
+          grep -q RIVER_S7_OK /tmp/river_s7.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|RIVER_S7_FAIL' /tmp/river_s7.log; then exit 1; fi
+
+      - name: S8 actual chunk streaming and cache return stress (CPU-only)
+        run: |
+          set -o pipefail
+          timeout 150 godot --headless --path . --script res://tests/s8_stream_stress_test.gd 2>&1 | tee /tmp/s8_stream.log
+          grep -q S8_STREAM_OK /tmp/s8_stream.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S8_STREAM_FAIL' /tmp/s8_stream.log; then exit 1; fi
+      - name: S8 JSON/p95-p99 telemetry unit and integration regression
+        run: |
+          set -o pipefail
+          timeout 100 godot --headless --path . --script res://tests/s8_metrics_test.gd 2>&1 | tee /tmp/s8_metrics.log
+          grep -q S8_METRICS_OK /tmp/s8_metrics.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S8_METRICS_FAIL' /tmp/s8_metrics.log; then exit 1; fi
+      - name: S8-D Android emergency quality tiers and per-stage CPU timer regression
+        run: |
+          set -o pipefail
+          timeout 120 godot --headless --path . --script res://tests/s8_mobile_rescue_test.gd 2>&1 | tee /tmp/s8_mobile_rescue.log
+          grep -q S8_MOBILE_RESCUE_OK /tmp/s8_mobile_rescue.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S8_MOBILE_RESCUE_FAIL' /tmp/s8_mobile_rescue.log; then exit 1; fi
+      - name: S9 stream phase statistics and stamped APK identity regression
+        if: github.ref == 'refs/heads/feat/river-s0-s1-geomorphology'
+        run: |
+          set -o pipefail
+          timeout 100 godot --headless --path . --script res://tests/s9_baseline_test.gd 2>&1 | tee /tmp/s9_baseline.log
+          grep -q S9_BASELINE_OK /tmp/s9_baseline.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S9_BASELINE_FAIL' /tmp/s9_baseline.log; then exit 1; fi
+      - name: S9 water-revisit resource cache and wallclock stall regression
+        run: |
+          set -o pipefail
+          timeout 120 godot --headless --path . --script res://tests/s9_water_reuse_test.gd 2>&1 | tee /tmp/s9_water_reuse.log
+          grep -q S9_WATER_REUSE_OK /tmp/s9_water_reuse.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S9_WATER_REUSE_FAIL' /tmp/s9_water_reuse.log; then exit 1; fi
+      - name: S9.2b progressive cosmetic detail physics safety and deterministic transforms
+        run: |
+          set -o pipefail
+          timeout 150 godot --headless --path . --script res://tests/s9_progressive_chunks_test.gd 2>&1 | tee /tmp/s9_progressive_chunks.log
+          grep -q S9_PROGRESSIVE_CHUNKS_OK /tmp/s9_progressive_chunks.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S9_PROGRESSIVE_CHUNKS_FAIL' /tmp/s9_progressive_chunks.log; then exit 1; fi
+      - name: S9.3a pure worker arrays exact-equivalence and thread lifetime
+        run: |
+          set -o pipefail
+          timeout 160 godot --headless --path . --script res://tests/s9_pure_worker_test.gd 2>&1 | tee /tmp/s9_pure_worker.log
+          grep -q S9_PURE_WORKER_OK /tmp/s9_pure_worker.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S9_PURE_WORKER_FAIL' /tmp/s9_pure_worker.log; then exit 1; fi
+      - name: S9.3b bounded worker queue, stale discard and physics fallback
+        run: |
+          set -o pipefail
+          timeout 160 godot --headless --path . --script res://tests/s9_cpu_prefetch_test.gd 2>&1 | tee /tmp/s9_cpu_prefetch.log
+          grep -q S9_CPU_PREFETCH_OK /tmp/s9_cpu_prefetch.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S9_CPU_PREFETCH_FAIL' /tmp/s9_cpu_prefetch.log; then exit 1; fi
+      - name: S9.2 v4 user cache manifest checksum and corruption fallback
+        run: |
+          set -o pipefail
+          timeout 150 godot --headless --path . --script res://tests/s9_cache_integrity_test.gd 2>&1 | tee /tmp/s9_cache_integrity.log
+          grep -q S9_CACHE_INTEGRITY_OK /tmp/s9_cache_integrity.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S9_CACHE_INTEGRITY_FAIL' /tmp/s9_cache_integrity.log; then exit 1; fi
+      - name: S9.5 collision-first priority and stale teleport queue regression
+        run: |
+          set -o pipefail
+          timeout 110 godot --headless --path . --script res://tests/s9_priority_queue_test.gd 2>&1 | tee /tmp/s9_priority_queue.log
+          grep -q S9_PRIORITY_QUEUE_OK /tmp/s9_priority_queue.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S9_PRIORITY_QUEUE_FAIL' /tmp/s9_priority_queue.log; then exit 1; fi
+      - name: Select JDK 17 for Android diagnostics APK
+        if: github.ref == 'refs/heads/feat/river-s0-s1-geomorphology'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Download official Godot 4.7.2 Android templates
+        if: github.ref == 'refs/heads/feat/river-s0-s1-geomorphology'
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 3 -o /tmp/godot-templates.tpz \
+            "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz"
+          folder="$HOME/.local/share/godot/export_templates/4.7.2.stable"
+          mkdir -p "$folder"
+          unzip -p /tmp/godot-templates.tpz 'templates/android_debug.apk' > "$folder/android_debug.apk"
+          unzip -p /tmp/godot-templates.tpz 'templates/android_release.apk' > "$folder/android_release.apk"
+          test -s "$folder/android_debug.apk"
+          test -s "$folder/android_release.apk"
+          echo "ANDROID_TEMPLATES_OK"
+      - name: Configure SDK and temporary test-only Android signing
+        if: github.ref == 'refs/heads/feat/river-s0-s1-geomorphology'
+        run: |
+          set -euo pipefail
+          sdk="$ANDROID_HOME"
+          test -x "$sdk/platform-tools/adb"
+          if [ ! -d "$sdk/build-tools/35.0.1" ] || [ ! -d "$sdk/platforms/android-35" ]; then
+            yes | "$sdk/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$sdk" \
+              'platforms;android-35' 'build-tools;35.0.1' 'platform-tools' || true
+          fi
+          test -d "$sdk/build-tools/35.0.1"
+          test -d "$sdk/platforms/android-35"
+          mkdir -p "$HOME/.config/godot"
+          cat > "$HOME/.config/godot/editor_settings-4.tres" <<EOF
+          [gd_resource type="EditorSettings" format=3]
+          [resource]
+          export/android/java_sdk_path = "$JAVA_HOME"
+          export/android/android_sdk_path = "$sdk"
+          EOF
+          keytool -genkeypair -noprompt -alias androiddebugkey \
+            -keystore /tmp/fare-diagnostics.keystore -storepass android \
+            -keypass android -keyalg RSA -keysize 2048 -validity 36500 \
+            -dname 'CN=FareVadisi Test,OU=Diagnostics,O=Development,C=TR'
+          echo "ANDROID_EXPORT_ENV_READY"
+      - name: Build Android 11 ARM64 S8 diagnostics APK
+        if: github.ref == 'refs/heads/feat/river-s0-s1-geomorphology'
+        env:
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: /tmp/fare-diagnostics.keystore
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
+        run: |
+          set -o pipefail
+          mkdir -p build
+          timeout 270 godot --headless --path . --export-debug "Android Diagnostics" build/fare-vadisi-s8-debug.apk 2>&1 | tee /tmp/s8_apk_export.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|Export failed' /tmp/s8_apk_export.log; then exit 1; fi
+          python3 tools/verify_s8_apk.py build/fare-vadisi-s8-debug.apk
+          "$ANDROID_HOME/build-tools/35.0.1/apksigner" verify --verbose build/fare-vadisi-s8-debug.apk
+          # Legacy aapt cannot read Godot 4.7's modern manifest attribute
+          # format (android:required). Package integrity is already verified
+          # via ZIP/arm64/manifest checks + official apksigner below.
+          echo "ANDROID_MANIFEST_PRESENT; legacy aapt compatibility check omitted"
+          sha256sum build/fare-vadisi-s8-debug.apk | tee build/sha256.txt
+          echo "ANDROID_S8_APK_OK"
+      - name: Upload signed debug APK for Android 11 ARM64 testing
+        if: success() && github.ref == 'refs/heads/feat/river-s0-s1-geomorphology'
+        uses: actions/upload-artifact@v4
+        with:
+          name: FareVadisi-S8-Android11-ARM64-Debug-APK
+          path: |
+            build/fare-vadisi-s8-debug.apk
+            build/sha256.txt
+          if-no-files-found: error
+          retention-days: 14
+      - name: River follow-up S5 synchronize sunset reflection across water LODs
+        run: |
+          set -o pipefail
+          timeout 120 godot --headless --path . --script res://tests/s5_sun_lod_sync_test.gd 2>&1 | tee /tmp/s5_sun_sync.log
+          grep -q S5_SUN_SYNC_OK /tmp/s5_sun_sync.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S5_SUN_SYNC_FAIL' /tmp/s5_sun_sync.log; then exit 1; fi
+      - name: S6 riverbank water ripple and underwater backface QA
+        run: |
+          set -o pipefail
+          timeout 100 godot --headless --path . --script res://tests/s6_shore_ripple_test.gd 2>&1 | tee /tmp/s6_shore_ripple.log
+          grep -q S6_SHORE_RIPPLE_OK /tmp/s6_shore_ripple.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S6_SHORE_RIPPLE_FAIL' /tmp/s6_shore_ripple.log; then exit 1; fi
+      - name: S8 verify far terrain CPU shortcut matches original geomorphology and PBR
+        run: |
+          set -o pipefail
+          timeout 120 godot --headless --path . --script res://tests/s8_far_terrain_test.gd 2>&1 | tee /tmp/s8_far_terrain.log
+          grep -q S8_FAR_TERRAIN_OK /tmp/s8_far_terrain.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S8_FAR_TERRAIN_FAIL' /tmp/s8_far_terrain.log; then exit 1; fi
+      # Optional real Vulkan render proof, separate from strict headless tests.
+      # Software GPU is not Android; do not treat success as device visual QA.
+      - name: Install software Vulkan and virtual display for visual probe
+        continue-on-error: true
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb xauth mesa-vulkan-drivers
+          test -f /usr/share/vulkan/icd.d/lvp_icd.x86_64.json
+      - name: Attempt real Mobile Vulkan capture; reject OpenGL fallback
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          timeout 140 xvfb-run -a -s '-screen 0 960x540x24' env VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/lvp_icd.x86_64.json godot --rendering-method mobile --rendering-driver vulkan --path . --resolution 960x540 --script res://tests/s4_visual_probe.gd 2>&1 | tee /tmp/s4_vulkan_render.log
+          grep -q S4_VISUAL_OK /tmp/s4_vulkan_render.log
+          python3 tools/check_vulkan_capture.py
+          # A PNG produced after Godot falls back to OpenGL is NOT a Vulkan test.
+          if grep -E 'VK_KHR_surface not found|switching to OpenGL|OpenGL 3' /tmp/s4_vulkan_render.log; then
+            echo "S4_VULKAN_UNAVAILABLE: compatibility renderer fallback — NOT a Mobile/Vulkan acceptance"
+            exit 1
+          fi
+          echo "S4_VULKAN_BACKEND_CONFIRMED"
+      - name: Commit downloaded Poly Haven PBR to this feature branch
+        if: github.ref == 'refs/heads/feat/river-s0-s1-geomorphology'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/ground/*.jpg assets/ground/*_nrough.png assets/ground/polyhaven_sources.json assets/water/wave_caustics_rgba.png assets/baked_chunks/v3/ assets/audio/river_*.wav assets/river_flow_v2/
+          if ! git diff --staged --quiet; then
+            git commit -m "assets(S2): bundle verified Poly Haven CC0 normal-roughness PBR"
+            git push origin HEAD:feat/river-s0-s1-geomorphology
+          fi
+      - name: Legacy branch-only asset commit
+        if: github.ref == 'refs/heads/game/godot-mobile-mouse-valley-clean'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -63,4 +322,31 @@ jobs:
           path: |
             /tmp/import.log
             /tmp/smoke.log
+            /tmp/river_s1.log
+            /tmp/shore_s2.log
+            /tmp/river_s3.log
+            /tmp/s3_flow_bake.log
+            /tmp/s3_flow_v2.log
+            /tmp/s6_shore_ripple.log
+            /tmp/river_s4.log
+            /tmp/atmos_s5.log
+            /tmp/river_s6.log
+            /tmp/chunk_bake.log
+            /tmp/chunk_cache_s8a.log
+            /tmp/river_s7.log
+            /tmp/s8_stream.log
+            /tmp/s8_metrics.log
+            /tmp/s8_mobile_rescue.log
+            /tmp/s9_baseline.log
+            /tmp/s9_water_reuse.log
+            /tmp/s9_progressive_chunks.log
+            /tmp/s9_pure_worker.log
+            /tmp/s9_cpu_prefetch.log
+            /tmp/s9_cache_integrity.log
+            /tmp/s9_priority_queue.log
+            /tmp/s8_far_terrain.log
+            /tmp/s5_sun_sync.log
+            /tmp/s8_apk_export.log
+            /tmp/s4_vulkan_render.log
+            /tmp/s4_mobile_vulkan.png
           if-no-files-found: ignore

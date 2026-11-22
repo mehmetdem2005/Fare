@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "stage": "S0",
+  "rendering": {
+    "renderer": "mobile",
+    "engine": "4.7.2.stable",
+    "orientation": "landscape",
+    "width": 1280,
+    "height": 720
+  },
+  "seed": 49825,
+  "platform": "Android 11+",
+  "quality_profiles": [
+    "LOW",
+    "BALANCED",
+    "HIGH"
+  ],
+  "reference_points": [
+    {
+      "name": "shoreline_close",
+      "z": 16,
+      "offset_m": 0.4
+    },
+    {
+      "name": "shoal",
+      "z": 20,
+      "depth_range_m": [
+        0.02,
+        0.18
+      ]
+    },
+    {
+      "name": "pool",
+      "z": 100,
+      "depth_range_m": [
+        0.45,
+        1.8
+      ]
+    },
+    {
+      "name": "river_bend",
+      "z": 150
+    },
+    {
+      "name": "chunk_seam_A",
+      "z": 40
+    },
+    {
+      "name": "chunk_seam_B",
+      "z": 80
+    },
+    {
+      "name": "spawn",
+      "x": 20,
+      "z": 16,
+      "height_above_surface_m": 3.5
+    }
+  ],
+  "unverified_at_S0": [
+    "Android screenshots",
+    "GPU timings",
+    "thermal throttling",
+    "visual sediment calibration"
+  ]
+}

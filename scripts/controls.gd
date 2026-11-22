@@ -9,6 +9,7 @@ var jumping: bool = false
 var sprinting: bool = false
 var rig_status: String = "?"
 var message: String = ""
+var build_tag: String = "S8"
 
 func _ready() -> void:
     mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -49,7 +50,7 @@ func _draw() -> void:
     draw_rect(Rect2(32.0, 53.0, 200.0 * clampf(stamina / 100.0, 0.0, 1.0), 8.0), Color(0.51, 0.82, 0.49), true)
     _label(Vector2(32.0, 41.0), "STAMINA", 17, Color.WHITE)
     _label(Vector2(32.0, 79.0), "CHUNK %d  %.1f m/s" % [chunk_count, speed], 13, Color(0.93, 0.98, 0.93))
-    _label(Vector2(s.x * 0.5 - 95.0, 34.0), "FARE VADISI", 21, Color.WHITE)
+    _label(Vector2(s.x * 0.5 - 95.0, 34.0), "FARE VADISI " + build_tag, 19, Color.WHITE)
     _label(Vector2(s.x * 0.5 - 115.0, 56.0), "RIG: %s" % rig_status, 13, Color(0.93, 0.98, 0.94))
     if not message.is_empty():
         _label(Vector2(s.x * 0.35, 85.0), message, 15, Color(1.0, 0.85, 0.61))
