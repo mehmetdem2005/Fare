@@ -47,7 +47,12 @@ func _verify_v4_manifest(co: Vector2i) -> bool:
     var meta_path: String=p+"manifest.json"
     if not FileAccess.file_exists(meta_path):
         return false
-    var meta: Variant=JSON.parse_string(FileAccess.get_file_as_string(meta_path))
+    # JSON.parse_string emits an ERROR log on corrupt input. Bad cache
+    # headers are expected data failures, not engine errors or crashes.
+    var parser: JSON=JSON.new()
+    if parser.parse(FileAccess.get_file_as_string(meta_path))!=OK:
+        return false
+    var meta: Variant=parser.data
     if not meta is Dictionary:
         return false
     if str(meta.get("magic",""))!=CACHE_MAGIC or int(meta.get("schema",-1))!=SCHEMA:
