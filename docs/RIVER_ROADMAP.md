@@ -17,7 +17,7 @@ This is the authoritative non-skippable roadmap for the river engineering projec
 | S4 | Mobile depth absorption, safe limited refraction, Fresnel sky, real-bed caustics | CODE + HEADLESS PASS; MOBILE VISUAL OPEN | Godot 4.7.2 shader/UV2/quality tests pass. 960x540 CI capture fell back to OpenGL (VK_KHR_surface unavailable), so NOT Vulkan proof; Android render/GPU metrics open |
 | S5 | Procedural sky, directional pine shadows, river mist, fog and time-of-day | CODE IN REVIEW; HEADLESS/ANDROID PENDING | Central ForestAtmosphere, 3 preset states, S4 reflection linked, bounded mist batches; real Android aesthetic/shadow/GPU still open |
 | S6 | Mouse water probes, depth-gated swim, flow drag/buoyancy, wet fur overlay, ripple pool, underwater camera | CODE IN REVIEW; CI + ANDROID PENDING | Water motion physics, camera hysteresis and 12 ring cap tested; real rig swim gait, waterline visual and actual Mobile GPU pending |
-| S7 | Spatial audio, footprints, droplets, leaves, bubbles, micro events | NOT STARTED | Event/lifetime bounded, camera-linked sound |
+| S7 | Two spatial procedural river sound layers, underwater low-pass, moving leaves, prints, 8 bubbles/drops | CODE IN REVIEW; CI + ANDROID PENDING | Bounded MultiMesh/print pools, build-time WAV, S3 flow linked; real acoustic and mobile visuals open |
 | S8-A | Build-time 25 precompiled chunk packs, persistent disk cache, distant water/shadows | CODE IN REVIEW; CI + ANDROID PENDING | 5x5 terrain/collision/flow, bounded runtime window and LOD; headless/Android proof open |\n| S8 | Android device proof, LOD/preset tuning, performance/thermal | NOT STARTED | Target 30fps measured and screenshots approved |
 
 ## Non-negotiable regression suite

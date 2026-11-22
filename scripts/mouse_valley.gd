@@ -19,6 +19,8 @@ var river_flow_field: RiverFlowField = RiverFlowField.new()
 var river_obstacles: RiverObstacles = RiverObstacles.new()
 var mouse_water: MouseWaterInteraction = MouseWaterInteraction.new()
 var camera_water: UnderwaterCameraFX
+var river_soundscape: RiverSoundscape
+var river_micro: RiverMicroEffects
 var ripple_pool: WaterRipplePool
 var wet_fur_material: StandardMaterial3D
 var wet_meshes: Array[MeshInstance3D] = []
@@ -84,6 +86,7 @@ func _ready() -> void:
     _create_camera()
     _create_hud()
     _setup_water_fx()
+    _setup_river_audio_and_micro()
     # Build 3x3 chunks before the first frame; stream the outer ring later.
     var center: Vector2i = _current_chunk()
     for cz in range(-1, 2):
@@ -214,6 +217,22 @@ func _create_hud() -> void:
     hud.set_script(load("res://scripts/controls.gd"))
     overlay.add_child(hud)
 
+func _setup_river_audio_and_micro() -> void:
+    river_soundscape=RiverSoundscape.new()
+    river_soundscape.name="RiverSoundscape"
+    river_soundscape.profile=river_profile
+    river_soundscape.flow=river_flow_field
+    river_soundscape.camera=view_camera
+    add_child(river_soundscape)
+    river_micro=RiverMicroEffects.new()
+    river_micro.name="RiverMicroEffects"
+    river_micro.profile=river_profile
+    river_micro.flow=river_flow_field
+    river_micro.actor=player
+    river_micro.mouse_water=mouse_water
+    river_micro.height_sampler=Callable(self,"_height")
+    add_child(river_micro)
+
 func _setup_water_fx() -> void:
     camera_water = UnderwaterCameraFX.new()
     camera_water.name = "UnderwaterCameraFX"
@@ -291,6 +310,10 @@ func _process(delta: float) -> void:
     _update_camera(delta)
     if camera_water != null:
         camera_water.update_camera(view_camera.global_position,delta)
+    if river_soundscape != null:
+        river_soundscape.update_water_sound(camera_water.submerged if camera_water != null else false,delta)
+    if river_micro != null:
+        river_micro.update_river(delta)
     _update_fur_wetness()
     _animate_mouse(delta)
     if hud != null:
