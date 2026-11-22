@@ -38,6 +38,42 @@ func _test_scene() -> void:
     if mouse_animation == null or not mouse_animation.has_animation("MouseRig"):
         _fail("49-bone corrective motion clip MouseRig not available")
         return
+    # Ground must have an upward face, with backface raycasts disabled.
+    var spawn_x: float = 20.0
+    var spawn_z: float = 16.0
+    var expected_y: float = game.call("_height", spawn_x, spawn_z)
+    var spawn_y: float = actor.global_position.y
+    if spawn_y - expected_y < 3.0:
+        _fail("spawn must be airborne, height=" + str(spawn_y-expected_y))
+        return
+    var ray: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(
+        Vector3(spawn_x, expected_y + 20.0, spawn_z),
+        Vector3(spawn_x, expected_y - 10.0, spawn_z))
+    ray.collision_mask = 1
+    ray.hit_back_faces = false
+    var hit: Dictionary = game.get_world_3d().direct_space_state.intersect_ray(ray)
+    if hit.is_empty():
+        _fail("no front-facing terrain collision from above")
+        return
+    var ground_normal: Vector3 = hit["normal"]
+    if ground_normal.dot(Vector3.UP) < 0.6:
+        _fail("ground normal not upward: " + str(ground_normal))
+        return
+    var ray_ground_y: float = (hit["position"] as Vector3).y
+    if absf(ray_ground_y - expected_y) > 0.55:
+        _fail("ground hit mismatch " + str(ray_ground_y) + " != " + str(expected_y))
+        return
+    for i in range(180):
+        if actor.is_on_floor():
+            break
+        await physics_frame
+    if not actor.is_on_floor():
+        _fail("mouse never landed on the terrain")
+        return
+    var landing_y: float = actor.global_position.y
+    if absf(landing_y - expected_y) > 1.1:
+        _fail("mouse landed at wrong altitude: " + str(landing_y))
+        return
     # Exercise actual controller entry points and physics, not only scene parsing.
     var hud: Control = game.get("hud") as Control
     var origin: Vector3 = actor.global_position
@@ -82,5 +118,5 @@ func _test_scene() -> void:
     if absf(float(game.get("look_yaw")) - cam_start) < 0.1:
         _fail("camera drag did not orbit")
         return
-    print("SMOKE_OK rig=", rig.get_bone_count(), " touch_walk=", traveled, " camera_orbit=ok corrective_animation=ok textures=4")
+    print("SMOKE_OK rig=", rig.get_bone_count(), " touch_walk=", traveled, " camera_orbit=ok corrective_animation=ok ground_up=ok freefall="+str(spawn_y-landing_y)+" textures=4")
     quit(0)

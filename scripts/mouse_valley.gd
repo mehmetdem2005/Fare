@@ -4,12 +4,15 @@ extends Node3D
 
 const CELL: float = 40.0
 const GRID: int = 25
-const RADIUS: int = 1
+const RADIUS: int = 2
 const RIVER_HALF: float = 7.8
 const WATER_Y: float = 0.18
 const WALK_SPEED: float = 3.4
 const RUN_SPEED: float = 5.9
 const JUMP_SPEED: float = 4.8
+const SPAWN_X: float = 20.0
+const SPAWN_Z: float = 16.0
+const SPAWN_HEIGHT_ABOVE_TERRAIN: float = 3.5
 
 var height_noise: FastNoiseLite = FastNoiseLite.new()
 var detail_noise: FastNoiseLite = FastNoiseLite.new()
@@ -58,8 +61,11 @@ func _ready() -> void:
     _create_actor()
     _create_camera()
     _create_hud()
-    _add_chunk(Vector2i(0, 0))
-    _add_chunk(Vector2i(0, -1))
+    # Build 3x3 chunks before the first frame; stream the outer ring later.
+    var center: Vector2i = _current_chunk()
+    for cz in range(-1, 2):
+        for cx in range(-1, 2):
+            _add_chunk(center + Vector2i(cx, cz))
     _queue_chunks()
 
 func _environment() -> void:
@@ -106,8 +112,8 @@ func _materials() -> void:
 func _create_actor() -> void:
     player = CharacterBody3D.new()
     player.name = "MousePlayer"
-    player.position = Vector3(17.0, _height(17.0, 0.0) + 0.6, 0.0)
-    player.floor_snap_length = 0.25
+    player.position = Vector3(SPAWN_X, _height(SPAWN_X, SPAWN_Z) + SPAWN_HEIGHT_ABOVE_TERRAIN, SPAWN_Z)
+    player.floor_snap_length = 0.12
     player.collision_layer = 2
     player.collision_mask = 1
     var collider: CollisionShape3D = CollisionShape3D.new()
@@ -232,7 +238,7 @@ func _physics_process(delta: float) -> void:
         player.rotation.y = lerp_angle(player.rotation.y, atan2(-desired.x, -desired.z), minf(delta * 13.0, 1.0))
     player.move_and_slide()
     if player.global_position.y < -18.0:
-        player.global_position = Vector3(17.0, _height(17.0, 0.0) + 1.0, 0.0)
+        player.global_position = Vector3(SPAWN_X, _height(SPAWN_X, SPAWN_Z) + SPAWN_HEIGHT_ABOVE_TERRAIN, SPAWN_Z)
         player.velocity = Vector3.ZERO
 
 func _input(event: InputEvent) -> void:
@@ -434,7 +440,8 @@ func _add_chunk(co: Vector2i) -> void:
     for iz in range(GRID):
         for ix in range(GRID):
             var a: int = iz * span + ix
-            indices.append_array(PackedInt32Array([a, a + span, a + 1, a + 1, a + span, a + span + 1]))
+            # Correct Godot 4.7 front-face winding: previously the ground was culled.
+            indices.append_array(PackedInt32Array([a, a + 1, a + span, a + 1, a + span + 1, a + span]))
     var arrays: Array = []
     arrays.resize(Mesh.ARRAY_MAX)
     arrays[Mesh.ARRAY_VERTEX] = verts
@@ -482,7 +489,7 @@ func _water(root: Node3D, co: Vector2i) -> void:
     for iz in range(STEP_Z):
         for ix in range(STEP_X):
             var n: int = iz * row + ix
-            idx.append_array(PackedInt32Array([n, n + row, n + 1, n + 1, n + row, n + row + 1]))
+            idx.append_array(PackedInt32Array([n, n + 1, n + row, n + 1, n + row + 1, n + row]))
     var arrays: Array = []
     arrays.resize(Mesh.ARRAY_MAX)
     arrays[Mesh.ARRAY_VERTEX] = verts
@@ -574,7 +581,7 @@ func _trees(root: Node3D, co: Vector2i) -> void:
         var y: float = _height(wx, wz)
         if absf(wx - _river_x(wz)) < RIVER_HALF + 7.0 or y > 28.0:
             continue
-        if absf(wx - 17.0) < 4.5 and absf(wz) < 5.0:
+        if Vector2(wx - SPAWN_X, wz - SPAWN_Z).length() < 7.0:
             continue
         var scale: float = rng.randf_range(0.76, 1.66)
         var basis: Basis = Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3(scale, scale * rng.randf_range(0.9, 1.2), scale))
