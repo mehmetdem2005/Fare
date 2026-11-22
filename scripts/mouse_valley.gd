@@ -563,11 +563,14 @@ func _river_mist(root: Node3D, co: Vector2i) -> void:
     var origin_z: float = root.position.z
     for i in range(22):
         var z: float = origin_z + random.randf_range(0.7,CELL-0.7)
-        var center: float = river_profile.center_x(z)
         var banks: Vector2 = river_profile.banks_at_z(z)
-        var x: float = center + random.randf_range(-5.0,5.0)
-        if x < banks.x+0.8 or x > banks.y-0.8 or x < origin_x+0.8 or x > origin_x+CELL-0.8:
+        # Clip the mist generation range to the actual wet portion of THIS
+        # chunk. A skinny left-bank slice legitimately has fewer patches.
+        var low_x: float = maxf(banks.x+0.12,origin_x+0.12)
+        var high_x: float = minf(banks.y-0.12,origin_x+CELL-0.12)
+        if high_x-low_x < 0.35:
             continue
+        var x: float = random.randf_range(low_x,high_x)
         var height: float = river_profile.surface_height(z) + random.randf_range(0.12,0.32)
         var radius: float = random.randf_range(0.8,1.8)
         transforms.append(Transform3D(Basis(Vector3.UP,random.randf_range(0.0,TAU)).scaled(Vector3(radius,1.0,radius)),Vector3(x-origin_x,height,z-origin_z)))

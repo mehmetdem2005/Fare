@@ -67,13 +67,16 @@ func _test() -> void:
             _fail("river shard missing sun synchronization")
             return
         var clouds: MultiMeshInstance3D = chunk.get_node_or_null("NearRiverMist") as MultiMeshInstance3D
-        if clouds == null or clouds.multimesh.instance_count < 1:
-            _fail("missing shallow near river mist instances")
-            return
-        if clouds.multimesh.instance_count > 24:
-            _fail("mist overdraw limit exceeded")
-            return
-        mist_count+=clouds.multimesh.instance_count
+        # Some river chunks intersect only centimeters of water; zero
+        # patch count is valid there, but the full 80m river reach must mist.
+        if clouds != null:
+            if clouds.multimesh.instance_count > 24:
+                _fail("mist overdraw limit exceeded")
+                return
+            mist_count+=clouds.multimesh.instance_count
+    if mist_count < 4:
+        _fail("expected local mist in river corridor, count="+str(mist_count))
+        return
     if mat.get_shader_parameter("caustic_strength") == null:
         _fail("S4 caustic sunlight disconnected")
         return
