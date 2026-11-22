@@ -18,16 +18,20 @@ var owns_bus: bool = false
 
 func _ready() -> void:
     name="RiverSoundscape"
-    bus_index=AudioServer.get_bus_index(AUDIO_BUS)
-    if bus_index<0:
-        AudioServer.add_bus()
-        owns_bus=true
-        bus_index=AudioServer.bus_count-1
-        AudioServer.set_bus_name(bus_index,AUDIO_BUS)
-    # Only our river bus is filtered; never modify the user's Master bus.
+    # Headless GDScript regression has no real audio device: do not start
+    # AudioServer buses/voices that outlive SceneTree test shutdown.
+    # Mobile/desktop rendering always enables the real spatial sound bus.
+    active = DisplayServer.get_name() != "headless"
     low_pass=AudioEffectLowPassFilter.new()
     low_pass.cutoff_hz=filter_hz
-    AudioServer.add_bus_effect(bus_index,low_pass)
+    if active:
+        bus_index=AudioServer.get_bus_index(AUDIO_BUS)
+        if bus_index<0:
+            AudioServer.add_bus()
+            owns_bus=true
+            bus_index=AudioServer.bus_count-1
+            AudioServer.set_bus_name(bus_index,AUDIO_BUS)
+        AudioServer.add_bus_effect(bus_index,low_pass)
     calm=_make_player("CalmCurrent","res://assets/audio/river_calm.wav")
     rapids=_make_player("RockRapids","res://assets/audio/river_rapids.wav")
 

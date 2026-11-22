@@ -18,8 +18,12 @@ func _run() -> void:
     if sound==null or micro==null:
         _fail("no integrated S7 systems")
         return
-    if AudioServer.get_bus_index(RiverSoundscape.AUDIO_BUS)<0:
-        _fail("dedicated river sound bus absent")
+    if sound.low_pass==null or sound.calm==null or sound.rapids==null:
+        _fail("spatial layers or filter contract absent")
+        return
+    # Headless test uses no real mixer; Android must create FareRiver bus.
+    if DisplayServer.get_name() != "headless" and AudioServer.get_bus_index(RiverSoundscape.AUDIO_BUS)<0:
+        _fail("dedicated river sound bus absent on audio-capable host")
         return
     if sound.calm==null or sound.rapids==null or sound.calm.stream==null or sound.rapids.stream==null:
         _fail("spatial audio sources not loaded")
