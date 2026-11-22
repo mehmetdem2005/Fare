@@ -14,10 +14,14 @@ func _arrays_match(a: Array,b: Array,kind: String) -> bool:
             continue
         if a[slot]==null or b[slot]==null:
             return false
-        if (a[slot] as Variant).size()!=(b[slot] as Variant).size():
+        var left: Variant=a[slot]
+        var right: Variant=b[slot]
+        if left.size()!=right.size():
+            print("S9_MISMATCH ",kind," slot=",slot," size=",left.size(),"/",right.size())
             return false
-        for i in range((a[slot] as Variant).size()):
-            if a[slot][i] != b[slot][i]:
+        for i in range(left.size()):
+            if left[i]!=right[i]:
+                print("S9_MISMATCH ",kind," slot=",slot," index=",i," expected=",left[i]," actual=",right[i])
                 return false
     return true
 
@@ -44,12 +48,12 @@ func _run() -> void:
         root_node.position=Vector3(float(co.x)*40.0,0.0,float(co.y)*40.0)
         var original: ArrayMesh=game.call("_generate_terrain_mesh",root_node) as ArrayMesh
         var terrain_arrays: Array=original.surface_get_arrays(0)
-        if not _arrays_match(terrain_arrays,job.terrain_arrays,"terrain"):
+        if not _arrays_match(terrain_arrays,job.create_terrain_mesh().surface_get_arrays(0),"terrain"):
             _fail("terrain arrays differ from baseline "+str(co))
             return
         if co.x==-1 or co.x==0:
             var original_water: ArrayMesh=(game.get("river_surface_builder") as RiverSurfaceBuilder).build_chunk(game.get("river_profile"),co,40.0)
-            if not _arrays_match(original_water.surface_get_arrays(0),job.water_arrays,"water"):
+            if not _arrays_match(original_water.surface_get_arrays(0),job.create_water_mesh().surface_get_arrays(0),"water"):
                 _fail("water geometry changed "+str(co))
                 return
             var expected_flow: Image=(game.get("river_flow_field") as RiverFlowField).build_atlas(game.get("river_profile"),Vector2(float(co.x)*40.0,float(co.y)*40.0),40.0,32)
