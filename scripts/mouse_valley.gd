@@ -113,14 +113,19 @@ func set_atmosphere_preset(preset: int) -> void:
         terrain_mat.set_shader_parameter("caustic_strength",atmosphere.caustics_energy())
     if water_mat != null:
         atmosphere.configure_river(water_mat)
-    # Per-chunk copied S4 materials must update as well. No rebuilding atlases.
+    if water_lite_mat != null:
+        atmosphere.configure_river(water_lite_mat)
+    # Every water mesh stores BOTH S4 and distant LOD variants. Update both:
+    # merely changing the currently rendered material produces stale sunset
+    # color when LOD switches back later.
     for co in chunks.keys():
         var chunk: Node3D = chunks[co]
         var water: MeshInstance3D = chunk.get_node_or_null("FlowingWater") as MeshInstance3D
         if water != null:
-            var mat: ShaderMaterial = water.material_override as ShaderMaterial
-            if mat != null:
-                atmosphere.configure_river(mat)
+            for key in ["high_water_material","low_water_material"]:
+                var material: ShaderMaterial = water.get_meta(key,null) as ShaderMaterial
+                if material != null:
+                    atmosphere.configure_river(material)
 
 func _image_texture(path: String, fallback: Color) -> Texture2D:
     if ResourceLoader.exists(path):

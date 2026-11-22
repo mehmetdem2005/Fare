@@ -193,6 +193,12 @@ jobs:
             build/sha256.txt
           if-no-files-found: error
           retention-days: 14
+      - name: River follow-up S5 synchronize sunset reflection across water LODs
+        run: |
+          set -o pipefail
+          timeout 120 godot --headless --path . --script res://tests/s5_sun_lod_sync_test.gd 2>&1 | tee /tmp/s5_sun_sync.log
+          grep -q S5_SUN_SYNC_OK /tmp/s5_sun_sync.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S5_SUN_SYNC_FAIL' /tmp/s5_sun_sync.log; then exit 1; fi
       # Optional real Vulkan render proof, separate from strict headless tests.
       # Software GPU is not Android; do not treat success as device visual QA.
       - name: Install software Vulkan and virtual display for visual probe
@@ -252,6 +258,7 @@ jobs:
             /tmp/river_s7.log
             /tmp/s8_stream.log
             /tmp/s8_metrics.log
+            /tmp/s5_sun_sync.log
             /tmp/s8_apk_export.log
             /tmp/s4_vulkan_render.log
             /tmp/s4_mobile_vulkan.png
