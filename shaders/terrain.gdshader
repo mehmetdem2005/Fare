@@ -35,7 +35,7 @@ void fragment() {
     float slope = 1.0 - clamp(n.y, 0.0, 1.0);
     float cliff = clamp(smoothstep(0.21, 0.58, slope) + smoothstep(14.0, 32.0, world_position.y)*0.44,0.0,0.94);
     // S2 macro modulation is fed from the same CPU terrain RiverProfile/SDF.
-    vec3 albedo = mix(texture(grass_tex,uv).rgb, texture(forest_tex,uv_f).rgb,forest);
+    vec3 albedo = mix(texture(grass_tex,uv).rgb*vec3(0.60,0.92,0.58), texture(forest_tex,uv_f).rgb*vec3(0.70,0.89,0.65),forest);
     albedo = mix(albedo, texture(riverbed_tex,uv_p).rgb,gravel);
     // S2 polish: cliffs use a world-aligned side projection rather than
     // stretching the horizontal XZ image vertically up a steep bank.
@@ -49,7 +49,7 @@ void fragment() {
     }
     albedo = mix(albedo,rock_albedo,cliff);
     albedo = mix(albedo,vec3(0.22,0.19,0.14),silt*0.28);
-    albedo *= 1.0-0.22*wet;
+    albedo *= (1.0-0.22*wet)*(0.94+0.08*sin(world_position.x*0.095)*cos(world_position.z*0.074));
     // ALBEDO is finalized after shadow-aware underwater caustic lighting.
     // Two real PBR channels in a single fetch per material.
     vec4 nr = mix(texture(grass_nr,uv),texture(forest_nr,uv_f),forest);

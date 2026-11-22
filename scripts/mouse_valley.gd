@@ -64,6 +64,8 @@ var cache_write_timer: float = 0.0
 var lod_update_timer: float = 0.0
 var pine_mesh: Mesh
 var grass_mesh: Mesh
+# Android fast tier: collision-safe 3x3 rather than 25 active world chunks.
+const FAST_MOBILE_RADIUS: int = 1
 var pebble_mesh: Mesh
 var chunks: Dictionary = {}
 var queue: Array[Vector2i] = []
@@ -147,7 +149,7 @@ func _ready() -> void:
     var center: Vector2i = _current_chunk()
     for cz in range(-1, 2):
         for cx in range(-1, 2):
-            _add_chunk(center + Vector2i(cx, cz))
+            _add_chunk(center + Vector2i(cx, cz), OS.get_name()=="Android")
     _queue_chunks()
 
 func _environment() -> void:
@@ -228,6 +230,18 @@ func _image_texture(path: String, fallback: Color) -> Texture2D:
     image.fill(fallback)
     return ImageTexture.create_from_image(image)
 
+func _packed_normal_texture(path: String) -> Texture2D:
+    if ResourceLoader.exists(path):
+        var found: Texture2D=load(path) as Texture2D
+        if found!=null:
+            return found
+    # Neutral OpenGL tangent normal with an explicit matte roughness in alpha.
+    # Missing imports must not turn the whole terrain white/undefined.
+    push_warning("Missing PBR normal/roughness import: "+path)
+    var img: Image=Image.create(4,4,false,Image.FORMAT_RGBA8)
+    img.fill(Color(0.5,0.5,1.0,0.85))
+    return ImageTexture.create_from_image(img)
+
 func _materials() -> void:
     terrain_mat = ShaderMaterial.new()
     terrain_mat.shader = load("res://shaders/terrain.gdshader") as Shader
@@ -237,10 +251,10 @@ func _materials() -> void:
     terrain_mat.set_shader_parameter("riverbed_tex", _image_texture("res://assets/ground/pebbles.jpg", Color(0.49, 0.48, 0.42)))
     for label in ["grass", "forest", "rock", "pebbles"]:
         var shader_name: String = "cliff" if label == "rock" else ("riverbed" if label == "pebbles" else label)
-        terrain_mat.set_shader_parameter(shader_name + "_nr", load("res://assets/ground/" + label + "_nrough.png") as Texture2D)
+        terrain_mat.set_shader_parameter(shader_name + "_nr", _packed_normal_texture("res://assets/ground/" + label + "_nrough.png"))
     terrain_lite_mat=ShaderMaterial.new()
     terrain_lite_mat.shader=load("res://shaders/terrain_mobile_fast.gdshader") as Shader
-    for tex_key in ["grass_tex","forest_tex","cliff_tex","riverbed_tex"]:
+    for tex_key in ["grass_tex","forest_tex","cliff_tex","riverbed_tex","grass_nr"]:
         terrain_lite_mat.set_shader_parameter(tex_key,terrain_mat.get_shader_parameter(tex_key))
     water_mat = ShaderMaterial.new()
     water_mat.shader = load("res://shaders/river.gdshader") as Shader
@@ -702,21 +716,28 @@ func _terrain_x_grid(chunk_x: float) -> PackedFloat32Array:
 func _current_chunk() -> Vector2i:
     return Vector2i(floori(player.global_position.x / CELL), floori(player.global_position.z / CELL))
 
+func _active_chunk_radius() -> int:
+    if OS.get_name()=="Android" and mobile_quality_level==QUALITY_FAST:
+        return FAST_MOBILE_RADIUS
+    return RADIUS
+
 func _near(co: Vector2i) -> bool:
     var current: Vector2i = _current_chunk()
-    return absi(current.x - co.x) <= RADIUS and absi(current.y - co.y) <= RADIUS
+    var radius: int = _active_chunk_radius()
+    return absi(current.x - co.x) <= radius and absi(current.y - co.y) <= radius
 
 func _queue_chunks() -> void:
     var center: Vector2i=_current_chunk()
+    var radius: int=_active_chunk_radius()
     # Clear outdated work immediately after turns and teleports. An outdated
     # queue entry must never hold up current/adjacent collision tiles.
     for i in range(queue.size()-1,-1,-1):
         var co: Vector2i=queue[i]
-        if chunks.has(co) or maxi(absi(co.x-center.x),absi(co.y-center.y))>RADIUS:
+        if chunks.has(co) or maxi(absi(co.x-center.x),absi(co.y-center.y))>radius:
             queue.remove_at(i)
             s9_queue_requested_usec.erase(co)
-    for z in range(-RADIUS,RADIUS+1):
-        for x in range(-RADIUS,RADIUS+1):
+    for z in range(-radius,radius+1):
+        for x in range(-radius,radius+1):
             var co: Vector2i=center+Vector2i(x,z)
             if not chunks.has(co) and not queue.has(co):
                 queue.append(co)
@@ -742,7 +763,7 @@ func _queue_chunks() -> void:
         return a.x<b.x)
     for key in chunks.keys():
         var co: Vector2i=key
-        if maxi(absi(co.x-center.x),absi(co.y-center.y))>RADIUS:
+        if maxi(absi(co.x-center.x),absi(co.y-center.y))>radius:
             var part: Node3D=chunks[co]
             part.queue_free()
             chunks.erase(co)
@@ -809,12 +830,13 @@ func _s9_predictive_prefetch() -> void:
     var predicted_z: float=player.global_position.z+vel.y*3.0
     var predicted: Vector2i=Vector2i(floori(predicted_x/CELL),floori(predicted_z/CELL))
     var candidates: Array[Dictionary]=[]
-    for z in range(-3,4):
-        for x in range(-3,4):
-            if maxi(absi(x),absi(z))!=3:
+    var outer_ring: int=_active_chunk_radius()+1
+    for z in range(-outer_ring,outer_ring+1):
+        for x in range(-outer_ring,outer_ring+1):
+            if maxi(absi(x),absi(z))!=outer_ring:
                 continue
             var co: Vector2i=now+Vector2i(x,z)
-            if absi(co.x-predicted.x)>2 or absi(co.y-predicted.y)>2:
+            if absi(co.x-predicted.x)>_active_chunk_radius() or absi(co.y-predicted.y)>_active_chunk_radius():
                 continue
             if chunks.has(co) or s9_worker_tasks.has(co) or s9_worker_ready.has(co):
                 continue
@@ -1013,6 +1035,11 @@ func _apply_chunk_lod(co: Vector2i, chunk: Node3D) -> void:
     var mist: MultiMeshInstance3D=chunk.get_node_or_null("NearRiverMist") as MultiMeshInstance3D
     if mist!=null:
         mist.visible=mobile_quality_level!=QUALITY_FAST
+    var grass_lod: MultiMeshInstance3D=chunk.get_node_or_null("Grass") as MultiMeshInstance3D
+    if grass_lod!=null and grass_lod.multimesh!=null:
+        grass_lod.visibility_range_end=48.0 if mobile_quality_level==QUALITY_FAST else 66.0
+        # Uniform random placement means first N instances remain distributed.
+        grass_lod.multimesh.visible_instance_count=mini(680,grass_lod.multimesh.instance_count) if mobile_quality_level==QUALITY_FAST else -1
     var pines: MultiMeshInstance3D = chunk.get_node_or_null("Pines") as MultiMeshInstance3D
     if pines != null:
         var active: bool = pines.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_ON
@@ -1162,47 +1189,76 @@ func _river_mist(root: Node3D, co: Vector2i, state: Dictionary={}) -> bool:
     return true
 
 func _pine_mesh() -> Mesh:
-    var st: SurfaceTool = SurfaceTool.new()
-    st.begin(Mesh.PRIMITIVE_TRIANGLES)
-    var bark: Color = Color(0.36, 0.27, 0.18)
-    var needles: Color = Color(0.15, 0.29, 0.20)
-    for i in range(7):
-        var a: float = float(i) * TAU / 7.0
-        var b: float = float(i + 1) * TAU / 7.0
-        _tri(st, Vector3(cos(a) * 0.13, 0.0, sin(a) * 0.13), Vector3(cos(b) * 0.13, 0.0, sin(b) * 0.13), Vector3(cos(a) * 0.11, 2.0, sin(a) * 0.11), bark)
-        _tri(st, Vector3(cos(a) * 0.11, 2.0, sin(a) * 0.11), Vector3(cos(b) * 0.13, 0.0, sin(b) * 0.13), Vector3(cos(b) * 0.11, 2.0, sin(b) * 0.11), bark)
-    for layer in range(3):
-        var bot: float = 0.32 + float(layer) * 0.57
-        var top: float = 2.5 + float(layer) * 0.35
-        var radius: float = 1.13 - float(layer) * 0.26
-        var green: Color = needles.lightened(float(layer) * 0.055)
-        for k in range(8):
-            var a: float = float(k) * TAU / 8.0
-            var b: float = float(k + 1) * TAU / 8.0
-            _tri(st, Vector3(cos(a) * radius, bot, sin(a) * radius), Vector3(cos(b) * radius, bot, sin(b) * radius), Vector3(0.0, top, 0.0), green)
-    st.generate_normals()
-    var mesh: ArrayMesh = st.commit()
-    var material: StandardMaterial3D = StandardMaterial3D.new()
-    material.vertex_color_use_as_albedo = true
-    material.cull_mode = BaseMaterial3D.CULL_DISABLED
-    material.roughness = 1.0
-    mesh.surface_set_material(0, material)
+    # Explicit bark + needles surfaces: never rely on an untextured white
+    # fallback for a merged mesh. All geometry is opaque to avoid alpha overdraw.
+    var bark_tool: SurfaceTool=SurfaceTool.new()
+    bark_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+    for ring in range(2):
+        var low_y: float=float(ring)*2.30
+        var high_y: float=float(ring+1)*2.30
+        var low_r: float=0.19-float(ring)*0.055
+        var high_r: float=0.19-float(ring+1)*0.055
+        for side in range(9):
+            var a: float=float(side)*TAU/9.0
+            var b: float=float(side+1)*TAU/9.0
+            var p0: Vector3=Vector3(cos(a)*low_r,low_y,sin(a)*low_r)
+            var p1: Vector3=Vector3(cos(b)*low_r,low_y,sin(b)*low_r)
+            var p2: Vector3=Vector3(cos(a)*high_r,high_y,sin(a)*high_r)
+            var p3: Vector3=Vector3(cos(b)*high_r,high_y,sin(b)*high_r)
+            _tri(bark_tool,p0,p1,p2,Color(0.82,0.77,0.67))
+            _tri(bark_tool,p2,p1,p3,Color(0.78,0.72,0.62))
+    bark_tool.generate_normals()
+    var mesh: ArrayMesh=bark_tool.commit()
+    var bark_mat: StandardMaterial3D=StandardMaterial3D.new()
+    bark_mat.albedo_color=Color(0.35,0.25,0.18)
+    bark_mat.vertex_color_use_as_albedo=true
+    bark_mat.roughness=0.98
+    mesh.surface_set_material(0,bark_mat)
+    var needle_tool: SurfaceTool=SurfaceTool.new()
+    needle_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+    # Compact staggered whorls resemble branching pine silhouettes without
+    # the old solid plastic cones or thousands of alpha-blended needles.
+    for tier in range(9):
+        var base_y: float=0.72+float(tier)*0.43
+        var radius: float=1.33*pow(1.0-float(tier)/10.0,1.1)
+        for side in range(10):
+            var a: float=float(side)*TAU/10.0+float(tier%2)*0.16
+            var b: float=float(side+1)*TAU/10.0+float(tier%2)*0.16
+            var ra: float=radius*(0.91+0.10*sin(float(side*7+tier*11)))
+            var rb: float=radius*(0.90+0.10*cos(float(side*5+tier*13)))
+            var tip: Vector3=Vector3(0.09*cos(a*3.0),base_y+0.89+float(tier)*0.015,0.09*sin(a*2.0))
+            var color: Color=Color(0.75+0.09*sin(a*2.0),0.80+0.06*cos(b),0.72)
+            _tri(needle_tool,Vector3(cos(a)*ra,base_y,sin(a)*ra),
+                Vector3(cos(b)*rb,base_y+0.04,sin(b)*rb),tip,color)
+    needle_tool.generate_normals()
+    needle_tool.commit(mesh)
+    var needle_mat: StandardMaterial3D=StandardMaterial3D.new()
+    needle_mat.albedo_color=Color(0.17,0.36,0.23)
+    needle_mat.vertex_color_use_as_albedo=true
+    needle_mat.cull_mode=BaseMaterial3D.CULL_DISABLED
+    needle_mat.roughness=0.97
+    mesh.surface_set_material(1,needle_mat)
     return mesh
 
 func _grass_mesh() -> Mesh:
-    var st: SurfaceTool = SurfaceTool.new()
+    var st: SurfaceTool=SurfaceTool.new()
     st.begin(Mesh.PRIMITIVE_TRIANGLES)
-    var green: Color = Color(0.29, 0.48, 0.22)
-    for i in range(3):
-        var a: float = float(i) * PI / 3.0
-        var dir: Vector3 = Vector3(cos(a), 0.0, sin(a))
-        _tri(st, dir * -0.15, dir * 0.15, Vector3(0.0, 0.29, 0.0), green)
+    # Four opaque, crossed blades per tuft: depth without costly alpha sorting.
+    for i in range(4):
+        var a: float=float(i)*PI/4.0
+        var dir: Vector3=Vector3(cos(a),0.0,sin(a))
+        var blade_h: float=0.18+float(i%3)*0.055
+        var blade_color: Color=Color(0.75+float(i%2)*0.14,0.82,0.68)
+        _tri(st,dir*-0.105,dir*0.105,
+            Vector3(0.035*cos(a+1.3),blade_h,0.035*sin(a+1.3)),blade_color)
     st.generate_normals()
-    var mesh: ArrayMesh = st.commit()
-    var mat: StandardMaterial3D = StandardMaterial3D.new()
-    mat.vertex_color_use_as_albedo = true
-    mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-    mesh.surface_set_material(0, mat)
+    var mesh: ArrayMesh=st.commit()
+    var mat: StandardMaterial3D=StandardMaterial3D.new()
+    mat.albedo_color=Color(0.30,0.62,0.27)
+    mat.vertex_color_use_as_albedo=true
+    mat.cull_mode=BaseMaterial3D.CULL_DISABLED
+    mat.roughness=0.96
+    mesh.surface_set_material(0,mat)
     return mesh
 
 func _stone_mesh() -> Mesh:
@@ -1232,7 +1288,7 @@ func _trees(root: Node3D, co: Vector2i, state: Dictionary={}) -> bool:
     if staged and state.has("xforms"):
         xforms=state["xforms"]
     var begin: int=int(state.get("cursor",0)) if staged else 0
-    var until: int=mini(begin+6,46) if staged else 46
+    var until: int=mini(begin+6,34) if staged else 34
     for i in range(begin,until):
         var x: float=rng.randf_range(0.0,CELL)
         var z: float=rng.randf_range(0.0,CELL)
@@ -1242,15 +1298,18 @@ func _trees(root: Node3D, co: Vector2i, state: Dictionary={}) -> bool:
         var near_bank: bool=absf(wx)<=45.0 and river_profile.shore_distance(Vector2(wx,wz))<6.0
         if near_bank or y>28.0:
             continue
-        if Vector2(wx-SPAWN_X,wz-SPAWN_Z).length()<7.0:
+        if Vector2(wx-SPAWN_X,wz-SPAWN_Z).length()<3.5:
             continue
-        var scale: float=rng.randf_range(0.76,1.66)
-        var basis: Basis=Basis(Vector3.UP,rng.randf_range(0.0,TAU)).scaled(Vector3(scale,scale*rng.randf_range(0.9,1.2),scale))
+        # Native pine geometry is 4.6m tall; these yield roughly 9-25m trees.
+        var scale: float=rng.randf_range(1.85,4.60)
+        if rng.randf()<0.06:
+            scale=rng.randf_range(4.60,5.30)
+        var basis: Basis=Basis(Vector3.UP,rng.randf_range(0.0,TAU)).scaled(Vector3(scale,scale*rng.randf_range(0.93,1.07),scale))
         xforms.append(Transform3D(basis,Vector3(x,y-0.05,z)))
     if staged:
         state["cursor"]=until
         state["xforms"]=xforms
-        if until<46:
+        if until<34:
             return false
     _multimesh(root,pine_mesh,"Pines",xforms)
     return true
@@ -1262,7 +1321,7 @@ func _grass(root: Node3D, co: Vector2i, state: Dictionary={}) -> bool:
     if staged and state.has("xforms"):
         xforms=state["xforms"]
     var begin: int=int(state.get("cursor",0)) if staged else 0
-    var until: int=mini(begin+15,150) if staged else 150
+    var until: int=mini(begin+115,950) if staged else 950
     for i in range(begin,until):
         var x: float=rng.randf_range(0.0,CELL)
         var z: float=rng.randf_range(0.0,CELL)
@@ -1270,14 +1329,14 @@ func _grass(root: Node3D, co: Vector2i, state: Dictionary={}) -> bool:
         var wz: float=root.position.z+z
         var y: float=_height(wx,wz)
         var near_bank: bool=absf(wx)<=45.0 and river_profile.shore_distance(Vector2(wx,wz))<2.4
-        if near_bank or y>18.0:
+        if near_bank or y>42.0:
             continue
-        var size: float=rng.randf_range(0.65,1.45)
+        var size: float=rng.randf_range(0.52,1.10)
         xforms.append(Transform3D(Basis(Vector3.UP,rng.randf_range(0.0,TAU)).scaled(Vector3(size,size,size)),Vector3(x,y+0.015,z)))
     if staged:
         state["cursor"]=until
         state["xforms"]=xforms
-        if until<150:
+        if until<950:
             return false
     _multimesh(root,grass_mesh,"Grass",xforms)
     return true
@@ -1363,7 +1422,9 @@ func _multimesh(root: Node3D, source: Mesh, label: String, xforms: Array[Transfo
     instance.name = label
     instance.multimesh = mm
     instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if label == "Pines" else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-    if label == "Grass":
+    if label == "Pines":
+        instance.visibility_range_end = 112.0
+    elif label == "Grass":
         instance.visibility_range_end = 62.0
     elif label == "FinePebbles":
         instance.visibility_range_end = 38.0
