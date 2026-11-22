@@ -88,6 +88,12 @@ func _run() -> void:
     if micro.leaves[0].distance_to(rock["xz"])<float(rock["radius"])*0.98:
         _fail("leaf penetrated boulder after streamline update")
         return
+    # Prints must be one connected paw stamp with several toe outlines,
+    # not the old four-vertex transparent rectangle.
+    var print_mesh: ArrayMesh=micro.footprints[0].mesh as ArrayMesh
+    if print_mesh==null or print_mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size()<90:
+        _fail("paw prints still render as artificial rectangles")
+        return
     # On dry land, recently wet mouse leaves a bounded trail.
     water.state=MouseWaterInteraction.DRY
     water.wetness=0.9

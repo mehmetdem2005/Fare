@@ -18,6 +18,7 @@ var footprints: Array[MeshInstance3D] = []
 var footprint_lives: Array[float] = []
 var ring_cursor: int = 0
 var current_tick: float = 0.0
+var leaf_animation_time: float = 0.0
 var print_tick: float = 0.0
 var initialized: bool = false
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
@@ -52,13 +53,14 @@ func _ready() -> void:
     footprint_material.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
     footprint_material.albedo_color=Color(0.11,0.12,0.10,0.27)
     footprint_material.cull_mode=BaseMaterial3D.CULL_DISABLED
-    var footprint_plane: PlaneMesh=PlaneMesh.new()
-    footprint_plane.size=Vector2(0.13,0.065)
-    footprint_plane.material=footprint_material
+    # A shared five-blob mouse paw stamp: palm and four individual toe pads.
+    # No 16 rectangular decals on the forest floor.
+    var footprint_mesh: ArrayMesh=_build_paw_stamp()
+    footprint_mesh.surface_set_material(0,footprint_material)
     for i in range(FOOTPRINT_COUNT):
         var part: MeshInstance3D=MeshInstance3D.new()
         part.name="WetPaw_%d" % i
-        part.mesh=footprint_plane
+        part.mesh=footprint_mesh
         part.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
         part.visible=false
         footprints.append(part)
@@ -88,6 +90,31 @@ func _ready() -> void:
         drops.append(Vector3(0.0,-100.0,0.0))
         drop_mesh.set_instance_transform(i,Transform3D(Basis.IDENTITY,drops[i]))
     initialized=true
+
+func _build_paw_stamp() -> ArrayMesh:
+    var st: SurfaceTool=SurfaceTool.new()
+    st.begin(Mesh.PRIMITIVE_TRIANGLES)
+    var blobs: Array[Vector4]=[
+        Vector4(0.000,0.011,0.024,0.025),
+        Vector4(-0.026,-0.028,0.008,0.012),
+        Vector4(-0.009,-0.043,0.008,0.013),
+        Vector4(0.011,-0.042,0.008,0.012),
+        Vector4(0.027,-0.027,0.008,0.012)
+    ]
+    for blob in blobs:
+        for i in range(8):
+            var a: float=TAU*float(i)/8.0
+            var b: float=TAU*float(i+1)/8.0
+            # Winding order chosen for upward-facing triangle normal.
+            var va: Vector3=Vector3(blob.x+blob.z*cos(a),0.0,blob.y+blob.w*sin(a))
+            var vb: Vector3=Vector3(blob.x+blob.z*cos(b),0.0,blob.y+blob.w*sin(b))
+            st.set_normal(Vector3.UP)
+            st.add_vertex(Vector3(blob.x,0.0,blob.y))
+            st.set_normal(Vector3.UP)
+            st.add_vertex(vb)
+            st.set_normal(Vector3.UP)
+            st.add_vertex(va)
+    return st.commit()
 
 func _respawn_leaf(i: int) -> void:
     if actor==null or profile==null:
@@ -123,11 +150,19 @@ func update_river(delta: float) -> void:
         var hx: float=float(height_sampler.call(pos.x+eps,pos.z))-float(height_sampler.call(pos.x-eps,pos.z))
         var hz: float=float(height_sampler.call(pos.x,pos.z+eps))-float(height_sampler.call(pos.x,pos.z-eps))
         var surface_normal: Vector3=Vector3(-hx,2.0*eps,-hz).normalized()
-        footprints[slot].quaternion=Quaternion(Vector3.UP,surface_normal)
+        var planar_forward: Vector3=-actor.global_transform.basis.z
+        planar_forward=(planar_forward-surface_normal*planar_forward.dot(surface_normal)).normalized()
+        if planar_forward.length_squared()>0.001:
+            var tangent_x: Vector3=planar_forward.cross(surface_normal).normalized()
+            var oriented: Basis=Basis(tangent_x,surface_normal,-planar_forward).orthonormalized()
+            footprints[slot].global_transform=Transform3D(oriented,footprints[slot].global_position)
+        else:
+            footprints[slot].quaternion=Quaternion(Vector3.UP,surface_normal)
         footprints[slot].visible=true
         footprints[slot].transparency=0.03
         footprint_lives[slot]=5.0
         print_tick=0.24
+    leaf_animation_time+=delta
     current_tick+=delta
     if current_tick<0.15:
         return
@@ -159,7 +194,8 @@ func update_river(delta: float) -> void:
             leaf=leaves[i]
         leaves[i]=leaf
         var height: float=profile.surface_height(leaf.y)+0.018
-        leaves_mesh.set_instance_transform(i,Transform3D(Basis(Vector3.UP,float(i)*1.7+time_step*0.25),Vector3(leaf.x,height,leaf.y)))
+        var heading: float=atan2(stream.x,stream.y)+0.12*sin(leaf_animation_time*0.76+float(i)*1.37)
+        leaves_mesh.set_instance_transform(i,Transform3D(Basis(Vector3.UP,heading),Vector3(leaf.x,height,leaf.y)))
     for i in range(DROP_COUNT):
         var pos: Vector3=drops[i]
         var near: bool=pos.distance_to(actor.global_position)<1.2 and pos.y>actor.global_position.y-0.6
