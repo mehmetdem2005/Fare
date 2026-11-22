@@ -747,14 +747,14 @@ func _queue_chunks() -> void:
             part.queue_free()
             chunks.erase(co)
 
-func _s9_start_cpu_task(co: Vector2i) -> bool:
+func _s9_start_cpu_task(co: Vector2i, known_cache_miss: bool=false) -> bool:
     if not s9_worker_enabled:
         return false
     if s9_worker_tasks.has(co) or s9_worker_ready.has(co):
         return true
     if s9_worker_tasks.size()>=S9_MAX_CPU_WORKERS:
         return false
-    if chunk_cache.has_pack(co) or chunk_cache.has_user(co):
+    if not known_cache_miss and (chunk_cache.has_pack(co) or chunk_cache.has_user(co)):
         return false
     var job: S9PureChunkData=S9PureChunkData.new()
     job.co=co
@@ -854,7 +854,9 @@ func _add_chunk(co: Vector2i, defer_details: bool=false) -> void:
         # Current + adjacent ring always use synchronous safety fallback
         # so teleport/fast travel never leaves a missing ground collider.
         if not _s9_collision_urgent(co):
-            _s9_start_cpu_task(co)
+            # Cache loader already verified files; on a corrupt v4 manifest
+            # we MUST regenerate instead of trusting the has_user() file hint.
+            _s9_start_cpu_task(co,true)
             if not queue.has(co):
                 queue.append(co)
             s9_worker_deferred_requests+=1
