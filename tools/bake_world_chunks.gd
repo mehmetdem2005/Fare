@@ -1,30 +1,32 @@
 extends SceneTree
 ## Build-time only, not executed on player devices.
-const RANGE_MIN: int = -3
-const RANGE_MAX: int = 3
-const PACK_COUNT: int = 49
+const X_MIN: int = -3
+const X_MAX: int = 3
+const Z_MIN: int = -3
+const Z_MAX: int = 12
+const PACK_COUNT: int = (X_MAX-X_MIN+1)*(Z_MAX-Z_MIN+1)
 func _initialize() -> void:
     call_deferred("_bake")
 func _bake() -> void:
     var cache: ChunkBakeCache = ChunkBakeCache.new()
     var ready: int = 0
-    for z in range(RANGE_MIN,RANGE_MAX+1):
-        for x in range(RANGE_MIN,RANGE_MAX+1):
+    for z in range(Z_MIN,Z_MAX+1):
+        for x in range(X_MIN,X_MAX+1):
             if cache.has_pack(Vector2i(x,z)):
                 ready+=1
     if ready==PACK_COUNT:
-        print("CHUNK_PACK_READY precompiled=49 source=existing_v3")
+        print("CHUNK_PACK_READY precompiled=",PACK_COUNT," source=existing_v3")
         quit(0)
         return
-    # Existing 25 precompiled resources must stay byte-identical. Generate
-    # ONLY the missing outer 24 so GitHub export does not rebake geometry.
+    # Preserve original 49 packed chunks and add only positive-Z corridor
+    # tiles that caused ~1s Android frame stalls during cold exploration.
     ChunkBakeCache.bypass_disk=false
     var scene: PackedScene = load("res://scenes/main.tscn") as PackedScene
     var game: Node3D = scene.instantiate() as Node3D
     root.add_child(game)
     var made: int = 0
-    for z in range(RANGE_MIN,RANGE_MAX+1):
-        for x in range(RANGE_MIN,RANGE_MAX+1):
+    for z in range(Z_MIN,Z_MAX+1):
+        for x in range(X_MIN,X_MAX+1):
             var co: Vector2i = Vector2i(x,z)
             if cache.has_pack(co):
                 continue
