@@ -25,7 +25,7 @@ jobs:
       - name: Install real Blender, OpenGL, and offscreen X11
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq blender xvfb libgl1-mesa-dri libgl1 libx11-6 libxcursor1 libxinerama1 libxrandr2 libxi6 libasound2t64
+          sudo apt-get install -y -qq python3-numpy blender xvfb libgl1-mesa-dri libgl1 libx11-6 libxcursor1 libxinerama1 libxrandr2 libxi6 libasound2t64
           blender --version | head -n 3 | tee blender-version.txt
 
       - name: Download upstream Sapling Tree Gen extension and original Small Pine preset
