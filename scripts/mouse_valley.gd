@@ -1213,6 +1213,7 @@ func _pine_mesh() -> Mesh:
     bark_mat.albedo_color=Color(0.35,0.25,0.18)
     bark_mat.vertex_color_use_as_albedo=true
     bark_mat.roughness=0.98
+    bark_mat.cull_mode=BaseMaterial3D.CULL_DISABLED
     mesh.surface_set_material(0,bark_mat)
     var needle_tool: SurfaceTool=SurfaceTool.new()
     needle_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
