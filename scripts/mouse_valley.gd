@@ -11,6 +11,9 @@ const JUMP_SPEED: float = 4.8
 const SPAWN_X: float = 20.0
 const SPAWN_Z: float = 16.0
 const SPAWN_HEIGHT_ABOVE_TERRAIN: float = 3.5
+const QUALITY_FAST: int = 0
+const QUALITY_BALANCED: int = 1
+const QUALITY_FULL: int = 2
 
 var river_profile: RiverProfile = RiverProfile.new()
 var river_surface_builder: RiverSurfaceBuilder = RiverSurfaceBuilder.new()
@@ -43,6 +46,7 @@ var mouse_animation: AnimationPlayer
 var view_camera: Camera3D
 var hud: Control
 var terrain_mat: ShaderMaterial
+var terrain_lite_mat: ShaderMaterial
 var water_mat: ShaderMaterial
 var water_lite_mat: ShaderMaterial
 var chunk_cache: ChunkBakeCache = ChunkBakeCache.new()
@@ -62,6 +66,13 @@ var max_chunk_load_ms: float = 0.0
 var last_chunk_load_ms: float = 0.0
 var max_cache_save_ms: float = 0.0
 var cache_saves: int = 0
+# Max elapsed time spent in each blocking phase, measured on the actual device.
+var chunk_stage_peak_ms: Dictionary = {}
+var last_process_work_ms: float = 0.0
+var max_process_work_ms: float = 0.0
+var last_physics_work_ms: float = 0.0
+var max_physics_work_ms: float = 0.0
+var mobile_quality_level: int = QUALITY_FULL
 var look_yaw: float = 0.0
 var look_pitch: float = 0.15
 var follow_distance: float = 3.4
@@ -87,6 +98,10 @@ func _ready() -> void:
     detail_noise.frequency = 0.054
     _environment()
     _materials()
+    # The measured Android phone sustained ~8 FPS at full resolution/4x MSAA.
+    # Start in the reversible fast path; HUD retains a full-fidelity option.
+    if OS.get_name()=="Android":
+        set_mobile_quality(QUALITY_FAST)
     pine_mesh = _pine_mesh()
     grass_mesh = _grass_mesh()
     pebble_mesh = _stone_mesh()
@@ -130,6 +145,22 @@ func set_atmosphere_preset(preset: int) -> void:
                 if material != null:
                     atmosphere.configure_river(material)
 
+func set_mobile_quality(level: int) -> void:
+    mobile_quality_level=clampi(level,QUALITY_FAST,QUALITY_FULL)
+    var viewport: Viewport=get_viewport()
+    if viewport!=null:
+        viewport.scaling_3d_scale=0.60 if mobile_quality_level==QUALITY_FAST else (0.75 if mobile_quality_level==QUALITY_BALANCED else 1.0)
+        viewport.msaa_3d=Viewport.MSAA_4X if mobile_quality_level==QUALITY_FULL else Viewport.MSAA_DISABLED
+    if atmosphere!=null and atmosphere.sun!=null:
+        atmosphere.sun.shadow_enabled=mobile_quality_level!=QUALITY_FAST
+    if mobile_quality_level==QUALITY_FAST and terrain_lite_mat==null:
+        push_warning("Fast terrain shader is missing; preserving full terrain material")
+    _update_chunk_lod()
+
+func _record_chunk_stage(name: String, began_usec: int) -> void:
+    var elapsed_ms: float=float(Time.get_ticks_usec()-began_usec)*0.001
+    chunk_stage_peak_ms[name]=maxf(float(chunk_stage_peak_ms.get(name,0.0)),elapsed_ms)
+
 func _image_texture(path: String, fallback: Color) -> Texture2D:
     if ResourceLoader.exists(path):
         return load(path) as Texture2D
@@ -147,6 +178,10 @@ func _materials() -> void:
     for label in ["grass", "forest", "rock", "pebbles"]:
         var shader_name: String = "cliff" if label == "rock" else ("riverbed" if label == "pebbles" else label)
         terrain_mat.set_shader_parameter(shader_name + "_nr", load("res://assets/ground/" + label + "_nrough.png") as Texture2D)
+    terrain_lite_mat=ShaderMaterial.new()
+    terrain_lite_mat.shader=load("res://shaders/terrain_mobile_fast.gdshader") as Shader
+    for tex_key in ["grass_tex","forest_tex","cliff_tex","riverbed_tex"]:
+        terrain_lite_mat.set_shader_parameter(tex_key,terrain_mat.get_shader_parameter(tex_key))
     water_mat = ShaderMaterial.new()
     water_mat.shader = load("res://shaders/river.gdshader") as Shader
     water_lite_mat = ShaderMaterial.new()
@@ -322,6 +357,7 @@ func _emit_water_ripples(delta: float) -> void:
     last_water_state = mouse_water.state
 
 func _process(delta: float) -> void:
+    var script_start_usec: int=Time.get_ticks_usec()
     elapsed += delta
     chunk_timer += delta
     if chunk_timer > 0.33:
@@ -332,7 +368,18 @@ func _process(delta: float) -> void:
         lod_update_timer=0.0
         _update_chunk_lod()
     cache_write_timer+=delta
-    if cache_write_timer>1.1 and queue.is_empty():
+    # ResourceSaver on the scene thread blocked the reported phone up to 283ms.
+    # Postpone Android writes until the mouse is stationary for 8 seconds.
+    # Generated chunk data stays live in RAM in the meantime.
+    var can_save: bool=queue.is_empty()
+    if OS.get_name()=="Android":
+        var horizontal_speed: float=Vector2(player.velocity.x,player.velocity.z).length() if player!=null else 0.0
+        if horizontal_speed>0.15:
+            cache_write_timer=0.0
+        can_save=can_save and horizontal_speed<=0.15 and cache_write_timer>8.0
+    else:
+        can_save=can_save and cache_write_timer>1.1
+    if can_save:
         cache_write_timer=0.0
         _save_one_cache_chunk()
     if not queue.is_empty():
@@ -357,8 +404,11 @@ func _process(delta: float) -> void:
         hud.set("jumping", not player.is_on_floor() and mouse_water.state != MouseWaterInteraction.SWIMMING)
         hud.set("message",mouse_water.label())
         hud.set("rig_status", ("%dB ANIM" % rig.get_bone_count()) if mouse_animation != null and rig != null else ("BONES %d" % rig.get_bone_count() if rig != null else "STATIC"))
+    last_process_work_ms=float(Time.get_ticks_usec()-script_start_usec)*0.001
+    max_process_work_ms=maxf(max_process_work_ms,last_process_work_ms)
 
 func _physics_process(delta: float) -> void:
+    var script_start_usec: int=Time.get_ticks_usec()
     if player == null:
         return
     var axis: Vector2 = stick
@@ -398,6 +448,8 @@ func _physics_process(delta: float) -> void:
     if player.global_position.y < -18.0:
         player.global_position = Vector3(SPAWN_X, _height(SPAWN_X, SPAWN_Z) + SPAWN_HEIGHT_ABOVE_TERRAIN, SPAWN_Z)
         player.velocity = Vector3.ZERO
+    last_physics_work_ms=float(Time.get_ticks_usec()-script_start_usec)*0.001
+    max_physics_work_ms=maxf(max_physics_work_ms,last_physics_work_ms)
 
 func _input(event: InputEvent) -> void:
     if hud == null:
@@ -603,8 +655,12 @@ func _add_chunk(co: Vector2i) -> void:
     root.position = Vector3(float(co.x) * CELL, 0.0, float(co.y) * CELL)
     add_child(root)
     chunks[co] = root
+    var phase_usec: int=Time.get_ticks_usec()
     var cached: Dictionary = chunk_cache.load_chunk(co)
+    _record_chunk_stage("cache_read",phase_usec)
+    phase_usec=Time.get_ticks_usec()
     var mesh: ArrayMesh = cached["terrain"] if cached.has("terrain") else _generate_terrain_mesh(root)
+    _record_chunk_stage("terrain_mesh",phase_usec)
     if cached.is_empty():
         chunk_cache_miss_count+=1
         pending_cache_writes.append(co)
@@ -615,6 +671,7 @@ func _add_chunk(co: Vector2i) -> void:
     instance.mesh = mesh
     instance.material_override = terrain_mat
     root.add_child(instance)
+    phase_usec=Time.get_ticks_usec()
     var collider_body: StaticBody3D = StaticBody3D.new()
     collider_body.name = "TerrainCollider"
     collider_body.collision_layer = 1
@@ -623,8 +680,12 @@ func _add_chunk(co: Vector2i) -> void:
     terrain_collision.shape = cached["collision"] if cached.has("collision") else mesh.create_trimesh_shape()
     collider_body.add_child(terrain_collision)
     root.add_child(collider_body)
+    _record_chunk_stage("collider",phase_usec)
+    phase_usec=Time.get_ticks_usec()
     _trees(root, co)
     _grass(root, co)
+    _record_chunk_stage("vegetation",phase_usec)
+    phase_usec=Time.get_ticks_usec()
     # The actual water is clipped to each owning terrain chunk. No duplicate
     # full-width surfaces and no disappearing negative-X bank.
     if co.x >= -1 and co.x <= 0:
@@ -632,6 +693,7 @@ func _add_chunk(co: Vector2i) -> void:
         _rocks(root, co)
         _major_rocks(root, co)
         _river_mist(root,co)
+    _record_chunk_stage("river_fx",phase_usec)
     _apply_chunk_lod(co,root)
     last_chunk_load_ms=float(Time.get_ticks_usec()-started_usec)*0.001
     max_chunk_load_ms=maxf(max_chunk_load_ms,last_chunk_load_ms)
@@ -644,17 +706,25 @@ func _apply_chunk_lod(co: Vector2i, chunk: Node3D) -> void:
     var river: MeshInstance3D = chunk.get_node_or_null("FlowingWater") as MeshInstance3D
     if river != null:
         var low: bool = bool(river.get_meta("water_lite",false))
-        if (not low and distance>66.0) or (low and distance>56.0):
-            river.material_override = river.get_meta("low_water_material")
-            river.set_meta("water_lite",true)
-        elif low:
-            river.material_override = river.get_meta("high_water_material")
-            river.set_meta("water_lite",false)
+        var should_use_lite: bool=mobile_quality_level==QUALITY_FAST or distance>(56.0 if low else 66.0)
+        if low!=should_use_lite:
+            river.material_override=river.get_meta("low_water_material" if should_use_lite else "high_water_material")
+            river.set_meta("water_lite",should_use_lite)
+    var ground: MeshInstance3D=chunk.get_node_or_null("Terrain") as MeshInstance3D
+    if ground!=null:
+        var desired_ground: ShaderMaterial=terrain_lite_mat if mobile_quality_level==QUALITY_FAST else terrain_mat
+        if ground.material_override!=desired_ground:
+            ground.material_override=desired_ground
+    var mist: MultiMeshInstance3D=chunk.get_node_or_null("NearRiverMist") as MultiMeshInstance3D
+    if mist!=null:
+        mist.visible=mobile_quality_level!=QUALITY_FAST
     var pines: MultiMeshInstance3D = chunk.get_node_or_null("Pines") as MultiMeshInstance3D
     if pines != null:
         var active: bool = pines.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-        var enable: bool = distance < (70.0 if active else 55.0)
-        pines.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if enable else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+        var enable: bool = mobile_quality_level!=QUALITY_FAST and distance<(70.0 if active else 55.0)
+        var desired_shadow: GeometryInstance3D.ShadowCastingSetting=GeometryInstance3D.SHADOW_CASTING_SETTING_ON if enable else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+        if pines.cast_shadow!=desired_shadow:
+            pines.cast_shadow=desired_shadow
 
 func _update_chunk_lod() -> void:
     for co in chunks.keys():

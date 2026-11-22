@@ -132,6 +132,12 @@ jobs:
           timeout 100 godot --headless --path . --script res://tests/s8_metrics_test.gd 2>&1 | tee /tmp/s8_metrics.log
           grep -q S8_METRICS_OK /tmp/s8_metrics.log
           if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S8_METRICS_FAIL' /tmp/s8_metrics.log; then exit 1; fi
+      - name: S8-D Android emergency quality tiers and per-stage CPU timer regression
+        run: |
+          set -o pipefail
+          timeout 120 godot --headless --path . --script res://tests/s8_mobile_rescue_test.gd 2>&1 | tee /tmp/s8_mobile_rescue.log
+          grep -q S8_MOBILE_RESCUE_OK /tmp/s8_mobile_rescue.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S8_MOBILE_RESCUE_FAIL' /tmp/s8_mobile_rescue.log; then exit 1; fi
       - name: Select JDK 17 for Android diagnostics APK
         if: github.ref == 'refs/heads/feat/river-s0-s1-geomorphology'
         uses: actions/setup-java@v4
@@ -284,6 +290,7 @@ jobs:
             /tmp/river_s7.log
             /tmp/s8_stream.log
             /tmp/s8_metrics.log
+            /tmp/s8_mobile_rescue.log
             /tmp/s8_far_terrain.log
             /tmp/s5_sun_sync.log
             /tmp/s8_apk_export.log

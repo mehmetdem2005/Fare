@@ -15,6 +15,7 @@ var refresh: float = 0.0
 var panel: PanelContainer
 var toggle: Button
 var label: Label
+var quality_selector: OptionButton
 var snapshot: Dictionary = {}
 var last_save_path: String = ""
 var session_start_ms: int = 0
@@ -40,7 +41,7 @@ func _ready() -> void:
     panel.offset_left=-316.0
     panel.offset_right=-8.0
     panel.offset_top=50.0
-    panel.offset_bottom=335.0
+    panel.offset_bottom=390.0
     panel.visible=false
     add_child(panel)
     var v: VBoxContainer=VBoxContainer.new()
@@ -50,6 +51,14 @@ func _ready() -> void:
     label.add_theme_font_size_override("font_size",13)
     label.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
     v.add_child(label)
+    quality_selector=OptionButton.new()
+    quality_selector.name="QualitySelector"
+    quality_selector.add_item("AKICI (GPU tasarrufu)",0)
+    quality_selector.add_item("DENGELI",1)
+    quality_selector.add_item("TAM GORUNTU",2)
+    quality_selector.select(int(game.get("mobile_quality_level")))
+    quality_selector.item_selected.connect(_change_quality)
+    v.add_child(quality_selector)
     var buttons: HBoxContainer=HBoxContainer.new()
     v.add_child(buttons)
     var copy: Button=Button.new()
@@ -61,6 +70,11 @@ func _ready() -> void:
     save.pressed.connect(_save_report)
     buttons.add_child(save)
     set_process(true)
+
+func _change_quality(level: int) -> void:
+    if game!=null:
+        game.call("set_mobile_quality",level)
+        _refresh_snapshot()
 
 func _toggle() -> void:
     panel.visible=not panel.visible
@@ -126,6 +140,12 @@ func _refresh_snapshot() -> void:
         "draw_calls_reported":int(draw_calls),
         "render_memory_reported_mb":snappedf(video_mem_mb,0.1),
         "static_memory_reported_mb":snappedf(static_mb,0.1),
+        "quality_level":int(game.get("mobile_quality_level")),
+        "render_scale_3d":snappedf(get_viewport().scaling_3d_scale,0.01),
+        "script_process_work_ms_last":snappedf(float(game.get("last_process_work_ms")),0.01),
+        "script_process_work_ms_peak":snappedf(float(game.get("max_process_work_ms")),0.01),
+        "script_physics_work_ms_peak":snappedf(float(game.get("max_physics_work_ms")),0.01),
+        "chunk_stage_peak_ms":(game.get("chunk_stage_peak_ms") as Dictionary).duplicate(),
         "active_chunks":chunks.size(),
         "cache_pack_or_user_hits":int(game.get("chunk_cache_hit_count")),
         "cache_generated_misses":int(game.get("chunk_cache_miss_count")),
@@ -144,6 +164,8 @@ func _refresh_snapshot() -> void:
     text_value+="RAM* %.1f MB  Chunk %d\n" % [static_mb,chunks.size()]
     text_value+="Hazir %d  Uretilen %d\n" % [int(snapshot["cache_pack_or_user_hits"]),int(snapshot["cache_generated_misses"])]
     text_value+="Chunk max %.1f ms  Disk max %.1f ms\n" % [float(snapshot["max_chunk_load_ms"]),float(snapshot["max_cache_save_ms"])]
+    text_value+="Q%d  3D %.2f  Script max %.0fms\n" % [int(snapshot["quality_level"]),float(snapshot["render_scale_3d"]),float(snapshot["script_process_work_ms_peak"])]
+    text_value+="Chunk stages ms: "+str(snapshot["chunk_stage_peak_ms"])+"\n"
     text_value+="* Godot'un raporladigi; GPU zamani degil\n"
     if not last_save_path.is_empty():
         text_value+="Kayit: "+last_save_path.get_file()
