@@ -44,7 +44,7 @@ void fragment() {
     if (tex.a < alpha_scissor) {
         discard;
     }
-    ALBEDO = tex.rgb * COLOR.rgb * tint;
+    ALBEDO = tex.rgb * COLOR.rgb * tint * 1.22;
     ROUGHNESS = roughness_value;
     SPECULAR = 0.2;
     BACKLIGHT = backlight_color;
@@ -99,7 +99,7 @@ void fragment() {
         _queue_rebuild()
 
 @export_group("Branches")
-@export_range(3, 24, 1) var whorl_count: int = 11:
+@export_range(3, 24, 1) var whorl_count: int = 14:
     set(value):
         whorl_count = value
         _queue_rebuild()
@@ -131,7 +131,7 @@ void fragment() {
     set(value):
         upturn = value
         _queue_rebuild()
-@export_range(0, 6, 1) var twig_count: int = 4:
+@export_range(0, 6, 1) var twig_count: int = 6:
     set(value):
         twig_count = value
         _queue_rebuild()
@@ -149,29 +149,29 @@ void fragment() {
     set(value):
         crown_start = value
         _queue_rebuild()
-@export_range(0.0, 1.0, 0.01) var layer_pattern: float = 0.55:
+@export_range(0.0, 1.0, 0.01) var layer_pattern: float = 0.42:
     set(value):
         layer_pattern = value
         _queue_rebuild()
-@export_range(0.0, 1.0, 0.01) var inner_fill: float = 0.50:
+@export_range(0.0, 1.0, 0.01) var inner_fill: float = 0.60:
     set(value):
         inner_fill = value
         _queue_rebuild()
 
 @export_group("Needle Foliage")
-@export_range(0.15, 1.5, 0.01, "suffix:m") var tuft_size: float = 0.68:
+@export_range(0.15, 1.5, 0.01, "suffix:m") var tuft_size: float = 0.49:
     set(value):
         tuft_size = value
         _queue_rebuild()
-@export_range(2, 24, 1) var tufts_per_branch: int = 15:
+@export_range(2, 24, 1) var tufts_per_branch: int = 17:
     set(value):
         tufts_per_branch = value
         _queue_rebuild()
-@export_range(1, 6, 1) var cards_per_tuft: int = 5:
+@export_range(1, 6, 1) var cards_per_tuft: int = 4:
     set(value):
         cards_per_tuft = value
         _queue_rebuild()
-@export_range(40, 240, 1) var needle_count: int = 180:
+@export_range(40, 240, 1) var needle_count: int = 205:
     set(value):
         needle_count = value
         _queue_rebuild()
@@ -179,11 +179,11 @@ void fragment() {
     set(value):
         needle_tex_size = value
         _queue_rebuild()
-@export var needle_color: Color = Color(0.13, 0.26, 0.10):
+@export var needle_color: Color = Color(0.23, 0.42, 0.18):
     set(value):
         needle_color = value
         _queue_rebuild()
-@export var needle_color_tip: Color = Color(0.32, 0.48, 0.18):
+@export var needle_color_tip: Color = Color(0.40, 0.57, 0.27):
     set(value):
         needle_color_tip = value
         _queue_rebuild()
@@ -191,7 +191,7 @@ void fragment() {
     set(value):
         color_variation = value
         _queue_rebuild()
-@export_range(0.05, 0.9, 0.01) var alpha_scissor: float = 0.28:
+@export_range(0.05, 0.9, 0.01) var alpha_scissor: float = 0.30:
     set(value):
         alpha_scissor = value
         _apply_foliage_params()
@@ -478,26 +478,24 @@ func _sample_curve(points: PackedVector3Array, s: float) -> Vector3:
 
 
 func _add_surface_roots(st: SurfaceTool) -> void:
-    var root_count: int = maxi(4, int(round(4.0 + root_flare * 3.0)))
-    var base_radius: float = maxf(radius_bottom * 0.85, 0.08)
+    # Sapling-style buttress roots: broad at the trunk, quickly sink below ground.
+    var root_count: int = maxi(5, int(round(5.0 + root_flare * 2.0)))
+    var base_radius: float = maxf(radius_bottom * 1.25, 0.09)
     for i in range(root_count):
-        var angle: float = TAU * float(i) / float(root_count) + _rng.randf_range(-0.18, 0.18)
-        var direction: Vector3 = Vector3(cos(angle), 0.0, sin(angle)).normalized()
+        var angle: float = TAU * float(i) / float(root_count) + _rng.randf_range(-0.19, 0.19)
+        var direction: Vector3 = Vector3(cos(angle), 0.0, sin(angle))
         var sideways: Vector3 = Vector3.UP.cross(direction).normalized()
-        var length: float = lerpf(0.9, 2.4, root_flare) * _rng.randf_range(0.85, 1.20)
-        var origin: Vector3 = _trunk_center(0.05) + direction * base_radius * _rng.randf_range(0.45, 0.72)
+        var length: float = lerpf(0.62, 1.36, root_flare) * _rng.randf_range(0.8, 1.18)
+        var origin: Vector3 = _trunk_center(0.08) + direction * base_radius * 0.45
         var points: PackedVector3Array = PackedVector3Array()
-        points.resize(5)
-        for k in range(5):
-            var t: float = float(k) / 4.0
-            var point: Vector3 = origin + direction * length * t
-            point += sideways * sin(t * PI) * 0.12 * length * _rng.randf_range(-0.35, 0.35)
-            point.y = maxf(-0.04, 0.09 - 0.16 * t + sin(t * PI) * 0.03)
-            points[k] = point
         var radii: PackedFloat32Array = PackedFloat32Array()
-        for k in range(5):
-            var t: float = float(k) / 4.0
-            radii.append(lerpf(base_radius * 0.34, base_radius * 0.10, pow(t, 0.75)))
+        for k in range(6):
+            var t: float = float(k) / 5.0
+            var point: Vector3 = origin + direction * length * t
+            point += sideways * sin(t * PI) * _rng.randf_range(-0.07, 0.07)
+            point.y = 0.085 - 0.35 * pow(t, 1.35)
+            points.append(point)
+            radii.append(maxf(0.015, base_radius * 0.44 * pow(1.0 - t, 1.12)))
         _add_tube(st, points, radii, maxi(5, branch_sides - 1))
 
 
@@ -528,7 +526,7 @@ func _gen_branches() -> ArrayMesh:
         var height_ratio: float = lerpf(crown_base, 0.985, pow(t, 0.92))
         var level_y: float = height_ratio * height
         level_y += (_rng.randf_range(-1.0, 1.0)
-            * (height / float(whorl_count)) * 0.18 * (1.0 - layer_pattern))
+            * (height / float(whorl_count)) * 0.57 * (1.0 - layer_pattern))
         var profile_radius: float = _crown_profile(t)
         var n: int = maxi(2, int(round(
             _rng.randf_range(float(mini(branches_min, branches_max)),
@@ -539,16 +537,17 @@ func _gen_branches() -> ArrayMesh:
 
         for b in range(n):
             var angle: float = (base_angle + TAU * float(b) / float(n)
-                + _rng.randf_range(-0.25, 0.25) * (1.0 - layer_pattern * 0.6))
+                + _rng.randf_range(-0.52, 0.52) * (1.0 - layer_pattern * 0.5))
             var direction: Vector3 = Vector3(
                 cos(angle),
                 lerpf(-0.12, 0.24, t) + _rng.randf_range(-0.06, 0.07),
                 sin(angle)
             ).normalized()
-            var origin: Vector3 = (_trunk_center(level_y)
+            var branch_y: float = clampf(level_y + _rng.randf_range(-0.22, 0.22) * height / float(whorl_count), 0.2 * height, 0.99 * height)
+            var origin: Vector3 = (_trunk_center(branch_y)
                 + Vector3(cos(angle), 0.0, sin(angle))
-                * _trunk_radius(level_y) * 0.85)
-            var length: float = profile_radius * _rng.randf_range(0.85, 1.12)
+                * _trunk_radius(branch_y) * 0.88)
+            var length: float = profile_radius * _rng.randf_range(0.72, 1.15)
             if length < 0.15:
                 continue
 
@@ -562,7 +561,7 @@ func _gen_branches() -> ArrayMesh:
             _add_tube(st, points, radii, branch_sides)
 
             for k in range(tufts_per_branch):
-                var s: float = (lerpf(0.22, 1.0,
+                var s: float = (lerpf(0.30, 1.0,
                     float(k) / float(maxi(tufts_per_branch - 1, 1)))
                     + _rng.randf_range(-0.025, 0.025))
                 var position: Vector3 = (_sample_curve(points, s)
@@ -579,7 +578,7 @@ func _gen_branches() -> ArrayMesh:
                 })
 
             for tw in range(twig_count):
-                var s: float = _rng.randf_range(0.45, 0.92)
+                var s: float = _rng.randf_range(0.30, 0.94)
                 var position: Vector3 = _sample_curve(points, s)
                 var tangent: Vector3 = (
                     _sample_curve(points, minf(s + 0.06, 1.0)) - position
@@ -587,7 +586,7 @@ func _gen_branches() -> ArrayMesh:
                 tangent = tangent.rotated(Vector3.UP, _rng.randf_range(-0.9, 0.9))
                 tangent = (tangent + Vector3.UP
                     * _rng.randf_range(0.2, 0.55)).normalized()
-                var twig_length: float = (length * _rng.randf_range(0.2, 0.38)
+                var twig_length: float = (length * _rng.randf_range(0.23, 0.46)
                     * (1.0 - s * 0.35))
                 var twig_points: PackedVector3Array = _branch_curve(
                     position, tangent, twig_length, 4, 0.5
@@ -719,36 +718,27 @@ func _gen_foliage(detail: float, size_multiplier: float) -> ArrayMesh:
 
 func _add_tuft_cards(st: SurfaceTool, center: Vector3,
         direction_hint: Vector3, size: float, color: Color, cards: int) -> void:
-    var tuft_axis: Vector3 = direction_hint.lerp(Vector3.UP, 0.22).normalized()
-    if tuft_axis.length_squared() < 0.001:
-        tuft_axis = Vector3.UP
+    # Needles now follow the terminal twig axis, not random square-card rotations.
+    # Fanned crossed planes approximate Sapling leaf clusters at mobile-friendly cost.
+    var axis: Vector3 = direction_hint.normalized()
+    if axis.length_squared() < 0.001:
+        axis = Vector3.UP
+    var reference: Vector3 = Vector3.UP if absf(axis.dot(Vector3.UP)) < 0.85 else Vector3.RIGHT
+    var side: Vector3 = axis.cross(reference).normalized()
+    var other: Vector3 = axis.cross(side).normalized()
     for c in range(cards):
-        var normal: Vector3 = (direction_hint + Vector3(
-            _rng.randf_range(-0.85, 0.85),
-            _rng.randf_range(-0.35, 0.75),
-            _rng.randf_range(-0.85, 0.85)
-        )).normalized()
-        if c == cards - 1:
-            normal = Vector3.UP.lerp(normal, 0.18).normalized()
-        if normal.length_squared() < 0.01:
-            normal = Vector3.UP
-        var right: Vector3 = tuft_axis.cross(normal)
-        if right.length_squared() < 0.0001:
-            right = Vector3.RIGHT
-        right = right.normalized()
-        var up: Vector3 = normal.cross(right).normalized()
-        var angle: float = _rng.randf() * TAU
-        var width: float = size * _rng.randf_range(0.18, 0.28)
-        var length: float = size * _rng.randf_range(0.60, 0.95)
-        var u: Vector3 = (right * cos(angle) + up * sin(angle)) * width
-        var v: Vector3 = (-right * sin(angle) + up * cos(angle)) * length
-        var card_center: Vector3 = center + Vector3(
-            _rng.randf_range(-1.0, 1.0),
-            _rng.randf_range(-0.35, 0.35),
-            _rng.randf_range(-1.0, 1.0)
-        ) * size * 0.08
-        st.set_normal(normal.lerp(Vector3.UP, 0.22).normalized())
-        st.set_color(color * _rng.randf_range(0.94, 1.08))
+        var rotation: float = TAU * (float(c) + _rng.randf_range(-0.15, 0.15)) / float(cards)
+        var spread: Vector3 = side * cos(rotation) + other * sin(rotation)
+        var tilt: float = _rng.randf_range(-0.26, 0.26)
+        var longitudinal: Vector3 = (axis + spread * tilt + Vector3.UP * 0.09).normalized()
+        var width: float = size * _rng.randf_range(0.14, 0.23)
+        var length: float = size * _rng.randf_range(0.55, 0.82)
+        var u: Vector3 = spread * width
+        var v: Vector3 = longitudinal * length
+        var normal: Vector3 = u.cross(v).normalized()
+        var card_center: Vector3 = center + longitudinal * length * 0.55 + spread * size * _rng.randf_range(-0.08, 0.08)
+        st.set_normal(normal)
+        st.set_color(color * _rng.randf_range(0.91, 1.12))
         var bottom_left: Vector3 = card_center - u - v
         var bottom_right: Vector3 = card_center + u - v
         var top_right: Vector3 = card_center + u + v
@@ -838,18 +828,18 @@ func _make_needle_texture() -> ImageTexture:
         _plot(image_data, int(origin.x), int(origin.y) - k, stem_color)
         _plot(image_data, int(origin.x) + 1, int(origin.y) - k, stem_color)
 
-    var bundle_count: int = 3
+    var bundle_count: int = 5
     for bundle in range(bundle_count):
         var bundle_origin: Vector2 = origin + Vector2(
             tex_rng.randf_range(-3.5, 3.5), tex_rng.randf_range(-4.0, 2.0)
         )
         for i in range(int(needle_count / bundle_count)):
-            var angle: float = tex_rng.randf_range(-1.05, 1.05)
+            var angle: float = tex_rng.randf_range(-1.15, 1.15)
             if tex_rng.randf() < 0.10:
                 angle += tex_rng.randf_range(-0.45, 0.45)
-            var needle_length: float = size * tex_rng.randf_range(0.48, 0.88)
-            var gray_start: float = tex_rng.randf_range(0.42, 0.62)
-            var gray_end: float = minf(gray_start + tex_rng.randf_range(0.22, 0.42), 1.0)
+            var needle_length: float = size * tex_rng.randf_range(0.31, 0.61)
+            var gray_start: float = tex_rng.randf_range(0.56, 0.75)
+            var gray_end: float = minf(gray_start + tex_rng.randf_range(0.12, 0.26), 1.0)
             var position: Vector2 = bundle_origin + Vector2(
                 tex_rng.randf_range(-2.0, 2.0), tex_rng.randf_range(-2.0, 1.5)
             )
