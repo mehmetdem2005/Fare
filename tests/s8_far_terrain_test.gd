@@ -36,8 +36,12 @@ func _run() -> void:
         if absf(float(legacy["terrain_y"])-p.y)>0.00001:
             _fail("fast path changed terrain height at "+str(p))
             return
-        if absf(float(old_colors["forest"])-actual.a)>0.00001 or absf(actual.r)+absf(actual.g)+absf(actual.b)>0.00001:
-            _fail("fast path changed original forest/river material")
+        # ArrayMesh stores COLOR as quantized channel data on the GPU.
+        # A ~1/255 difference is not a change to the underlying substrate
+        # formula; compare within one channel step instead of float epsilon.
+        var cover_expected: float=float(old_colors["forest"])
+        if absf(cover_expected-actual.a)>0.005 or absf(actual.r)+absf(actual.g)+absf(actual.b)>0.005:
+            _fail("fast path material mismatch at "+str(p)+" expected="+str(cover_expected)+" actual="+str(actual))
             return
         if depth[i].x>0.00001:
             _fail("far world unexpectedly contains river depth")
