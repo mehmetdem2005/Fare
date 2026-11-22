@@ -1,0 +1,117 @@
+name: Pine Tree - Godot 4.7.2 Test and True Render
+
+on:
+  push:
+    branches:
+      - test/pine-tree-godot-472-ci
+    paths:
+      - 'pine_ci/**'
+      - '.github/workflows/pine-tree-preview.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  real-render:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: pine_ci
+          sparse-checkout-cone-mode: true
+          persist-credentials: true
+
+      - name: Install offscreen Linux OpenGL dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb libgl1-mesa-dri libgl1 libx11-6 libxcursor1 libxinerama1 libxrandr2 libxi6 libasound2t64
+
+      - name: Install REAL Godot 4.7.2 stable
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 3 -o /tmp/godot.zip "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d /tmp
+          sudo install -m 755 /tmp/Godot_v4.7.2-stable_linux.x86_64 /usr/local/bin/godot
+          godot --version | tee godot-version.txt
+          grep -q '^4.7.2.stable' godot-version.txt
+
+      - name: Recover exact prior PineTreeGenerator source and verify SHA256
+        run: |
+          set -euo pipefail
+          if [ ! -s pine_ci/PineTreeGenerator.gd ]; then
+            python3 - <<'PY'
+          import base64, zlib, hashlib
+          from pathlib import Path
+          files = sorted(Path("pine_ci/payload").glob("*.txt"))
+          assert len(files) == 4, files
+          encoded = "".join(p.read_text().strip() for p in files)
+          assert len(encoded) == 11584, len(encoded)
+          content = zlib.decompress(base64.b64decode(encoded))
+          checksum = hashlib.sha256(content).hexdigest()
+          assert checksum == "5542fcb6806699d934b63b379f906d65e5d1fd6347c59dc9a9320a29d76e1d9c", checksum
+          Path("pine_ci/PineTreeGenerator.gd").write_bytes(content)
+          print("EXACT_PINE_SCRIPT_OK", len(content), checksum)
+          PY
+          fi
+
+      - name: Preserve editable GD source in CI branch
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f pine_ci/PineTreeGenerator.gd
+          if ! git diff --staged --quiet; then
+            git commit -m "test(pine): expose decoded source for review [skip ci]"
+            git push origin HEAD:test/pine-tree-godot-472-ci
+          fi
+
+      - name: Godot parser, editor import and shader validation
+        run: |
+          set -o pipefail
+          timeout 120 xvfb-run -a -s '-screen 0 1280x900x24' godot --rendering-driver opengl3 --rendering-method gl_compatibility --editor --path pine_ci --import --quit 2>&1 | tee pine-import.log
+          if grep -Ei 'Parse Error|SCRIPT ERROR|Shader compilation failed|ERROR:' pine-import.log; then exit 1; fi
+
+      - name: GDScript geometry, seed, LOD and export regression
+        run: |
+          set -o pipefail
+          timeout 120 godot --headless --path pine_ci --script res://tests/pine_smoke.gd 2>&1 | tee pine-smoke.log
+          grep -q 'PINE_CI_OK' pine-smoke.log
+          if grep -Ei 'Parse Error|SCRIPT ERROR|ERROR:|PINE_CI_FAIL' pine-smoke.log; then exit 1; fi
+
+      - name: Real Godot 4.7.2 GL render - CONICAL
+        run: |
+          set -o pipefail
+          timeout 90 xvfb-run -a -s '-screen 0 1280x900x24' godot --rendering-driver opengl3 --rendering-method gl_compatibility --path pine_ci --script res://tests/render_preview.gd -- --shape=0 2>&1 | tee pine-conical.log
+          grep -q 'PINE_RENDER_OK conical' pine-conical.log
+          test -s pine_ci/out/pine_conical.png
+
+      - name: Real Godot 4.7.2 GL render - OVAL
+        run: |
+          set -o pipefail
+          timeout 90 xvfb-run -a -s '-screen 0 1280x900x24' godot --rendering-driver opengl3 --rendering-method gl_compatibility --path pine_ci --script res://tests/render_preview.gd -- --shape=1 2>&1 | tee pine-oval.log
+          grep -q 'PINE_RENDER_OK oval' pine-oval.log
+          test -s pine_ci/out/pine_oval.png
+
+      - name: Real Godot 4.7.2 GL render - UMBRELLA
+        run: |
+          set -o pipefail
+          timeout 90 xvfb-run -a -s '-screen 0 1280x900x24' godot --rendering-driver opengl3 --rendering-method gl_compatibility --path pine_ci --script res://tests/render_preview.gd -- --shape=2 2>&1 | tee pine-umbrella.log
+          grep -q 'PINE_RENDER_OK umbrella' pine-umbrella.log
+          test -s pine_ci/out/pine_umbrella.png
+
+      - name: Upload original Godot screenshots and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pine-godot-472-render-preview
+          path: |
+            pine_ci/out/*.png
+            pine-import.log
+            pine-smoke.log
+            pine-conical.log
+            pine-oval.log
+            pine-umbrella.log
+            godot-version.txt
+          if-no-files-found: warn
