@@ -23,3 +23,9 @@ Implementation: `shaders/river.gdshader`, `shaders/terrain.gdshader`, `world/riv
 - CI: Godot 4.7.2 stable GDScript+shader load, 49bone gameplay regression, S1–S3, S4 texture and UV2/quality shader test.
 - Android: image checks from 2 camera elevations, near-shore foreground occlusion, 0.05/0.4/1.2m water depth, moving water, under-surface look, low/balanced/high GPU budget.
 - Volumetric underwater camera is S6, atmospheric sun/sky is S5. No claim these are implemented.
+
+## Optional software Vulkan render proof (new CI step)
+- `tests/s4_visual_probe.gd` takes 960x540 reference capture with non-headless Godot Mobile Vulkan using Lavapipe under Xvfb.
+- `tools/check_vulkan_capture.py` checks the PNG dimensions and luminance variance, preventing flat gray/black frames from being considered successful.
+- This GitHub runner may not expose usable software Vulkan. Step is deliberately `continue-on-error` and reports failure in logs, not green visual acceptance.
+- This proof is **not** a substitute for Adreno/Mali Android device visual and performance measurement.

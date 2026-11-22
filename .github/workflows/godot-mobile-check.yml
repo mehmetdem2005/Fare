@@ -76,6 +76,21 @@ jobs:
           timeout 100 godot --headless --path . --script res://tests/river_s4_test.gd 2>&1 | tee /tmp/river_s4.log
           grep -q RIVER_S4_OK /tmp/river_s4.log
           if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|RIVER_S4_FAIL' /tmp/river_s4.log; then exit 1; fi
+      # Optional real Vulkan render proof, separate from strict headless tests.
+      # Software GPU is not Android; do not treat success as device visual QA.
+      - name: Install software Vulkan and virtual display for visual probe
+        continue-on-error: true
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb xauth mesa-vulkan-drivers
+          test -f /usr/share/vulkan/icd.d/lvp_icd.x86_64.json
+      - name: Attempt Mobile Vulkan visual probe (Lavapipe, non-blocking)
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          timeout 140 xvfb-run -a -s '-screen 0 960x540x24' env VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/lvp_icd.x86_64.json godot --rendering-method mobile --rendering-driver vulkan --path . --resolution 960x540 --script res://tests/s4_visual_probe.gd 2>&1 | tee /tmp/s4_vulkan_render.log
+          grep -q S4_VISUAL_OK /tmp/s4_vulkan_render.log
+          python3 tools/check_vulkan_capture.py
       - name: Commit downloaded Poly Haven PBR to this feature branch
         if: github.ref == 'refs/heads/feat/river-s0-s1-geomorphology'
         run: |
@@ -107,4 +122,6 @@ jobs:
             /tmp/shore_s2.log
             /tmp/river_s3.log
             /tmp/river_s4.log
+            /tmp/s4_vulkan_render.log
+            /tmp/s4_mobile_vulkan.png
           if-no-files-found: ignore
