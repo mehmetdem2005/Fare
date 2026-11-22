@@ -14,12 +14,14 @@ var rapids: AudioStreamPlayer3D
 var update_clock: float = 0.0
 var filter_hz: float = 16000.0
 var active: bool = true
+var owns_bus: bool = false
 
 func _ready() -> void:
     name="RiverSoundscape"
     bus_index=AudioServer.get_bus_index(AUDIO_BUS)
     if bus_index<0:
         AudioServer.add_bus()
+        owns_bus=true
         bus_index=AudioServer.bus_count-1
         AudioServer.set_bus_name(bus_index,AUDIO_BUS)
     # Only our river bus is filtered; never modify the user's Master bus.
@@ -28,6 +30,19 @@ func _ready() -> void:
     AudioServer.add_bus_effect(bus_index,low_pass)
     calm=_make_player("CalmCurrent","res://assets/audio/river_calm.wav")
     rapids=_make_player("RockRapids","res://assets/audio/river_rapids.wav")
+
+func _exit_tree() -> void:
+    # The headless Godot tests also own an AudioServer; leaving buses behind
+    # leaks audio resources at shutdown and hides actual regression errors.
+    if calm != null:
+        calm.stop()
+    if rapids != null:
+        rapids.stop()
+    var index: int = AudioServer.get_bus_index(AUDIO_BUS)
+    if owns_bus and index>=0:
+        AudioServer.remove_bus(index)
+    low_pass=null
+    bus_index=-1
 
 func _make_player(label: String, resource_path: String) -> AudioStreamPlayer3D:
     var player: AudioStreamPlayer3D = AudioStreamPlayer3D.new()
