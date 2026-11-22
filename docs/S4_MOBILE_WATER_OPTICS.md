@@ -29,3 +29,9 @@ Implementation: `shaders/river.gdshader`, `shaders/terrain.gdshader`, `world/riv
 - `tools/check_vulkan_capture.py` checks the PNG dimensions and luminance variance, preventing flat gray/black frames from being considered successful.
 - This GitHub runner may not expose usable software Vulkan. Step is deliberately `continue-on-error` and reports failure in logs, not green visual acceptance.
 - This proof is **not** a substitute for Adreno/Mali Android device visual and performance measurement.
+
+## Rendering truth-in-tests correction
+- CI run [45024283580](https://github.com/mehmetdem2005/Fare/actions/runs/45024283580) produced a 960x540 non-flat PNG, but log showed `Required Vulkan instance extension VK_KHR_surface not found` followed by **fallback to OpenGL 3**.
+- Consequently this screenshot is **not proof** that S4 water optics render correctly on Mobile Vulkan.
+- The optional probe now rejects OpenGL fallback with `S4_VULKAN_UNAVAILABLE`; its GitHub step will fail (nonblocking) until a genuine Vulkan surface is available.
+- Separate Android GPU capture and optimization remain mandatory quality gates.

@@ -84,13 +84,19 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq xvfb xauth mesa-vulkan-drivers
           test -f /usr/share/vulkan/icd.d/lvp_icd.x86_64.json
-      - name: Attempt Mobile Vulkan visual probe (Lavapipe, non-blocking)
+      - name: Attempt real Mobile Vulkan capture; reject OpenGL fallback
         continue-on-error: true
         run: |
           set -o pipefail
           timeout 140 xvfb-run -a -s '-screen 0 960x540x24' env VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/lvp_icd.x86_64.json godot --rendering-method mobile --rendering-driver vulkan --path . --resolution 960x540 --script res://tests/s4_visual_probe.gd 2>&1 | tee /tmp/s4_vulkan_render.log
           grep -q S4_VISUAL_OK /tmp/s4_vulkan_render.log
           python3 tools/check_vulkan_capture.py
+          # A PNG produced after Godot falls back to OpenGL is NOT a Vulkan test.
+          if grep -E 'VK_KHR_surface not found|switching to OpenGL|OpenGL 3' /tmp/s4_vulkan_render.log; then
+            echo "S4_VULKAN_UNAVAILABLE: compatibility renderer fallback — NOT a Mobile/Vulkan acceptance"
+            exit 1
+          fi
+          echo "S4_VULKAN_BACKEND_CONFIRMED"
       - name: Commit downloaded Poly Haven PBR to this feature branch
         if: github.ref == 'refs/heads/feat/river-s0-s1-geomorphology'
         run: |
