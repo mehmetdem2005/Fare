@@ -74,6 +74,29 @@ func _test_scene() -> void:
     if absf(landing_y - expected_y) > 1.1:
         _fail("mouse landed at wrong altitude: " + str(landing_y))
         return
+    # S1: physics collision must agree with analytic river bed and both banks.
+    var profile: RiverProfile = game.get("river_profile") as RiverProfile
+    if profile == null:
+        _fail("RiverProfile instance not connected to world")
+        return
+    for z in [14.0, 18.0, 32.0]:
+        var banks: Vector2 = profile.banks_at_z(z)
+        var probes: Array[float] = [banks.x-0.65, banks.x+0.65, banks.y-0.65, banks.y+0.65]
+        for x in probes:
+            var expected_bed: float = game.call("_height", x, z)
+            var shore_ray: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(
+                Vector3(x, expected_bed + 14.0, z),
+                Vector3(x, expected_bed - 8.0, z))
+            shore_ray.collision_mask = 1
+            shore_ray.hit_back_faces = false
+            var shore_hit: Dictionary = game.get_world_3d().direct_space_state.intersect_ray(shore_ray)
+            if shore_hit.is_empty():
+                _fail("riverbank collider missing at " + str(Vector2(x,z)))
+                return
+            var actual_bed: float = (shore_hit["position"] as Vector3).y
+            if absf(actual_bed - expected_bed) > 0.24:
+                _fail("riverbank collision differs from render height at " + str(Vector2(x,z)) + ": " + str(actual_bed-expected_bed))
+                return
     # Exercise actual controller entry points and physics, not only scene parsing.
     var hud: Control = game.get("hud") as Control
     var origin: Vector3 = actor.global_position
