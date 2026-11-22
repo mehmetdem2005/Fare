@@ -1,0 +1,8 @@
+# S9.2 Cache integrity implementation (Godot 4.7.2, Android 11)
+Earlier user-cache v3 saved terrain/collision/water/flow directly to final .res files. A crash midway could yield a mismatched mesh/shape pair. The new implementation leaves read-only 112 v3 packed assets and pre-existing user://world_cache/v3 untouched, reads legacy v3 if no v4 manifest, and stores new user chunks under user://world_cache/v4/.
+
+Before writing final files, save each resource to a .tmp.res file and record length+SHA256. Rename payloads, then commit a versioned JSON manifest *last* with magic FVCH, schema 4, seed 88973, generator v3, river v2 and exact chunk x/z. Manifest verification checks all paths, lengths and hashes before loading any resource. Corrupted/truncated/incomplete v4 is rejected as a **cache miss**, never mismatched physics. Tests corrupt manifest text and terrain bytes, verify safe rejection and recovery; old v3 asset packs stay valid.
+
+This is 'atomic-ish' only: temporary writes and last-rename commit marker limit bad reads; it is not a guarantee of durable fsync on power loss. Android still calls ResourceSaver on scene/main thread after 8s stationary; the disk write hitch is not yet fixed. No claim of crash-free storage pressure or full OS-level power-loss testing. SHA verification itself adds I/O: compare cold/warm device metrics. Old user v3 remains for migration and backup.
+
+Counters in S9 JSON: cache_integrity_rejects, cache_legacy_v3_hits, cache_write_failures. A later stage should separate immutable data compression/serialization and async storage I/O from SceneTree resources.
