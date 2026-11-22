@@ -70,5 +70,21 @@ func _run() -> void:
     if not (game.get("s9_worker_ready") as Dictionary).has(key):
         _fail("premature disposal")
         return
-    print("S9_CPU_PREFETCH_OK task_limit=2 stale_discard=2 ready_bound=6 gpu_resources=main_only rig=49")
+    var original_bytes: PackedByteArray=data.flow_rgba8.duplicate()
+    game.call("_add_chunk",key,true)
+    var node: Node3D=game.get_node_or_null("Chunk_0_14") as Node3D
+    if node==null or node.get_node_or_null("TerrainCollider/TerrainCollisionShape")==null:
+        _fail("ready worker chunk not published with terrain collision")
+        return
+    var water: MeshInstance3D=node.get_node_or_null("FlowingWater") as MeshInstance3D
+    if water==null or (water.get_meta("flow_image") as Image).get_data()!=original_bytes:
+        _fail("ready flow bytes not connected to correct water material")
+        return
+    if int(game.get("s9_worker_used"))!=1:
+        _fail("worker result not used in main-thread publisher")
+        return
+    if (game.get("s9_worker_ready") as Dictionary).has(key):
+        _fail("ready worker data retained after commit")
+        return
+    print("S9_CPU_PREFETCH_OK task_limit=2 stale_discard=2 ready_bound=6 gpu_resources=main_only published_collision=ready worker_used=1 flow=identical rig=49")
     quit(0)
