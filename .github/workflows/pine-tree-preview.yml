@@ -81,7 +81,7 @@ jobs:
           git add -f pine_ci/PineTreeGenerator.gd
           if ! git diff --staged --quiet; then
             git commit -m "test(pine): expose decoded source for review [skip ci]"
-            git push origin HEAD:test/pine-tree-godot-472-ci
+            git push origin HEAD:${GITHUB_REF_NAME}
           fi
 
       - name: Godot parser, editor import and shader validation
