@@ -23,9 +23,13 @@ void fragment() {
     float tree_cover = smoothstep(-0.2, 0.65, sin(world_position.x * 0.04) * sin(world_position.z * 0.06));
     vec3 base = mix(grass, forest, 0.17 + tree_cover * 0.25);
     base = mix(base, cliff, rock_amount);
-    float center = sin(world_position.z * 0.012) * 4.2 + sin(world_position.z * 0.031) * 1.6;
-    float shore = 1.0 - smoothstep(7.7, 14.0, abs(world_position.x - center));
-    base = mix(base, pebbles, shore * 0.99);
+    // S1 shares exactly the CPU-generated river edge; no old sine center mask.
+    // S2 will extend the vertex weights into PBR sediment + wetness layers.
+    float shore = clamp(COLOR.r, 0.0, 1.0);
+    float wetness = clamp(COLOR.g, 0.0, 1.0);
+    float breakup = 0.82 + 0.18 * sin(world_position.x * 0.81 + sin(world_position.z * 0.36) * 2.1);
+    base = mix(base, pebbles, shore * breakup);
+    base *= 1.0 - 0.16 * wetness;
     ALBEDO = base;
     ROUGHNESS = 0.89;
     METALLIC = 0.0;

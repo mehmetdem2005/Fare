@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - game/godot-mobile-mouse-valley-clean
+      - feat/river-s0-s1-geomorphology
   workflow_dispatch:
 
 permissions:
@@ -47,7 +48,14 @@ jobs:
           timeout 100 godot --headless --path . --script res://tests/smoke.gd 2>&1 | tee /tmp/smoke.log
           grep -q SMOKE_OK /tmp/smoke.log
           if grep -E 'Parse Error|SCRIPT ERROR|Invalid call|ERROR:' /tmp/smoke.log; then exit 1; fi
+      - name: S1 geometry, bank intersections, chunk water seams
+        run: |
+          set -o pipefail
+          timeout 100 godot --headless --path . --script res://tests/river_s1_test.gd 2>&1 | tee /tmp/river_s1.log
+          grep -q RIVER_S1_OK /tmp/river_s1.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|RIVER_S1_FAIL' /tmp/river_s1.log; then exit 1; fi
       - name: Commit downloaded Poly Haven textures on this isolated branch
+        if: github.ref == 'refs/heads/game/godot-mobile-mouse-valley-clean'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -63,4 +71,5 @@ jobs:
           path: |
             /tmp/import.log
             /tmp/smoke.log
+            /tmp/river_s1.log
           if-no-files-found: ignore

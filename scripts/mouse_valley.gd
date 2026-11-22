@@ -3,7 +3,7 @@ extends Node3D
 # All chunk geometry and river banks use global coordinates for seamless borders.
 
 const CELL: float = 40.0
-const GRID: int = 25
+const GRID: int = 56 # global Z rows shared by every terrain chunk; adaptive X rows
 const RADIUS: int = 2
 const RIVER_HALF: float = 7.8
 const WATER_Y: float = 0.18
@@ -14,6 +14,8 @@ const SPAWN_X: float = 20.0
 const SPAWN_Z: float = 16.0
 const SPAWN_HEIGHT_ABOVE_TERRAIN: float = 3.5
 
+var river_profile: RiverProfile = RiverProfile.new()
+var river_surface_builder: RiverSurfaceBuilder = RiverSurfaceBuilder.new()
 var height_noise: FastNoiseLite = FastNoiseLite.new()
 var detail_noise: FastNoiseLite = FastNoiseLite.new()
 var player: CharacterBody3D
@@ -383,15 +385,27 @@ func _animate_mouse(delta: float) -> void:
     _pose("head", Vector3.UP, 0.012 * sin(elapsed * 2.1))
 
 func _river_x(z: float) -> float:
-    return sin(z * 0.012) * 4.2 + sin(z * 0.031) * 1.6
+    # Legacy helpers call this: always use the S1 shared profile now.
+    return river_profile.center_x(z)
 
 func _height(x: float, z: float) -> float:
     var valley: float = 2.0 + height_noise.get_noise_2d(x, z) * 2.5 + detail_noise.get_noise_2d(x, z) * 0.4
     var mountain_factor: float = smoothstep(30.0, 110.0, absf(x))
     var mountain: float = 12.0 * mountain_factor + pow(mountain_factor, 1.55) * (13.0 + absf(height_noise.get_noise_2d(x + 91.0, z)) * 20.0)
-    var distance: float = absf(x - _river_x(z))
-    var bed: float = -1.15 + 0.56 * pow(minf(distance / RIVER_HALF, 1.0), 2.0)
-    return lerpf(bed, valley + mountain, smoothstep(RIVER_HALF - 0.7, RIVER_HALF + 8.2, distance))
+    return river_profile.terrain_height(x, z, valley + mountain)
+
+func _terrain_x_grid(chunk_x: float) -> PackedFloat32Array:
+    # Perimeter vertices land on exact tile boundaries; fine steps only near
+    # the river corridor, cheaper 1.4m ground elsewhere. The result depends
+    # on world X, NEVER on load order or the camera position.
+    var values: PackedFloat32Array = PackedFloat32Array([0.0])
+    var local_x: float = 0.0
+    while local_x < CELL - 0.0001:
+        var world_x: float = chunk_x + local_x
+        var step: float = 0.38 if absf(world_x) <= 22.0 else 1.42
+        local_x = minf(CELL, local_x + step)
+        values.append(local_x)
+    return values
 
 func _current_chunk() -> Vector2i:
     return Vector2i(floori(player.global_position.x / CELL), floori(player.global_position.z / CELL))
@@ -425,28 +439,35 @@ func _add_chunk(co: Vector2i) -> void:
     var verts: PackedVector3Array = PackedVector3Array()
     var normals: PackedVector3Array = PackedVector3Array()
     var uv: PackedVector2Array = PackedVector2Array()
+    var colors: PackedColorArray = PackedColorArray()
     var indices: PackedInt32Array = PackedInt32Array()
-    var dx: float = CELL / float(GRID)
-    for iz in range(GRID + 1):
-        for ix in range(GRID + 1):
-            var wx: float = root.position.x + float(ix) * dx
-            var wz: float = root.position.z + float(iz) * dx
-            verts.append(Vector3(float(ix) * dx, _height(wx, wz), float(iz) * dx))
-            var slope_x: float = _height(wx + 0.3, wz) - _height(wx - 0.3, wz)
-            var slope_z: float = _height(wx, wz + 0.3) - _height(wx, wz - 0.3)
-            normals.append(Vector3(-slope_x, 0.6, -slope_z).normalized())
+    var x_grid: PackedFloat32Array = _terrain_x_grid(root.position.x)
+    var columns: int = x_grid.size()
+    var rows: int = GRID + 1
+    var dz: float = CELL / float(GRID)
+    for iz in range(rows):
+        for ix in range(columns):
+            var lx: float = x_grid[ix]
+            var lz: float = float(iz) * dz
+            var wx: float = root.position.x + lx
+            var wz: float = root.position.z + lz
+            verts.append(Vector3(lx, _height(wx, wz), lz))
+            var slope_x: float = _height(wx + 0.2, wz) - _height(wx - 0.2, wz)
+            var slope_z: float = _height(wx, wz + 0.2) - _height(wx, wz - 0.2)
+            normals.append(Vector3(-slope_x, 0.4, -slope_z).normalized())
             uv.append(Vector2(wx, wz) * 0.1)
-    var span: int = GRID + 1
+            var sample: Dictionary = river_profile.sample(Vector2(wx, wz))
+            colors.append(Color(clampf(float(sample["shore_gravel"]), 0.0, 1.0), clampf(float(sample["wetness"]), 0.0, 1.0), 0.0, 1.0))
     for iz in range(GRID):
-        for ix in range(GRID):
-            var a: int = iz * span + ix
-            # Correct Godot 4.7 front-face winding: previously the ground was culled.
-            indices.append_array(PackedInt32Array([a, a + 1, a + span, a + 1, a + span + 1, a + span]))
+        for ix in range(columns - 1):
+            var a: int = iz * columns + ix
+            indices.append_array(PackedInt32Array([a, a + 1, a + columns, a + 1, a + columns + 1, a + columns]))
     var arrays: Array = []
     arrays.resize(Mesh.ARRAY_MAX)
     arrays[Mesh.ARRAY_VERTEX] = verts
     arrays[Mesh.ARRAY_NORMAL] = normals
     arrays[Mesh.ARRAY_TEX_UV] = uv
+    arrays[Mesh.ARRAY_COLOR] = colors
     arrays[Mesh.ARRAY_INDEX] = indices
     var mesh: ArrayMesh = ArrayMesh.new()
     mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
@@ -463,41 +484,16 @@ func _add_chunk(co: Vector2i) -> void:
     root.add_child(collider_body)
     _trees(root, co)
     _grass(root, co)
-    # River can wander across 2 neighboring x chunks; build clipping piece per chunk.
-    if co.x == 0:
+    # The actual water is clipped to each owning terrain chunk. No duplicate
+    # full-width surfaces and no disappearing negative-X bank.
+    if co.x >= -1 and co.x <= 0:
         _water(root, co)
-    if co.x == 0 or co.x == -1:
         _rocks(root, co)
 
 func _water(root: Node3D, co: Vector2i) -> void:
-    var verts: PackedVector3Array = PackedVector3Array()
-    var uv: PackedVector2Array = PackedVector2Array()
-    var normal: PackedVector3Array = PackedVector3Array()
-    var idx: PackedInt32Array = PackedInt32Array()
-    const STEP_Z: int = 64
-    const STEP_X: int = 12
-    for iz in range(STEP_Z + 1):
-        var local_z: float = CELL * float(iz) / float(STEP_Z)
-        var wz: float = root.position.z + local_z
-        for ix in range(STEP_X + 1):
-            var across: float = float(ix) / float(STEP_X)
-            var wx: float = _river_x(wz) + (2.0 * across - 1.0) * RIVER_HALF
-            verts.append(Vector3(wx - root.position.x, WATER_Y, local_z))
-            uv.append(Vector2(across, wz * 0.1))
-            normal.append(Vector3.UP)
-    var row: int = STEP_X + 1
-    for iz in range(STEP_Z):
-        for ix in range(STEP_X):
-            var n: int = iz * row + ix
-            idx.append_array(PackedInt32Array([n, n + 1, n + row, n + 1, n + row + 1, n + row]))
-    var arrays: Array = []
-    arrays.resize(Mesh.ARRAY_MAX)
-    arrays[Mesh.ARRAY_VERTEX] = verts
-    arrays[Mesh.ARRAY_NORMAL] = normal
-    arrays[Mesh.ARRAY_TEX_UV] = uv
-    arrays[Mesh.ARRAY_INDEX] = idx
-    var water_mesh: ArrayMesh = ArrayMesh.new()
-    water_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+    var water_mesh: ArrayMesh = river_surface_builder.build_chunk(river_profile, co, CELL)
+    if water_mesh.get_surface_count() == 0:
+        return
     var water_instance: MeshInstance3D = MeshInstance3D.new()
     water_instance.name = "FlowingWater"
     water_instance.mesh = water_mesh
@@ -579,7 +575,7 @@ func _trees(root: Node3D, co: Vector2i) -> void:
         var wx: float = root.position.x + x
         var wz: float = root.position.z + z
         var y: float = _height(wx, wz)
-        if absf(wx - _river_x(wz)) < RIVER_HALF + 7.0 or y > 28.0:
+        if river_profile.shore_distance(Vector2(wx, wz)) < 6.0 or y > 28.0:
             continue
         if Vector2(wx - SPAWN_X, wz - SPAWN_Z).length() < 7.0:
             continue
@@ -598,7 +594,7 @@ func _grass(root: Node3D, co: Vector2i) -> void:
         var wx: float = root.position.x + x
         var wz: float = root.position.z + z
         var y: float = _height(wx, wz)
-        if absf(wx - _river_x(wz)) < RIVER_HALF + 3.0 or y > 18.0:
+        if river_profile.shore_distance(Vector2(wx, wz)) < 2.4 or y > 18.0:
             continue
         var size: float = rng.randf_range(0.65, 1.45)
         xforms.append(Transform3D(Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3(size, size, size)), Vector3(x, y + 0.015, z)))
@@ -613,8 +609,8 @@ func _rocks(root: Node3D, co: Vector2i) -> void:
         var z: float = rng.randf_range(0.0, CELL)
         var wx: float = root.position.x + x
         var wz: float = root.position.z + z
-        var dist: float = absf(wx - _river_x(wz))
-        if dist < RIVER_HALF - 2.0 or dist > RIVER_HALF + 5.0:
+        var shoreline_distance: float = river_profile.shore_distance(Vector2(wx, wz))
+        if shoreline_distance < -1.1 or shoreline_distance > 4.2:
             continue
         var scale: float = rng.randf_range(0.14, 0.43)
         xforms.append(Transform3D(Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3(scale * 1.5, scale * 0.48, scale)), Vector3(x, _height(wx, wz) + scale * 0.13, z)))
