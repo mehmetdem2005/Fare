@@ -5,6 +5,8 @@ Tap **FPS** in the upper-right corner of Fare Vadisi. The compact panel shows sa
 
 Tap **KOPYALA** to place the report JSON on Android's clipboard and paste it into chat. Tap **JSON KAYDET** to write to user://perf_reports/fare-s8-yyyy-mm-ddThh-mm-ss.json. This data stays on the phone; it is not uploaded automatically.
 
+The panel also reports the longest observed frame and session-wide counts of >50ms and >=500ms intervals. These do not discard long stalls; however, returning from the background can also produce large deltas. p95/p99 still cover the most recent 1,800 render-loop samples.
+
 Important: Godot Performance counters can return zero on release builds. The frame intervals use _process delta, not real GPU timestamps. Do **not** equate these readings with GPU occupancy, power consumption, or thermal throttling. Android screenshots and sustained test are still required.
 
 ### Repeatable tests

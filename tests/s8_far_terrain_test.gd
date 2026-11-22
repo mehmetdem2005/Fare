@@ -34,6 +34,10 @@ func _run() -> void:
         var old_colors: Dictionary=substrate.sample(legacy,Vector2(p.x,p.z))
         var actual: Color=colors[i]
         var expected_y: float=float(legacy["terrain_y"])
+        var helper_y: float=float(game.call("_height",p.x,p.z))
+        if absf(helper_y-expected_y)>0.0005:
+            _fail("far runtime height shortcut diverged at "+str(p))
+            return
         # ArrayMesh vertex positions use single-precision coordinates.
         # At ~200m world X, a few 1e-5 m units of rounding are expected.
         if absf(expected_y-p.y)>0.0005:

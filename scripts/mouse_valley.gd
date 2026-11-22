@@ -553,7 +553,12 @@ func _base_height(x: float, z: float) -> float:
     return valley + mountain
 
 func _height(x: float, z: float) -> float:
-    return river_profile.terrain_height(x, z, _base_height(x, z))
+    var base_y: float=_base_height(x,z)
+    # S8-B confirms no river deformation at |world x| > 45m.
+    # Foliage placement and perimeter normals now skip this spline hot path.
+    if absf(x)>45.0:
+        return base_y
+    return river_profile.terrain_height(x,z,base_y)
 
 func _terrain_x_grid(chunk_x: float) -> PackedFloat32Array:
     # Perimeter vertices land on exact tile boundaries; fine steps only near

@@ -7,6 +7,10 @@ var game: Node3D
 var frame_ms: PackedFloat32Array = PackedFloat32Array()
 var cursor: int = 0
 var samples: int = 0
+# These session-wide counters preserve rare stalls beyond the rolling sample ring.
+var longest_frame_ms: float = 0.0
+var frame_over_50ms_total: int = 0
+var long_frame_500ms_total: int = 0
 var refresh: float = 0.0
 var panel: PanelContainer
 var toggle: Button
@@ -65,9 +69,17 @@ func _toggle() -> void:
         _refresh_snapshot()
 
 func _process(delta: float) -> void:
-    if game==null or delta<=0.00001 or delta>0.5:
+    if game==null or delta<=0.00001:
         return
-    frame_ms[cursor]=delta*1000.0
+    # Do not silently discard 500ms+ hitches. App resume can also cause
+    # large deltas; the counters show what happened, not which thread caused it.
+    var observed_ms: float=delta*1000.0
+    longest_frame_ms=maxf(longest_frame_ms,observed_ms)
+    if observed_ms>50.0:
+        frame_over_50ms_total+=1
+    if observed_ms>=500.0:
+        long_frame_500ms_total+=1
+    frame_ms[cursor]=observed_ms
     cursor=(cursor+1)%BUFFER
     samples=mini(samples+1,BUFFER)
     refresh+=delta
@@ -108,6 +120,9 @@ func _refresh_snapshot() -> void:
         "frame_mean_ms":snappedf(mean,0.01),
         "frame_p95_ms":snappedf(_percentile(ordered,0.95),0.01),
         "frame_p99_ms":snappedf(_percentile(ordered,0.99),0.01),
+        "longest_frame_ms":snappedf(longest_frame_ms,0.01),
+        "frame_over_50ms_total":frame_over_50ms_total,
+        "long_frame_500ms_total":long_frame_500ms_total,
         "draw_calls_reported":int(draw_calls),
         "render_memory_reported_mb":snappedf(video_mem_mb,0.1),
         "static_memory_reported_mb":snappedf(static_mb,0.1),
@@ -124,6 +139,7 @@ func _refresh_snapshot() -> void:
     var text_value: String="GODOT 4.7.2 • S8 / TELEFON\n"
     text_value+="FPS ~ %.1f  Ortalama %.2f ms\n" % [fps,mean]
     text_value+="p95 %.2f ms  p99 %.2f ms\n" % [float(snapshot["frame_p95_ms"]),float(snapshot["frame_p99_ms"])]
+    text_value+="Max %.0f ms  >50ms %d  >=500ms %d\n" % [longest_frame_ms,frame_over_50ms_total,long_frame_500ms_total]
     text_value+="Draw %d  GPU bellek* %.1f MB\n" % [int(draw_calls),video_mem_mb]
     text_value+="RAM* %.1f MB  Chunk %d\n" % [static_mb,chunks.size()]
     text_value+="Hazir %d  Uretilen %d\n" % [int(snapshot["cache_pack_or_user_hits"]),int(snapshot["cache_generated_misses"])]

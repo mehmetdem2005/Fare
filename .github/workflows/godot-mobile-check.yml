@@ -27,14 +27,13 @@ jobs:
         run: python3 tools/fetch_polyhaven.py
       - name: Validate real PBR packed images and source provenance
         run: python3 tools/check_ground_pbr.py
-      - name: Retrieve 49-bone R39 corrected mouse GLB with genuine exported animation
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Use reviewed repository-pinned 49-bone mouse GLB
         run: |
-          mkdir -p /tmp/fare-r41
-          gh run download 44117917452 --repo mehmetdem2005/Fare --name fare-round41-corrected-sprint-review-glb-plus-reimport-check --dir /tmp/fare-r41
-          echo "351a9475aeb6142331e4bc296aee957648cb055c7afc9988943a12c559c937d2  /tmp/fare-r41/R41_FARE_49BONE_SPRINT_CORRECTED_REVIEW_ONLY.glb" | sha256sum -c -
-          cp /tmp/fare-r41/R41_FARE_49BONE_SPRINT_CORRECTED_REVIEW_ONLY.glb assets/mouse/mouse_r39_corrected.glb
+          set -euo pipefail
+          test -s assets/mouse/mouse_r39_corrected.glb
+          # Git blob identity guards against accidental model substitution.
+          test "$(git hash-object assets/mouse/mouse_r39_corrected.glb)" = "ff16a733387aafb48951917aed650a0a53787b5f"
+          echo "MOUSE_GLB_PINNED_OK"
       - name: Verify corrected 49-bone GLB UV and skin bind matrices
         run: python3 tools/validate_gltf.py assets/mouse/mouse_r39_corrected.glb
       - name: Install Godot 4.7.2 stable headless-capable editor
