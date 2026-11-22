@@ -70,34 +70,34 @@ jobs:
       - name: Godot parser, editor import and shader validation
         run: |
           set -o pipefail
-          timeout 120 xvfb-run -a -s '-screen 0 1280x900x24' godot --rendering-driver opengl3 --rendering-method gl_compatibility --editor --path pine_ci --import --quit 2>&1 | tee pine-import.log
+          timeout 120 godot --headless --audio-driver Dummy --editor --path pine_ci --import --quit 2>&1 | tee pine-import.log
           if grep -Ei 'Parse Error|SCRIPT ERROR|Shader compilation failed|ERROR:' pine-import.log; then exit 1; fi
 
       - name: GDScript geometry, seed, LOD and export regression
         run: |
           set -o pipefail
-          timeout 120 godot --headless --path pine_ci --script res://tests/pine_smoke.gd 2>&1 | tee pine-smoke.log
+          timeout 120 godot --headless --audio-driver Dummy --path pine_ci --script res://tests/pine_smoke.gd 2>&1 | tee pine-smoke.log
           grep -q 'PINE_CI_OK' pine-smoke.log
           if grep -Ei 'Parse Error|SCRIPT ERROR|ERROR:|PINE_CI_FAIL' pine-smoke.log; then exit 1; fi
 
       - name: Real Godot 4.7.2 GL render - CONICAL
         run: |
           set -o pipefail
-          timeout 90 xvfb-run -a -s '-screen 0 1280x900x24' godot --rendering-driver opengl3 --rendering-method gl_compatibility --path pine_ci --script res://tests/render_preview.gd -- --shape=0 2>&1 | tee pine-conical.log
+          timeout 90 xvfb-run -a -s '-screen 0 1280x900x24' godot --audio-driver Dummy --rendering-driver opengl3 --rendering-method gl_compatibility --path pine_ci --script res://tests/render_preview.gd -- --shape=0 2>&1 | tee pine-conical.log
           grep -q 'PINE_RENDER_OK conical' pine-conical.log
           test -s pine_ci/out/pine_conical.png
 
       - name: Real Godot 4.7.2 GL render - OVAL
         run: |
           set -o pipefail
-          timeout 90 xvfb-run -a -s '-screen 0 1280x900x24' godot --rendering-driver opengl3 --rendering-method gl_compatibility --path pine_ci --script res://tests/render_preview.gd -- --shape=1 2>&1 | tee pine-oval.log
+          timeout 90 xvfb-run -a -s '-screen 0 1280x900x24' godot --audio-driver Dummy --rendering-driver opengl3 --rendering-method gl_compatibility --path pine_ci --script res://tests/render_preview.gd -- --shape=1 2>&1 | tee pine-oval.log
           grep -q 'PINE_RENDER_OK oval' pine-oval.log
           test -s pine_ci/out/pine_oval.png
 
       - name: Real Godot 4.7.2 GL render - UMBRELLA
         run: |
           set -o pipefail
-          timeout 90 xvfb-run -a -s '-screen 0 1280x900x24' godot --rendering-driver opengl3 --rendering-method gl_compatibility --path pine_ci --script res://tests/render_preview.gd -- --shape=2 2>&1 | tee pine-umbrella.log
+          timeout 90 xvfb-run -a -s '-screen 0 1280x900x24' godot --audio-driver Dummy --rendering-driver opengl3 --rendering-method gl_compatibility --path pine_ci --script res://tests/render_preview.gd -- --shape=2 2>&1 | tee pine-umbrella.log
           grep -q 'PINE_RENDER_OK umbrella' pine-umbrella.log
           test -s pine_ci/out/pine_umbrella.png
 
