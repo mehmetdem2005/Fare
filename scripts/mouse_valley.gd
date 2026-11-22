@@ -28,6 +28,8 @@ var wet_meshes: Array[MeshInstance3D] = []
 var wet_overlay_active: bool = false
 var last_wet_value: float = -1.0
 var ripple_time: float = 0.0
+var last_wet_point: Vector2 = Vector2.ZERO
+var last_wet_height: float = 0.0
 var last_water_state: int = MouseWaterInteraction.DRY
 var atmosphere: ForestAtmosphere
 var water_quality: WaterQualitySettings = WaterQualitySettings.new()
@@ -296,16 +298,26 @@ func _emit_water_ripples(delta: float) -> void:
     if ripple_pool == null or player == null:
         return
     if mouse_water.state == MouseWaterInteraction.DRY:
+        if last_water_state != MouseWaterInteraction.DRY and river_profile.shore_distance(last_wet_point)<-0.005:
+            ripple_pool.splash(last_wet_point,last_wet_height,0.31)
         ripple_time = 0.0
         last_water_state = MouseWaterInteraction.DRY
         return
+    var body_point: Vector2 = Vector2(player.global_position.x,player.global_position.z)
+    if river_profile.shore_distance(body_point)<-0.005:
+        last_wet_point=body_point
+        last_wet_height=mouse_water.water_y
     ripple_time -= delta
     var speed: float = Vector2(player.velocity.x,player.velocity.z).length()
     var first_contact: bool = last_water_state == MouseWaterInteraction.DRY or last_water_state != mouse_water.state
     if first_contact or (ripple_time <= 0.0 and speed > 0.12):
         var direction: Vector2 = Vector2(player.velocity.x,player.velocity.z).normalized()
-        var point: Vector2 = Vector2(player.global_position.x,player.global_position.z)+direction*0.21
-        ripple_pool.splash(point,mouse_water.water_y,0.7 if mouse_water.state == MouseWaterInteraction.SWIMMING else 0.43)
+        var point: Vector2 = body_point+direction*0.21
+        if river_profile.shore_distance(point)>-0.03:
+            point=body_point
+        # Don't spawn a bright ring on the DRY shoreline from a moving paw.
+        if river_profile.shore_distance(point)<-0.005:
+            ripple_pool.splash(point,mouse_water.water_y,0.7 if mouse_water.state == MouseWaterInteraction.SWIMMING else 0.43)
         ripple_time = 0.38 if mouse_water.state == MouseWaterInteraction.SWIMMING else 0.56
     last_water_state = mouse_water.state
 

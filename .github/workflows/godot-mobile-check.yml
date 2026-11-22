@@ -211,6 +211,12 @@ jobs:
           timeout 120 godot --headless --path . --script res://tests/s5_sun_lod_sync_test.gd 2>&1 | tee /tmp/s5_sun_sync.log
           grep -q S5_SUN_SYNC_OK /tmp/s5_sun_sync.log
           if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S5_SUN_SYNC_FAIL' /tmp/s5_sun_sync.log; then exit 1; fi
+      - name: S6 riverbank water ripple and underwater backface QA
+        run: |
+          set -o pipefail
+          timeout 100 godot --headless --path . --script res://tests/s6_shore_ripple_test.gd 2>&1 | tee /tmp/s6_shore_ripple.log
+          grep -q S6_SHORE_RIPPLE_OK /tmp/s6_shore_ripple.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S6_SHORE_RIPPLE_FAIL' /tmp/s6_shore_ripple.log; then exit 1; fi
       # Optional real Vulkan render proof, separate from strict headless tests.
       # Software GPU is not Android; do not treat success as device visual QA.
       - name: Install software Vulkan and virtual display for visual probe
@@ -264,6 +270,7 @@ jobs:
             /tmp/river_s3.log
             /tmp/s3_flow_bake.log
             /tmp/s3_flow_v2.log
+            /tmp/s6_shore_ripple.log
             /tmp/river_s4.log
             /tmp/atmos_s5.log
             /tmp/river_s6.log

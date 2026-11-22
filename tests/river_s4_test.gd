@@ -16,7 +16,7 @@ func _run() -> void:
     var src: String = shader.code
     for must in ["hint_screen_texture","hint_depth_texture","INV_PROJECTION_MATRIX",
                  "exp(-absorption*optical_path)","enable_refraction",
-                 "flow_atlas","rock_foam","enable_caustics"]:
+                 "flow_atlas","rock_foam","enable_caustics","FRONT_FACING","underwater_tint"]:
         if not src.contains(must):
             _fail("shader contract missing "+must)
             return

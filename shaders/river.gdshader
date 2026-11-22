@@ -59,11 +59,19 @@ void fragment() {
     vec4 wav2 = texture(wave_map,wuv2);
     vec2 slope = ((wav1.rg*2.0-1.0)+0.56*(wav2.rg*2.0-1.0))
                *wave_strength*(0.52+0.36*turbulence);
-    vec3 normal_world = normalize(vec3(slope.x,1.0,slope.y));
+    // Godot 4.7 Mobile FRONT_FACING allows correct underside shading on
+    // the same cull-disabled water mesh without a second rendered surface.
+    bool underside = !FRONT_FACING;
+    vec3 normal_world = normalize(vec3(slope.x,underside ? -1.0 : 1.0,slope.y));
     vec3 normal_view = normalize((VIEW_MATRIX*vec4(normal_world,0.0)).xyz);
     NORMAL = normal_view;
     float cos_view = clamp(dot(normal_view,normalize(VIEW)),0.0,1.0);
     float fresnel = clamp(0.0204+0.9796*pow(1.0-cos_view,5.0),0.0204,0.92);
+    // The underwater surface must not reflect a bright overhead sky like
+    // the top face; keep a faint physically suggestive reflection only.
+    if (underside) {
+        fresnel *= 0.12;
+    }
 
     // Opaque bed depth minus transparent-water fragment depth. For Vulkan
     // NDC depth 0..1, INV_PROJECTION_MATRIX is the documented reconstruction.
@@ -92,20 +100,27 @@ void fragment() {
     float zenith = smoothstep(-0.15,0.85,reflected_world.y);
     vec3 sky_reflection = mix(sky_reflection_horizon,sky_reflection_zenith,zenith);
     float glint = pow(max(0.0,dot(reflected_world,normalize(sun_direction))),120.0)*sun_glint_strength;
+    glint *= underside ? 0.0 : 1.0;
     vec3 color = mix(transmission_color,sky_reflection,fresnel*0.77);
     color += vec3(1.0,0.88,0.66)*glint*clamp(fresnel+0.14,0.0,0.65);
 
     // Tiny high-frequency caustic shimmer near the shallow *waterline*.
     // Main caustics are projected on the real river BED in terrain.gdshader.
     float caustic = max(0.0,wav1.a*wav2.a-0.28);
-    float shallow_caustic = caustic*caustic_strength*shallow*(1.0-river_edge)*float(enable_caustics);
+    float shallow_caustic = caustic*caustic_strength*shallow*(1.0-river_edge)*float(enable_caustics)*(underside ? 0.0 : 1.0);
     color += vec3(0.12,0.18,0.13)*shallow_caustic;
 
     // Foam only from S3 obstacle/velocity field, with a tiny edge contact.
     float foam_pattern = smoothstep(0.40,0.77,wav2.a*0.53+wav1.a*0.47);
-    float foam = rock_foam*foam_pattern*(0.42+0.45*turbulence);
-    float edge_contact = smoothstep(0.970,0.997,river_edge)*0.015;
+    float foam = rock_foam*foam_pattern*(0.42+0.45*turbulence)*(underside ? 0.0 : 1.0);
+    float edge_contact = smoothstep(0.970,0.997,river_edge)*0.015*(underside ? 0.0 : 1.0);
     color = mix(color,foam_tint.rgb,clamp(foam+edge_contact,0.0,0.69));
+    if (underside) {
+        // Looking toward the underside: mineral-green transmission and
+        // attenuation, without a fake surface sun-glitter/foam ceiling.
+        vec3 underwater_tint = behind_water*vec3(0.22,0.43,0.46) + vec3(0.012,0.055,0.062);
+        color = mix(color,underwater_tint,0.65);
+    }
 
     ALBEDO = clamp(color,vec3(0.0),vec3(1.5));
     EMISSION = vec3(0.08,0.09,0.07)*foam;

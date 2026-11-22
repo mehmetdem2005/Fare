@@ -79,6 +79,15 @@ func _run() -> void:
     if micro.leaves[0].distance_to(leaf)<0.005:
         _fail("leaf did not move with S3 current")
         return
+    # The new S3 two-vortex stream may circle rocks, but leaves must not
+    # pass through the center of a visible rock geometry.
+    var rock_obj: RiverObstacles=RiverObstacles.new()
+    var rock: Dictionary=rock_obj.obstacle_at(roundi(z/RiverObstacles.ROCK_SPACING_M),profile)
+    micro.leaves[0]=rock["xz"]
+    micro.update_river(0.30)
+    if micro.leaves[0].distance_to(rock["xz"])<float(rock["radius"])*0.98:
+        _fail("leaf penetrated boulder after streamline update")
+        return
     # On dry land, recently wet mouse leaves a bounded trail.
     water.state=MouseWaterInteraction.DRY
     water.wetness=0.9

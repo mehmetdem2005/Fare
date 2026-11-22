@@ -117,6 +117,13 @@ func update_river(delta: float) -> void:
         var pos: Vector3=actor.global_position+facing
         var ground_y: float=float(height_sampler.call(pos.x,pos.z))
         footprints[slot].global_position=Vector3(pos.x,ground_y+0.017,pos.z)
+        # Orient the print toward the actual terrain tangent plane. Otherwise
+        # all footprints float as horizontal rectangles on sloped mud.
+        var eps: float=0.10
+        var hx: float=float(height_sampler.call(pos.x+eps,pos.z))-float(height_sampler.call(pos.x-eps,pos.z))
+        var hz: float=float(height_sampler.call(pos.x,pos.z+eps))-float(height_sampler.call(pos.x,pos.z-eps))
+        var surface_normal: Vector3=Vector3(-hx,2.0*eps,-hz).normalized()
+        footprints[slot].quaternion=Quaternion(Vector3.UP,surface_normal)
         footprints[slot].visible=true
         footprints[slot].transparency=0.03
         footprint_lives[slot]=5.0
@@ -137,6 +144,19 @@ func update_river(delta: float) -> void:
             leaf=leaves[i]
         var stream: Vector2=flow.sample(profile,leaf)["velocity"]
         leaf+=stream*time_step*0.74
+        # Streamlines may still intersect a real obstacle mesh at its center.
+        # Resolve any leaf/rock overlap at the fixed S3 collider footprint.
+        for rock in flow.obstacles.near(leaf,profile):
+            var center: Vector2=rock["xz"]
+            var radius: float=float(rock["radius"])*1.05
+            var away: Vector2=leaf-center
+            if away.length()<radius:
+                if away.length_squared()<0.0001:
+                    away=Vector2(1.0,0.0)
+                leaf=center+away.normalized()*radius
+        if profile.shore_distance(leaf)>=0.0:
+            _respawn_leaf(i)
+            leaf=leaves[i]
         leaves[i]=leaf
         var height: float=profile.surface_height(leaf.y)+0.018
         leaves_mesh.set_instance_transform(i,Transform3D(Basis(Vector3.UP,float(i)*1.7+time_step*0.25),Vector3(leaf.x,height,leaf.y)))
