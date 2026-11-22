@@ -12,7 +12,7 @@ permissions:
 jobs:
   build-and-check:
     runs-on: ubuntu-24.04
-    timeout-minutes: 18
+    timeout-minutes: 29
     steps:
       - uses: actions/checkout@v4
         with:
@@ -121,6 +121,75 @@ jobs:
           timeout 100 godot --headless --path . --script res://tests/s8_metrics_test.gd 2>&1 | tee /tmp/s8_metrics.log
           grep -q S8_METRICS_OK /tmp/s8_metrics.log
           if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S8_METRICS_FAIL' /tmp/s8_metrics.log; then exit 1; fi
+      - name: Select JDK 17 for Android diagnostics APK
+        if: github.ref == 'refs/heads/feat/river-s0-s1-geomorphology'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Download official Godot 4.7.2 Android templates
+        if: github.ref == 'refs/heads/feat/river-s0-s1-geomorphology'
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 3 -o /tmp/godot-templates.tpz \
+            "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz"
+          folder="$HOME/.local/share/godot/export_templates/4.7.2.stable"
+          mkdir -p "$folder"
+          unzip -p /tmp/godot-templates.tpz 'templates/android_debug.apk' > "$folder/android_debug.apk"
+          unzip -p /tmp/godot-templates.tpz 'templates/android_release.apk' > "$folder/android_release.apk"
+          test -s "$folder/android_debug.apk"
+          test -s "$folder/android_release.apk"
+          echo "ANDROID_TEMPLATES_OK"
+      - name: Configure SDK and temporary test-only Android signing
+        if: github.ref == 'refs/heads/feat/river-s0-s1-geomorphology'
+        run: |
+          set -euo pipefail
+          sdk="$ANDROID_HOME"
+          test -x "$sdk/platform-tools/adb"
+          if [ ! -d "$sdk/build-tools/35.0.1" ] || [ ! -d "$sdk/platforms/android-35" ]; then
+            yes | "$sdk/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$sdk" \
+              'platforms;android-35' 'build-tools;35.0.1' 'platform-tools' || true
+          fi
+          test -d "$sdk/build-tools/35.0.1"
+          test -d "$sdk/platforms/android-35"
+          mkdir -p "$HOME/.config/godot"
+          cat > "$HOME/.config/godot/editor_settings-4.tres" <<EOF
+          [gd_resource type="EditorSettings" format=3]
+          [resource]
+          export/android/java_sdk_path = "$JAVA_HOME"
+          export/android/android_sdk_path = "$sdk"
+          EOF
+          keytool -genkeypair -noprompt -alias androiddebugkey \
+            -keystore /tmp/fare-diagnostics.keystore -storepass android \
+            -keypass android -keyalg RSA -keysize 2048 -validity 36500 \
+            -dname 'CN=FareVadisi Test,OU=Diagnostics,O=Development,C=TR'
+          echo "ANDROID_EXPORT_ENV_READY"
+      - name: Build Android 11 ARM64 S8 diagnostics APK
+        if: github.ref == 'refs/heads/feat/river-s0-s1-geomorphology'
+        env:
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: /tmp/fare-diagnostics.keystore
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
+        run: |
+          set -o pipefail
+          mkdir -p build
+          timeout 270 godot --headless --path . --export-debug "Android Diagnostics" build/fare-vadisi-s8-debug.apk 2>&1 | tee /tmp/s8_apk_export.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|Export failed' /tmp/s8_apk_export.log; then exit 1; fi
+          python3 tools/verify_s8_apk.py build/fare-vadisi-s8-debug.apk
+          "$ANDROID_HOME/build-tools/35.0.1/apksigner" verify --verbose build/fare-vadisi-s8-debug.apk
+          "$ANDROID_HOME/build-tools/35.0.1/aapt" dump badging build/fare-vadisi-s8-debug.apk | head -n 12
+          sha256sum build/fare-vadisi-s8-debug.apk | tee build/sha256.txt
+          echo "ANDROID_S8_APK_OK"
+      - name: Upload signed debug APK for Android 11 ARM64 testing
+        if: success() && github.ref == 'refs/heads/feat/river-s0-s1-geomorphology'
+        uses: actions/upload-artifact@v4
+        with:
+          name: FareVadisi-S8-Android11-ARM64-Debug-APK
+          path: |
+            build/fare-vadisi-s8-debug.apk
+            build/sha256.txt
+          if-no-files-found: error
+          retention-days: 14
       # Optional real Vulkan render proof, separate from strict headless tests.
       # Software GPU is not Android; do not treat success as device visual QA.
       - name: Install software Vulkan and virtual display for visual probe
@@ -180,6 +249,7 @@ jobs:
             /tmp/river_s7.log
             /tmp/s8_stream.log
             /tmp/s8_metrics.log
+            /tmp/s8_apk_export.log
             /tmp/s4_vulkan_render.log
             /tmp/s4_mobile_vulkan.png
           if-no-files-found: ignore
