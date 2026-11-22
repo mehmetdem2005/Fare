@@ -17,6 +17,7 @@ var river_surface_builder: RiverSurfaceBuilder = RiverSurfaceBuilder.new()
 var shore_substrate: ShoreSubstrate = ShoreSubstrate.new()
 var river_flow_field: RiverFlowField = RiverFlowField.new()
 var river_obstacles: RiverObstacles = RiverObstacles.new()
+var atmosphere: ForestAtmosphere
 var water_quality: WaterQualitySettings = WaterQualitySettings.new()
 var wave_texture: Texture2D
 var height_noise: FastNoiseLite = FastNoiseLite.new()
@@ -74,28 +75,26 @@ func _ready() -> void:
     _queue_chunks()
 
 func _environment() -> void:
-    var sun: DirectionalLight3D = DirectionalLight3D.new()
-    sun.rotation_degrees = Vector3(-54.0, -30.0, 0.0)
-    sun.light_energy = 1.15
-    sun.light_color = Color(1.0, 0.96, 0.85)
-    sun.shadow_enabled = true
-    sun.directional_shadow_max_distance = 70.0
-    add_child(sun)
-    var env_node: WorldEnvironment = WorldEnvironment.new()
-    var env: Environment = Environment.new()
-    env.background_mode = Environment.BG_COLOR
-    env.background_color = Color(0.58, 0.70, 0.78)
-    env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-    env.ambient_light_color = Color(0.70, 0.79, 0.79)
-    env.ambient_light_energy = 0.45
-    env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-    env.fog_enabled = true
-    env.fog_light_color = Color(0.57, 0.67, 0.74)
-    env.fog_light_energy = 0.6
-    env.fog_density = 0.0021
-    env.fog_height_density = 0.0
-    env_node.environment = env
-    add_child(env_node)
+    atmosphere = ForestAtmosphere.new()
+    atmosphere.name = "ForestAtmosphere"
+    add_child(atmosphere)
+
+func set_atmosphere_preset(preset: int) -> void:
+    if atmosphere == null:
+        return
+    atmosphere.apply_preset(preset)
+    if terrain_mat != null:
+        terrain_mat.set_shader_parameter("caustic_strength",atmosphere.caustics_energy())
+    if water_mat != null:
+        atmosphere.configure_river(water_mat)
+    # Per-chunk copied S4 materials must update as well. No rebuilding atlases.
+    for co in chunks.keys():
+        var chunk: Node3D = chunks[co]
+        var water: MeshInstance3D = chunk.get_node_or_null("FlowingWater") as MeshInstance3D
+        if water != null:
+            var mat: ShaderMaterial = water.material_override as ShaderMaterial
+            if mat != null:
+                atmosphere.configure_river(mat)
 
 func _image_texture(path: String, fallback: Color) -> Texture2D:
     if ResourceLoader.exists(path):
@@ -123,7 +122,8 @@ func _materials() -> void:
         water_mat.set_shader_parameter("wave_map",wave_texture)
     water_quality.configure(water_mat,WaterQualitySettings.BALANCED)
     terrain_mat.set_shader_parameter("wave_map",wave_texture)
-    terrain_mat.set_shader_parameter("caustic_strength",0.22)
+    terrain_mat.set_shader_parameter("caustic_strength",atmosphere.caustics_energy())
+    atmosphere.configure_river(water_mat)
 
 func _create_actor() -> void:
     player = CharacterBody3D.new()
@@ -530,6 +530,7 @@ func _add_chunk(co: Vector2i) -> void:
         _water(root, co)
         _rocks(root, co)
         _major_rocks(root, co)
+        _river_mist(root,co)
 
 func _water(root: Node3D, co: Vector2i) -> void:
     var water_mesh: ArrayMesh = river_surface_builder.build_chunk(river_profile, co, CELL)
@@ -547,9 +548,46 @@ func _water(root: Node3D, co: Vector2i) -> void:
     chunk_material.set_shader_parameter("chunk_size",CELL)
     chunk_material.set_shader_parameter("wave_map",wave_texture)
     water_quality.configure(chunk_material,WaterQualitySettings.BALANCED)
+    atmosphere.configure_river(chunk_material)
     water_instance.material_override = chunk_material
     water_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     root.add_child(water_instance)
+
+func _river_mist(root: Node3D, co: Vector2i) -> void:
+    # Low-opacity condensation in the water corridor. One batched MultiMesh,
+    # NO camera-following full screen overlays or fake volumetric rendering.
+    var random: RandomNumberGenerator = RandomNumberGenerator.new()
+    random.seed = 88973 + (co.x * 29791 + co.y * 999983) * 19
+    var transforms: Array[Transform3D] = []
+    var origin_x: float = root.position.x
+    var origin_z: float = root.position.z
+    for i in range(22):
+        var z: float = origin_z + random.randf_range(0.7,CELL-0.7)
+        var center: float = river_profile.center_x(z)
+        var banks: Vector2 = river_profile.banks_at_z(z)
+        var x: float = center + random.randf_range(-5.0,5.0)
+        if x < banks.x+0.8 or x > banks.y-0.8 or x < origin_x+0.8 or x > origin_x+CELL-0.8:
+            continue
+        var height: float = river_profile.surface_height(z) + random.randf_range(0.12,0.32)
+        var radius: float = random.randf_range(0.8,1.8)
+        transforms.append(Transform3D(Basis(Vector3.UP,random.randf_range(0.0,TAU)).scaled(Vector3(radius,1.0,radius)),Vector3(x-origin_x,height,z-origin_z)))
+    if transforms.is_empty():
+        return
+    var quad: PlaneMesh = PlaneMesh.new()
+    quad.size = Vector2(3.6,2.0)
+    quad.material = atmosphere.mist_material
+    var mm: MultiMesh = MultiMesh.new()
+    mm.transform_format = MultiMesh.TRANSFORM_3D
+    mm.mesh = quad
+    mm.instance_count = transforms.size()
+    for i in range(transforms.size()):
+        mm.set_instance_transform(i,transforms[i])
+    var instance: MultiMeshInstance3D = MultiMeshInstance3D.new()
+    instance.name = "NearRiverMist"
+    instance.multimesh = mm
+    instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    instance.visibility_range_end = 42.0
+    root.add_child(instance)
 
 func _pine_mesh() -> Mesh:
     var st: SurfaceTool = SurfaceTool.new()
@@ -719,5 +757,5 @@ func _multimesh(root: Node3D, source: Mesh, label: String, xforms: Array[Transfo
     var instance: MultiMeshInstance3D = MultiMeshInstance3D.new()
     instance.name = label
     instance.multimesh = mm
-    instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if label == "Pines" else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     root.add_child(instance)

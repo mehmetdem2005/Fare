@@ -76,6 +76,12 @@ jobs:
           timeout 100 godot --headless --path . --script res://tests/river_s4_test.gd 2>&1 | tee /tmp/river_s4.log
           grep -q RIVER_S4_OK /tmp/river_s4.log
           if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|RIVER_S4_FAIL' /tmp/river_s4.log; then exit 1; fi
+      - name: S5 daylight sky, real forest shadows and local mist regression
+        run: |
+          set -o pipefail
+          timeout 100 godot --headless --path . --script res://tests/atmos_s5_test.gd 2>&1 | tee /tmp/atmos_s5.log
+          grep -q ATMOS_S5_OK /tmp/atmos_s5.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|ATMOS_S5_FAIL' /tmp/atmos_s5.log; then exit 1; fi
       # Optional real Vulkan render proof, separate from strict headless tests.
       # Software GPU is not Android; do not treat success as device visual QA.
       - name: Install software Vulkan and virtual display for visual probe
@@ -128,6 +134,7 @@ jobs:
             /tmp/shore_s2.log
             /tmp/river_s3.log
             /tmp/river_s4.log
+            /tmp/atmos_s5.log
             /tmp/s4_vulkan_render.log
             /tmp/s4_mobile_vulkan.png
           if-no-files-found: ignore

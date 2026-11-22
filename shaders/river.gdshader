@@ -20,6 +20,10 @@ uniform vec3 absorption = vec3(0.95,0.34,0.19);
 uniform vec4 shallow_tint : source_color = vec4(0.16,0.40,0.34,1.0);
 uniform vec4 deep_tint : source_color = vec4(0.035,0.14,0.16,1.0);
 uniform vec4 foam_tint : source_color = vec4(0.86,0.91,0.84,1.0);
+uniform vec3 sky_reflection_horizon = vec3(0.64,0.69,0.66);
+uniform vec3 sky_reflection_zenith = vec3(0.34,0.50,0.63);
+uniform vec3 sun_direction = vec3(0.30,0.80,0.48);
+uniform float sun_glint_strength : hint_range(0.0,1.0) = 0.25;
 
 varying vec3 world_position;
 varying float river_edge;
@@ -86,8 +90,8 @@ void fragment() {
     // Mobile approximation of a reflected sky: no invented SSR.
     vec3 reflected_world = normalize((INV_VIEW_MATRIX*vec4(reflect(-normalize(VIEW),normal_view),0.0)).xyz);
     float zenith = smoothstep(-0.15,0.85,reflected_world.y);
-    vec3 sky_reflection = mix(vec3(0.22,0.37,0.39),vec3(0.58,0.69,0.73),zenith);
-    float glint = pow(max(0.0,dot(reflected_world,normalize(vec3(0.35,0.82,-0.46)))),120.0)*0.38;
+    vec3 sky_reflection = mix(sky_reflection_horizon,sky_reflection_zenith,zenith);
+    float glint = pow(max(0.0,dot(reflected_world,normalize(sun_direction))),120.0)*sun_glint_strength;
     vec3 color = mix(transmission_color,sky_reflection,fresnel*0.77);
     color += vec3(1.0,0.88,0.66)*glint*clamp(fresnel+0.14,0.0,0.65);
 
