@@ -68,6 +68,7 @@ func _render() -> void:
 	await process_frame
 	await process_frame
 	await process_frame
+	print("RENDER_DEBUG height=", pine.get("height"), " trunk=", pine.get_node("Geometry/Wood/Trunk").mesh.get_aabb(), " foliage=", pine.get_node("Geometry/Crown/Foliage_LOD0").mesh.get_aabb(), " camera=", camera.global_transform)
 	await RenderingServer.frame_post_draw
 	var screenshot: Image = root.get_texture().get_image()
 	if screenshot == null or screenshot.is_empty() or screenshot.get_width() < 100:
