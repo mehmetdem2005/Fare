@@ -157,12 +157,13 @@ func _flow(origin: Vector3,profile: RiverProfile,field: RiverFlowField) -> Packe
                 clampf(0.5+v.y/(2.0*RiverFlowField.MAX_VECTOR_MPS),0.0,1.0),
                 clampf(float(sample["turbulence"]),0.0,1.0),
                 clampf(float(sample["foam"]),0.0,1.0))
-            var rgba: int=color.to_rgba32()
+            # Image.FORMAT_RGBA8.set_pixel() truncates channel*255. Godot
+            # Color.to_rgba32() rounds; using it changes vortex field bytes.
             var k: int=(iy*FLOW_RESOLUTION+ix)*4
-            pixels[k]=(rgba>>24)&255
-            pixels[k+1]=(rgba>>16)&255
-            pixels[k+2]=(rgba>>8)&255
-            pixels[k+3]=rgba&255
+            pixels[k]=int(clampf(color.r*255.0,0.0,255.0))
+            pixels[k+1]=int(clampf(color.g*255.0,0.0,255.0))
+            pixels[k+2]=int(clampf(color.b*255.0,0.0,255.0))
+            pixels[k+3]=int(clampf(color.a*255.0,0.0,255.0))
     return pixels
 
 func build() -> void:
