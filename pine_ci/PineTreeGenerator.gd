@@ -77,11 +77,11 @@ void fragment() {
     set(value):
         radius_top = value
         _queue_rebuild()
-@export_range(5, 24, 1) var trunk_sides: int = 10:
+@export_range(5, 24, 1) var trunk_sides: int = 14:
     set(value):
         trunk_sides = value
         _queue_rebuild()
-@export_range(4, 48, 1) var trunk_segments: int = 16:
+@export_range(4, 48, 1) var trunk_segments: int = 22:
     set(value):
         trunk_segments = value
         _queue_rebuild()
@@ -89,25 +89,25 @@ void fragment() {
     set(value):
         lean = value
         _queue_rebuild()
-@export_range(0.0, 0.6, 0.01, "suffix:m") var gnarl: float = 0.12:
+@export_range(0.0, 0.6, 0.01, "suffix:m") var gnarl: float = 0.08:
     set(value):
         gnarl = value
         _queue_rebuild()
-@export_range(0.0, 1.0, 0.01) var root_flare: float = 0.4:
+@export_range(0.0, 1.0, 0.01) var root_flare: float = 0.65:
     set(value):
         root_flare = value
         _queue_rebuild()
 
 @export_group("Branches")
-@export_range(3, 24, 1) var whorl_count: int = 9:
+@export_range(3, 24, 1) var whorl_count: int = 11:
     set(value):
         whorl_count = value
         _queue_rebuild()
-@export_range(2, 12, 1) var branches_min: int = 4:
+@export_range(2, 12, 1) var branches_min: int = 5:
     set(value):
         branches_min = value
         _queue_rebuild()
-@export_range(2, 14, 1) var branches_max: int = 7:
+@export_range(2, 14, 1) var branches_max: int = 8:
     set(value):
         branches_max = value
         _queue_rebuild()
@@ -115,7 +115,7 @@ void fragment() {
     set(value):
         branch_radius = value
         _queue_rebuild()
-@export_range(3, 16, 1) var branch_segments: int = 7:
+@export_range(3, 16, 1) var branch_segments: int = 9:
     set(value):
         branch_segments = value
         _queue_rebuild()
@@ -131,7 +131,7 @@ void fragment() {
     set(value):
         upturn = value
         _queue_rebuild()
-@export_range(0, 6, 1) var twig_count: int = 3:
+@export_range(0, 6, 1) var twig_count: int = 4:
     set(value):
         twig_count = value
         _queue_rebuild()
@@ -145,37 +145,37 @@ void fragment() {
     set(value):
         crown_radius = value
         _queue_rebuild()
-@export_range(0.05, 0.8, 0.01) var crown_start: float = 0.28:
+@export_range(0.05, 0.8, 0.01) var crown_start: float = 0.22:
     set(value):
         crown_start = value
         _queue_rebuild()
-@export_range(0.0, 1.0, 0.01) var layer_pattern: float = 0.7:
+@export_range(0.0, 1.0, 0.01) var layer_pattern: float = 0.55:
     set(value):
         layer_pattern = value
         _queue_rebuild()
-@export_range(0.0, 1.0, 0.01) var inner_fill: float = 0.25:
+@export_range(0.0, 1.0, 0.01) var inner_fill: float = 0.50:
     set(value):
         inner_fill = value
         _queue_rebuild()
 
 @export_group("Needle Foliage")
-@export_range(0.15, 1.5, 0.01, "suffix:m") var tuft_size: float = 0.5:
+@export_range(0.15, 1.5, 0.01, "suffix:m") var tuft_size: float = 0.68:
     set(value):
         tuft_size = value
         _queue_rebuild()
-@export_range(2, 24, 1) var tufts_per_branch: int = 10:
+@export_range(2, 24, 1) var tufts_per_branch: int = 15:
     set(value):
         tufts_per_branch = value
         _queue_rebuild()
-@export_range(1, 6, 1) var cards_per_tuft: int = 3:
+@export_range(1, 6, 1) var cards_per_tuft: int = 5:
     set(value):
         cards_per_tuft = value
         _queue_rebuild()
-@export_range(40, 240, 1) var needle_count: int = 120:
+@export_range(40, 240, 1) var needle_count: int = 180:
     set(value):
         needle_count = value
         _queue_rebuild()
-@export_enum("128:128", "256:256", "512:512") var needle_tex_size: int = 256:
+@export_range(128, 512, 128) var needle_tex_size: int = 256:
     set(value):
         needle_tex_size = value
         _queue_rebuild()
@@ -191,7 +191,7 @@ void fragment() {
     set(value):
         color_variation = value
         _queue_rebuild()
-@export_range(0.05, 0.9, 0.01) var alpha_scissor: float = 0.35:
+@export_range(0.05, 0.9, 0.01) var alpha_scissor: float = 0.28:
     set(value):
         alpha_scissor = value
         _apply_foliage_params()
@@ -201,7 +201,7 @@ void fragment() {
     set(value):
         bark_color = value
         _queue_rebuild()
-@export_enum("128:128", "256:256", "512:512") var bark_tex_size: int = 256:
+@export_range(128, 512, 128) var bark_tex_size: int = 256:
     set(value):
         bark_tex_size = value
         _queue_rebuild()
@@ -368,8 +368,9 @@ func _apply_foliage_params() -> void:
 #region Trunk
 func _trunk_radius(y: float) -> float:
     var t: float = clampf(y / maxf(height, 0.01), 0.0, 1.0)
-    var radius: float = lerpf(radius_bottom, radius_top, pow(t, 0.85))
-    radius *= 1.0 + root_flare * 1.4 * pow(maxf(0.0, 1.0 - t / 0.06), 2.0)
+    var radius: float = lerpf(radius_bottom, radius_top, pow(t, 0.72))
+    radius *= 1.0 + root_flare * 1.7 * pow(maxf(0.0, 1.0 - t / 0.11), 2.4)
+    radius *= 1.0 + 0.035 * sin(t * PI * 0.9)
     return radius
 
 
@@ -398,12 +399,14 @@ func _gen_trunk() -> ArrayMesh:
         var slope: float = (next_radius - radius) / delta
         for j in range(trunk_sides + 1):
             var angle: float = TAU * float(j) / float(trunk_sides)
-            var wobble: float = 1.0 + 0.06 * _noise.get_noise_2d(
-                cos(angle) * 2.0 + 7.0, y * 1.5 + sin(angle) * 2.0
-            )
+            var ring_noise: float = _noise.get_noise_2d(cos(angle) * 1.8 + 7.0, y * 1.15 + sin(angle) * 1.8)
+            var bark_wobble: float = 1.0 + 0.028 * ring_noise
+            var base_mask: float = pow(maxf(0.0, 1.0 - y / maxf(height * 0.18, 0.001)), 1.7)
+            var buttress: float = 1.0 + root_flare * 0.22 * base_mask * pow(maxf(0.0, cos(angle * 4.0 + 0.35)), 2.0)
+            var final_radius: float = radius * bark_wobble * buttress
             st.set_normal(Vector3(cos(angle), -slope, sin(angle)).normalized())
             st.set_uv(Vector2(float(j) / float(trunk_sides), y / height))
-            st.add_vertex(center + Vector3(cos(angle) * radius * wobble, 0.0, sin(angle) * radius * wobble))
+            st.add_vertex(center + Vector3(cos(angle) * final_radius, 0.0, sin(angle) * final_radius))
 
     for i in range(trunk_segments):
         for j in range(trunk_sides):
@@ -474,13 +477,37 @@ func _sample_curve(points: PackedVector3Array, s: float) -> Vector3:
     return points[i].lerp(points[j], f - float(i))
 
 
+func _add_surface_roots(st: SurfaceTool) -> void:
+    var root_count: int = maxi(4, int(round(4.0 + root_flare * 3.0)))
+    var base_radius: float = maxf(radius_bottom * 0.85, 0.08)
+    for i in range(root_count):
+        var angle: float = TAU * float(i) / float(root_count) + _rng.randf_range(-0.18, 0.18)
+        var direction: Vector3 = Vector3(cos(angle), 0.0, sin(angle)).normalized()
+        var sideways: Vector3 = Vector3.UP.cross(direction).normalized()
+        var length: float = lerpf(0.9, 2.4, root_flare) * _rng.randf_range(0.85, 1.20)
+        var origin: Vector3 = _trunk_center(0.05) + direction * base_radius * _rng.randf_range(0.45, 0.72)
+        var points: PackedVector3Array = PackedVector3Array()
+        points.resize(5)
+        for k in range(5):
+            var t: float = float(k) / 4.0
+            var point: Vector3 = origin + direction * length * t
+            point += sideways * sin(t * PI) * 0.12 * length * _rng.randf_range(-0.35, 0.35)
+            point.y = maxf(-0.04, 0.09 - 0.16 * t + sin(t * PI) * 0.03)
+            points[k] = point
+        var radii: PackedFloat32Array = PackedFloat32Array()
+        for k in range(5):
+            var t: float = float(k) / 4.0
+            radii.append(lerpf(base_radius * 0.34, base_radius * 0.10, pow(t, 0.75)))
+        _add_tube(st, points, radii, maxi(5, branch_sides - 1))
+
+
 func _spot_color(position: Vector3, tier_t: float) -> Color:
     var axis: Vector3 = _trunk_center(position.y)
     var radial: float = clampf(
         Vector2(position.x - axis.x, position.z - axis.z).length()
         / maxf(crown_radius, 0.01), 0.0, 1.0
     )
-    var shade: float = lerpf(0.5, 1.0, radial) * lerpf(0.82, 1.08, tier_t)
+    var shade: float = lerpf(0.62, 1.0, radial) * lerpf(0.86, 1.08, tier_t)
     var jitter: float = 1.0 + _rng.randf_range(-1.0, 1.0) * color_variation
     var base: Color = needle_color.lerp(needle_color_tip, _rng.randf() * 0.5)
     return base * (shade * jitter)
@@ -493,6 +520,8 @@ func _gen_branches() -> ArrayMesh:
     var crown_base: float = crown_start
     if crown_shape == CROWN_UMBRELLA:
         crown_base = maxf(crown_start, 0.45)
+
+    _add_surface_roots(st)
 
     for i in range(whorl_count):
         var t: float = float(i) / float(maxi(whorl_count - 1, 1))
@@ -513,7 +542,7 @@ func _gen_branches() -> ArrayMesh:
                 + _rng.randf_range(-0.25, 0.25) * (1.0 - layer_pattern * 0.6))
             var direction: Vector3 = Vector3(
                 cos(angle),
-                lerpf(-0.05, 0.3, t) + _rng.randf_range(-0.08, 0.08),
+                lerpf(-0.12, 0.24, t) + _rng.randf_range(-0.06, 0.07),
                 sin(angle)
             ).normalized()
             var origin: Vector3 = (_trunk_center(level_y)
@@ -533,9 +562,9 @@ func _gen_branches() -> ArrayMesh:
             _add_tube(st, points, radii, branch_sides)
 
             for k in range(tufts_per_branch):
-                var s: float = (lerpf(0.35, 1.0,
+                var s: float = (lerpf(0.22, 1.0,
                     float(k) / float(maxi(tufts_per_branch - 1, 1)))
-                    + _rng.randf_range(-0.03, 0.03))
+                    + _rng.randf_range(-0.025, 0.025))
                 var position: Vector3 = (_sample_curve(points, s)
                     + Vector3.UP * tuft_size * 0.12)
                 var tangent: Vector3 = (
@@ -544,8 +573,8 @@ func _gen_branches() -> ArrayMesh:
                 ).normalized()
                 _spots.append({
                     "pos": position,
-                    "dir": (tangent + Vector3.UP * 0.55).normalized(),
-                    "size": tuft_size * _rng.randf_range(0.8, 1.2) * lerpf(0.85, 1.2, s),
+                    "dir": (tangent + Vector3.UP * 0.48).normalized(),
+                    "size": tuft_size * _rng.randf_range(0.92, 1.28) * lerpf(0.92, 1.28, s),
                     "col": _spot_color(position, t)
                 })
 
@@ -674,7 +703,7 @@ func _add_tube(st: SurfaceTool, points: PackedVector3Array,
 func _gen_foliage(detail: float, size_multiplier: float) -> ArrayMesh:
     var st: SurfaceTool = SurfaceTool.new()
     st.begin(Mesh.PRIMITIVE_TRIANGLES)
-    var cards: int = cards_per_tuft if detail >= 1.0 else maxi(1, cards_per_tuft - 1)
+    var cards: int = cards_per_tuft if detail >= 1.0 else maxi(2, cards_per_tuft - 2)
     for i in range(_spots.size()):
         if detail < 1.0 and i % 2 == 1:
             continue
@@ -690,31 +719,36 @@ func _gen_foliage(detail: float, size_multiplier: float) -> ArrayMesh:
 
 func _add_tuft_cards(st: SurfaceTool, center: Vector3,
         direction_hint: Vector3, size: float, color: Color, cards: int) -> void:
+    var tuft_axis: Vector3 = direction_hint.lerp(Vector3.UP, 0.22).normalized()
+    if tuft_axis.length_squared() < 0.001:
+        tuft_axis = Vector3.UP
     for c in range(cards):
         var normal: Vector3 = (direction_hint + Vector3(
-            _rng.randf_range(-1.0, 1.0),
-            _rng.randf_range(-0.5, 0.9),
-            _rng.randf_range(-1.0, 1.0)
+            _rng.randf_range(-0.85, 0.85),
+            _rng.randf_range(-0.35, 0.75),
+            _rng.randf_range(-0.85, 0.85)
         )).normalized()
         if c == cards - 1:
-            normal = Vector3.UP.lerp(normal, 0.25).normalized()
+            normal = Vector3.UP.lerp(normal, 0.18).normalized()
         if normal.length_squared() < 0.01:
             normal = Vector3.UP
-        var right: Vector3 = Vector3.UP.cross(normal)
+        var right: Vector3 = tuft_axis.cross(normal)
         if right.length_squared() < 0.0001:
             right = Vector3.RIGHT
         right = right.normalized()
         var up: Vector3 = normal.cross(right).normalized()
         var angle: float = _rng.randf() * TAU
-        var u: Vector3 = (right * cos(angle) + up * sin(angle)) * (size * 0.5)
-        var v: Vector3 = (-right * sin(angle) + up * cos(angle)) * (size * 0.5)
+        var width: float = size * _rng.randf_range(0.18, 0.28)
+        var length: float = size * _rng.randf_range(0.60, 0.95)
+        var u: Vector3 = (right * cos(angle) + up * sin(angle)) * width
+        var v: Vector3 = (-right * sin(angle) + up * cos(angle)) * length
         var card_center: Vector3 = center + Vector3(
             _rng.randf_range(-1.0, 1.0),
-            _rng.randf_range(-0.5, 0.5),
+            _rng.randf_range(-0.35, 0.35),
             _rng.randf_range(-1.0, 1.0)
-        ) * size * 0.12
-        st.set_normal(normal.lerp(Vector3.UP, 0.35).normalized())
-        st.set_color(color * _rng.randf_range(0.9, 1.1))
+        ) * size * 0.08
+        st.set_normal(normal.lerp(Vector3.UP, 0.22).normalized())
+        st.set_color(color * _rng.randf_range(0.94, 1.08))
         var bottom_left: Vector3 = card_center - u - v
         var bottom_right: Vector3 = card_center + u - v
         var top_right: Vector3 = card_center + u + v
@@ -745,23 +779,28 @@ func _make_bark_textures() -> Array[ImageTexture]:
     var normal_image: Image = Image.create(size, size, false, Image.FORMAT_RGBA8)
     var heights: PackedFloat32Array = PackedFloat32Array()
     heights.resize(size * size)
-    var dark: Color = bark_color * 0.35
+    var dark: Color = bark_color * 0.42
     dark.a = 1.0
-    var light: Color = bark_color * 1.7 + Color(0.06, 0.05, 0.04)
+    var mid: Color = bark_color * 0.95 + Color(0.04, 0.025, 0.015)
+    mid.a = 1.0
+    var light: Color = bark_color * 1.38 + Color(0.08, 0.05, 0.03)
     light.a = 1.0
 
     for y in range(size):
         for x in range(size):
             var u: float = float(x) / float(size)
             var v: float = float(y) / float(size)
-            var groove: float = noise.get_noise_2d(u * 36.0, v * 5.0)
-            var patch: float = noise.get_noise_2d(u * 7.0 + 31.0, v * 7.0 + 17.0)
-            var h: float = groove * 0.5 + 0.5
-            if absf(groove) < 0.07:
-                h *= 0.35
-            h = clampf(h + patch * 0.18, 0.0, 1.0)
+            var groove_large: float = absf(noise.get_noise_2d(u * 15.0 + 2.3, v * 4.0))
+            var groove_fine: float = absf(noise.get_noise_2d(u * 42.0 - 9.1, v * 9.5 + 1.8))
+            var patch: float = noise.get_noise_2d(u * 5.5 + 31.0, v * 6.5 + 17.0)
+            var crack_mask: float = 1.0 - smoothstep(0.10, 0.24, groove_large)
+            var h: float = 0.30 + groove_large * 0.42 + groove_fine * 0.16 + patch * 0.10 - crack_mask * 0.16
+            h = clampf(h, 0.0, 1.0)
             heights[y * size + x] = h
-            albedo.set_pixel(x, y, dark.lerp(light, h))
+            var tint_mix: float = clampf(0.5 + patch * 0.35, 0.0, 1.0)
+            var bark_col: Color = dark.lerp(mid, h).lerp(light, pow(h, 1.4) * 0.55)
+            bark_col = bark_col.lerp(bark_col * Color(1.06, 0.96, 0.90, 1.0), tint_mix * 0.18)
+            albedo.set_pixel(x, y, bark_col)
 
     for y in range(size):
         for x in range(size):
@@ -770,8 +809,8 @@ func _make_bark_textures() -> Array[ImageTexture]:
             var upper_h: float = heights[((y - 1 + size) % size) * size + x]
             var lower_h: float = heights[((y + 1) % size) * size + x]
             var n: Vector3 = Vector3(
-                (left_h - right_h) * 2.5,
-                (lower_h - upper_h) * 2.5,
+                (left_h - right_h) * 2.8,
+                (lower_h - upper_h) * 2.4,
                 1.0
             ).normalized()
             normal_image.set_pixel(x, y, Color(
@@ -780,11 +819,10 @@ func _make_bark_textures() -> Array[ImageTexture]:
 
     albedo.generate_mipmaps()
     normal_image.generate_mipmaps(true)
-    var result: Array[ImageTexture] = [
+    return [
         ImageTexture.create_from_image(albedo),
         ImageTexture.create_from_image(normal_image)
     ]
-    return result
 
 
 func _make_needle_texture() -> ImageTexture:
@@ -793,36 +831,41 @@ func _make_needle_texture() -> ImageTexture:
     var size: int = needle_tex_size
     var image_data: Image = Image.create(size, size, false, Image.FORMAT_RGBA8)
     image_data.fill(Color(0.0, 0.0, 0.0, 0.0))
-    var origin: Vector2 = Vector2(size * 0.5, size * 0.93)
+    var origin: Vector2 = Vector2(size * 0.5, size * 0.90)
 
-    for k in range(int(size * 0.2)):
-        var stem_color: Color = Color(0.4, 0.36, 0.3, 1.0)
+    for k in range(int(size * 0.18)):
+        var stem_color: Color = Color(0.42, 0.38, 0.31, 1.0)
         _plot(image_data, int(origin.x), int(origin.y) - k, stem_color)
         _plot(image_data, int(origin.x) + 1, int(origin.y) - k, stem_color)
 
-    for i in range(needle_count):
-        var angle: float = tex_rng.randf_range(-1.25, 1.25)
-        if tex_rng.randf() < 0.15:
-            var sign_value: float = 1.0 if tex_rng.randf() < 0.5 else -1.0
-            angle = tex_rng.randf_range(1.25, 2.1) * sign_value
-        var needle_length: float = size * tex_rng.randf_range(0.4, 0.8)
-        var gray_start: float = tex_rng.randf_range(0.45, 0.7)
-        var gray_end: float = minf(gray_start + tex_rng.randf_range(0.15, 0.4), 1.0)
-        var position: Vector2 = origin + Vector2(
-            tex_rng.randf_range(-2.0, 2.0), tex_rng.randf_range(-3.0, 1.0)
+    var bundle_count: int = 3
+    for bundle in range(bundle_count):
+        var bundle_origin: Vector2 = origin + Vector2(
+            tex_rng.randf_range(-3.5, 3.5), tex_rng.randf_range(-4.0, 2.0)
         )
-        var steps: int = maxi(int(needle_length), 1)
-        for k in range(steps):
-            var t: float = float(k) / float(steps)
-            var direction: Vector2 = Vector2(sin(angle), -cos(angle)).rotated(
-                angle * 0.3 * t * t
+        for i in range(int(needle_count / bundle_count)):
+            var angle: float = tex_rng.randf_range(-1.05, 1.05)
+            if tex_rng.randf() < 0.10:
+                angle += tex_rng.randf_range(-0.45, 0.45)
+            var needle_length: float = size * tex_rng.randf_range(0.48, 0.88)
+            var gray_start: float = tex_rng.randf_range(0.42, 0.62)
+            var gray_end: float = minf(gray_start + tex_rng.randf_range(0.22, 0.42), 1.0)
+            var position: Vector2 = bundle_origin + Vector2(
+                tex_rng.randf_range(-2.0, 2.0), tex_rng.randf_range(-2.0, 1.5)
             )
-            position += direction
-            var g: float = lerpf(gray_start, gray_end, t)
-            var pixel_color: Color = Color(g, g, g * 0.95, 1.0)
-            _plot(image_data, int(position.x), int(position.y), pixel_color)
-            if t < 0.55:
-                _plot(image_data, int(position.x) + 1, int(position.y), pixel_color)
+            var steps: int = maxi(int(needle_length), 1)
+            for k in range(steps):
+                var t: float = float(k) / float(steps)
+                var direction: Vector2 = Vector2(sin(angle), -cos(angle)).rotated(angle * 0.18 * t * t)
+                position += direction
+                var g: float = lerpf(gray_start, gray_end, t)
+                var alpha: float = lerpf(0.82, 1.0, t)
+                var pixel_color: Color = Color(g, g, g * 0.96, alpha)
+                _plot(image_data, int(position.x), int(position.y), pixel_color)
+                if t < 0.78:
+                    _plot(image_data, int(position.x) + 1, int(position.y), pixel_color)
+                if t < 0.36:
+                    _plot(image_data, int(position.x), int(position.y) + 1, Color(g * 0.92, g * 0.92, g * 0.9, alpha * 0.7))
 
     image_data.generate_mipmaps()
     return ImageTexture.create_from_image(image_data)
