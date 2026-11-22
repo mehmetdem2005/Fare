@@ -16,6 +16,7 @@ var river_profile: RiverProfile = RiverProfile.new()
 var river_surface_builder: RiverSurfaceBuilder = RiverSurfaceBuilder.new()
 var shore_substrate: ShoreSubstrate = ShoreSubstrate.new()
 var river_flow_field: RiverFlowField = RiverFlowField.new()
+var river_flow_atlas_cache: RiverFlowAtlasCache = RiverFlowAtlasCache.new()
 var river_obstacles: RiverObstacles = RiverObstacles.new()
 var mouse_water: MouseWaterInteraction = MouseWaterInteraction.new()
 var camera_water: UnderwaterCameraFX
@@ -664,7 +665,9 @@ func _water(root: Node3D, co: Vector2i, cached: Dictionary = {}) -> void:
     # Per-chunk RGBA8 flow atlas; CPU/physics and GPU visual sample the same field.
     var chunk_material: ShaderMaterial = water_mat.duplicate() as ShaderMaterial
     var origin: Vector2 = Vector2(root.position.x,root.position.z)
-    var atlas: Image = cached["flow"] if cached.has("flow") else river_flow_field.build_atlas(river_profile,origin,CELL)
+    # Old S8-A v3 terrain packs contain the ORIGINAL flow atlas.
+    # Prefer versioned vortex field v2 instead of mismatching CPU and GPU.
+    var atlas: Image = river_flow_atlas_cache.fetch(co,river_profile,river_flow_field,CELL)
     var atlas_texture: Texture2D = ImageTexture.create_from_image(atlas)
     water_instance.set_meta("flow_image",atlas)
     chunk_material.set_shader_parameter("flow_atlas",atlas_texture)

@@ -10,7 +10,7 @@ func sample(profile: RiverProfile, world_xz: Vector2) -> Dictionary:
     var river: Dictionary = profile.sample(world_xz)
     var sdf: float = float(river["shore_sdf"])
     if sdf >= 0.0:
-        return {"velocity":Vector2.ZERO, "speed":0.0, "turbulence":0.0, "foam":0.0}
+        return {"velocity":Vector2.ZERO, "speed":0.0, "turbulence":0.0, "foam":0.0, "eddy":0.0}
     var tangent: Vector2 = river["tangent"]
     var side: Vector2 = river["normal_lateral"]
     var depth: float = float(river["depth"])
@@ -23,6 +23,8 @@ func sample(profile: RiverProfile, world_xz: Vector2) -> Dictionary:
     var side_velocity: Vector2 = Vector2.ZERO
     var wake: float = 0.0
     var bow: float = 0.0
+    var vortex_velocity: Vector2 = Vector2.ZERO
+    var eddy: float = 0.0
     for obstacle in obstacles.near(world_xz,profile):
         var rp: Vector2 = obstacle["xz"]
         var radius: float = float(obstacle["radius"])
@@ -37,14 +39,26 @@ func sample(profile: RiverProfile, world_xz: Vector2) -> Dictionary:
             bow = maxf(bow,around)
         var sign_side: float = 1.0 if across >= 0.0 else -1.0
         side_velocity += side * sign_side * around * 0.28
+        # Twin counter-rotating recirculation pockets behind the same boulder.
+        # Their tangential component can turn backward LOCALLY; no whole
+        # river reversal and no expensive runtime fluid simulation.
+        if along > radius*0.20:
+            for lane in [-1.0,1.0]:
+                var core_s: float = 1.58*radius
+                var core_n: float = lane*0.74*radius
+                var ss: float = (along-core_s)/maxf(radius,0.01)
+                var nn: float = (across-core_n)/maxf(radius,0.01)
+                var envelope: float = exp(-pow(ss/1.20,2.0)-pow(nn/0.86,2.0))
+                eddy = maxf(eddy,envelope)
+                vortex_velocity += (-tangent*nn+side*ss)*envelope*0.30*lane
     main_velocity *= clampf(1.0-0.64*wake-0.34*bow,0.22,1.25)
-    var velocity: Vector2 = main_velocity+side_velocity
+    var velocity: Vector2 = main_velocity+side_velocity+vortex_velocity-tangent*0.49*eddy
     if velocity.length() > MAX_VECTOR_MPS:
         velocity = velocity.normalized()*MAX_VECTOR_MPS
-    var turbulence: float = clampf(0.70*wake+0.66*bow+0.08*(1.0-normalized_lateral),0.0,1.0)
+    var turbulence: float = clampf(0.68*wake+0.65*bow+0.34*eddy+0.08*(1.0-normalized_lateral),0.0,1.0)
     var contact: float = (1.0-smoothstep(0.82,0.99,normalized_lateral))*0.06
-    var foam: float = clampf(0.55*bow+0.52*wake+contact*turbulence,0.0,1.0)
-    return {"velocity":velocity, "speed":velocity.length(),"turbulence":turbulence,"foam":foam}
+    var foam: float = clampf(0.53*bow+0.48*wake+0.27*eddy+contact*turbulence,0.0,1.0)
+    return {"velocity":velocity, "speed":velocity.length(),"turbulence":turbulence,"foam":foam,"eddy":eddy}
 
 func build_atlas(profile: RiverProfile, origin: Vector2, cell: float, resolution: int=32) -> Image:
     var img: Image = Image.create(resolution,resolution,false,Image.FORMAT_RGBA8)

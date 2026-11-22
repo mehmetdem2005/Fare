@@ -35,14 +35,25 @@ func _run() -> void:
                     return
             else:
                 if (v["velocity"] as Vector2).dot(tangent) < -0.001:
-                    _fail("reverse-moving water at "+str(p))
-                    return
+                    if float(v["eddy"])<0.40 or (v["velocity"] as Vector2).dot(tangent)<-0.45:
+                        _fail("unjustified reverse flow outside rock wake at "+str(p))
+                        return
             for key in ["speed","foam","turbulence"]:
                 var number: float = float(v[key])
                 if is_nan(number) or is_inf(number) or number < 0.0 or number > 2.51:
                     _fail("invalid "+key+"="+str(number))
                     return
             sampled+=1
+    var observed_eddy: bool=false
+    for rock in rocks.in_chunk(Vector2i(0,0),40.0,profile)+rocks.in_chunk(Vector2i(-1,0),40.0,profile):
+        var center: Vector2=rock["xz"]
+        var downstream: Vector2=profile.sample(center)["tangent"]
+        var sample_wake: Dictionary=flow.sample(profile,center+downstream*float(rock["radius"])*1.6)
+        if float(sample_wake["eddy"])>0.25:
+            observed_eddy=true
+    if not observed_eddy:
+        _fail("boulders still do not generate recirculation pockets")
+        return
     var origin: Vector2 = Vector2(0.0,0.0)
     var atlas: Image = flow.build_atlas(profile,origin,40.0,32)
     if atlas.get_width()!=32 or atlas.get_height()!=32 or atlas.get_format()!=Image.FORMAT_RGBA8:

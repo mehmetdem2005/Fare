@@ -54,6 +54,12 @@ jobs:
           timeout 180 godot --headless --path . --script res://tools/bake_world_chunks.gd 2>&1 | tee /tmp/chunk_bake.log
           grep -q CHUNK_PACK_READY /tmp/chunk_bake.log
           if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|CHUNK_BAKE_FAIL' /tmp/chunk_bake.log; then exit 1; fi
+      - name: Prebake S3 vortex/eddy atlases independently of the heavy terrain pack
+        run: |
+          set -o pipefail
+          timeout 100 godot --headless --path . --script res://tools/bake_river_flow_v2.gd 2>&1 | tee /tmp/s3_flow_bake.log
+          grep -q RIVER_FLOW_V2_BAKE_OK /tmp/s3_flow_bake.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|RIVER_FLOW_V2_BAKE_FAIL' /tmp/s3_flow_bake.log; then exit 1; fi
       - name: Headless game smoke test
         run: |
           set -o pipefail
@@ -78,6 +84,12 @@ jobs:
           timeout 100 godot --headless --path . --script res://tests/river_s3_test.gd 2>&1 | tee /tmp/river_s3.log
           grep -q RIVER_S3_OK /tmp/river_s3.log
           if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|RIVER_S3_FAIL' /tmp/river_s3.log; then exit 1; fi
+      - name: S3 packaged vortex atlas equals true mouse current and visual shader
+        run: |
+          set -o pipefail
+          timeout 120 godot --headless --path . --script res://tests/river_flow_v2_test.gd 2>&1 | tee /tmp/s3_flow_v2.log
+          grep -q S3_FLOW_V2_OK /tmp/s3_flow_v2.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S3_FLOW_V2_FAIL' /tmp/s3_flow_v2.log; then exit 1; fi
       - name: S4 Mobile depth/refraction/caustics shader + terrain tests
         run: |
           set -o pipefail
@@ -225,7 +237,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/ground/*.jpg assets/ground/*_nrough.png assets/ground/polyhaven_sources.json assets/water/wave_caustics_rgba.png assets/baked_chunks/v3/ assets/audio/river_*.wav
+          git add assets/ground/*.jpg assets/ground/*_nrough.png assets/ground/polyhaven_sources.json assets/water/wave_caustics_rgba.png assets/baked_chunks/v3/ assets/audio/river_*.wav assets/river_flow_v2/
           if ! git diff --staged --quiet; then
             git commit -m "assets(S2): bundle verified Poly Haven CC0 normal-roughness PBR"
             git push origin HEAD:feat/river-s0-s1-geomorphology
@@ -250,6 +262,8 @@ jobs:
             /tmp/river_s1.log
             /tmp/shore_s2.log
             /tmp/river_s3.log
+            /tmp/s3_flow_bake.log
+            /tmp/s3_flow_v2.log
             /tmp/river_s4.log
             /tmp/atmos_s5.log
             /tmp/river_s6.log
