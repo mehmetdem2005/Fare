@@ -154,6 +154,12 @@ jobs:
           timeout 120 godot --headless --path . --script res://tests/s9_water_reuse_test.gd 2>&1 | tee /tmp/s9_water_reuse.log
           grep -q S9_WATER_REUSE_OK /tmp/s9_water_reuse.log
           if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S9_WATER_REUSE_FAIL' /tmp/s9_water_reuse.log; then exit 1; fi
+      - name: S9.2b progressive cosmetic detail physics safety and deterministic transforms
+        run: |
+          set -o pipefail
+          timeout 150 godot --headless --path . --script res://tests/s9_progressive_chunks_test.gd 2>&1 | tee /tmp/s9_progressive_chunks.log
+          grep -q S9_PROGRESSIVE_CHUNKS_OK /tmp/s9_progressive_chunks.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S9_PROGRESSIVE_CHUNKS_FAIL' /tmp/s9_progressive_chunks.log; then exit 1; fi
       - name: Select JDK 17 for Android diagnostics APK
         if: github.ref == 'refs/heads/feat/river-s0-s1-geomorphology'
         uses: actions/setup-java@v4
@@ -309,6 +315,7 @@ jobs:
             /tmp/s8_mobile_rescue.log
             /tmp/s9_baseline.log
             /tmp/s9_water_reuse.log
+            /tmp/s9_progressive_chunks.log
             /tmp/s8_far_terrain.log
             /tmp/s5_sun_sync.log
             /tmp/s8_apk_export.log

@@ -162,6 +162,9 @@ func _refresh_snapshot() -> void:
         "fixed_scene_mode":bool(game.get("s9_fixed_scene")),
         "stream_queue_length":(game.get("queue") as Array).size(),
         "chunk_trace":trace.get_report() if trace!=null else {},
+        "cosmetic_jobs_pending":(game.get("cosmetic_jobs") as Array).size(),
+        "cosmetic_completed_chunks":int(game.get("cosmetic_completed_chunks")),
+        "cosmetic_phase_peak_ms":(game.get("cosmetic_phase_peak_ms") as Dictionary).duplicate(),
         "water_resource_cache_hits":int(game.get("water_resource_cache_hits")),
         "water_resource_cache_misses":int(game.get("water_resource_cache_misses")),
         "water_resource_cache_entries":(game.get("water_resource_cache") as Dictionary).size(),
@@ -211,6 +214,7 @@ func _refresh_snapshot() -> void:
     text_value+="Q%d  3D %.2f  Script max %.0fms\n" % [int(snapshot["quality_level"]),float(snapshot["render_scale_3d"]),float(snapshot["script_process_work_ms_peak"])]
     text_value+="Sabit sahne %s  Sirada %d\n" % [str(snapshot["fixed_scene_mode"]),int(snapshot["stream_queue_length"])]
     text_value+="Chunk stages ms: "+str(snapshot["chunk_stage_peak_ms"])+"\n"
+    text_value+="Gorsel parcaciklar bekliyor %d\n" % int(snapshot["cosmetic_jobs_pending"])
     text_value+="* Godot'un raporladigi; GPU zamani degil\n"
     if not last_save_path.is_empty():
         text_value+="Kayit: "+last_save_path.get_file()

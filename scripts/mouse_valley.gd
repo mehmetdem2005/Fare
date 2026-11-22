@@ -73,6 +73,12 @@ var s9_trace: S9ChunkTrace = S9ChunkTrace.new()
 var s9_current_chunk_stages: Dictionary = {}
 var s9_queue_requested_usec: Dictionary = {}
 var s9_fixed_scene: bool = false
+# Player physics/terrain first, non-colliding decorative instances after.
+# One short deterministic RNG batch per scheduling turn.
+const S9_COSMETIC_BUDGET_US: int = 3000
+var cosmetic_jobs: Array[Dictionary] = []
+var cosmetic_phase_peak_ms: Dictionary = {}
+var cosmetic_completed_chunks: int = 0
 var s9_fixed_scene_center: Vector2i = Vector2i.ZERO
 var max_chunk_load_ms: float = 0.0
 var last_chunk_load_ms: float = 0.0
@@ -168,6 +174,21 @@ func set_mobile_quality(level: int) -> void:
     if mobile_quality_level==QUALITY_FAST and terrain_lite_mat==null:
         push_warning("Fast terrain shader is missing; preserving full terrain material")
     _update_chunk_lod()
+    if mobile_quality_level!=QUALITY_FAST:
+        # Fast quality avoids constructing invisible river mist altogether.
+        # A later quality upgrade schedules its deterministic restoration.
+        for co_variant in chunks.keys():
+            var co: Vector2i=co_variant
+            if co.x>=-1 and co.x<=0:
+                var root: Node3D=chunks[co]
+                if not root.has_node("NearRiverMist"):
+                    var pending: bool=false
+                    for item in cosmetic_jobs:
+                        if item["co"]==co:
+                            pending=true
+                            break
+                    if not pending:
+                        cosmetic_jobs.append({"co":co,"stage":3,"state":{"cursor":0}})
 
 func _record_chunk_stage(name: String, began_usec: int) -> void:
     var elapsed_ms: float=float(Time.get_ticks_usec()-began_usec)*0.001
@@ -175,7 +196,7 @@ func _record_chunk_stage(name: String, began_usec: int) -> void:
     s9_current_chunk_stages[name]=elapsed_ms
 
 func set_s9_fixed_scene(enabled: bool) -> bool:
-    if enabled and (chunks.size()!=25 or not queue.is_empty()):
+    if enabled and (chunks.size()!=25 or not queue.is_empty() or not cosmetic_jobs.is_empty()):
         return false
     s9_fixed_scene=enabled
     s9_fixed_scene_center=_current_chunk() if enabled else Vector2i.ZERO
@@ -409,10 +430,12 @@ func _process(delta: float) -> void:
     if can_save:
         cache_write_timer=0.0
         _save_one_cache_chunk()
+    if not s9_fixed_scene:
+        _advance_cosmetic_jobs()
     if not s9_fixed_scene and not queue.is_empty():
         var next: Vector2i = queue.pop_front()
         if not chunks.has(next) and _near(next):
-            _add_chunk(next)
+            _add_chunk(next,OS.get_name()=="Android")
         else:
             s9_queue_requested_usec.erase(next)
     _update_camera(delta)
@@ -676,7 +699,7 @@ func _queue_chunks() -> void:
             part.queue_free()
             chunks.erase(co)
 
-func _add_chunk(co: Vector2i) -> void:
+func _add_chunk(co: Vector2i, defer_details: bool=false) -> void:
     if chunks.has(co):
         return
     var started_usec: int=Time.get_ticks_usec()
@@ -715,23 +738,29 @@ func _add_chunk(co: Vector2i) -> void:
     root.add_child(collider_body)
     _record_chunk_stage("collider",phase_usec)
     phase_usec=Time.get_ticks_usec()
-    _trees(root, co)
-    _grass(root, co)
+    if defer_details:
+        # Terrain and collision must be in SceneTree before this is resident.
+        # The decorative job can lag behind without changing physics.
+        cosmetic_jobs.append({"co":co,"stage":0,"state":{"cursor":0}})
+    else:
+        _trees(root,co)
+        _grass(root,co)
     _record_chunk_stage("vegetation",phase_usec)
     phase_usec=Time.get_ticks_usec()
-    # The actual water is clipped to each owning terrain chunk. No duplicate
-    # full-width surfaces and no disappearing negative-X bank.
+    # River water and obstructing boulders remain in the critical path.
     if co.x >= -1 and co.x <= 0:
         _water(root,co,cached)
-        var stage_start_usec: int=Time.get_ticks_usec()
-        _rocks(root, co)
-        _record_chunk_stage("river_rocks",stage_start_usec)
-        stage_start_usec=Time.get_ticks_usec()
-        _major_rocks(root, co)
-        _record_chunk_stage("major_rocks",stage_start_usec)
-        stage_start_usec=Time.get_ticks_usec()
-        _river_mist(root,co)
-        _record_chunk_stage("river_mist",stage_start_usec)
+        if not defer_details:
+            var rocks_usec: int=Time.get_ticks_usec()
+            _rocks(root,co)
+            _record_chunk_stage("river_rocks",rocks_usec)
+        var major_usec: int=Time.get_ticks_usec()
+        _major_rocks(root,co)
+        _record_chunk_stage("major_rocks",major_usec)
+        if not defer_details and mobile_quality_level!=QUALITY_FAST:
+            var mist_usec: int=Time.get_ticks_usec()
+            _river_mist(root,co)
+            _record_chunk_stage("river_mist",mist_usec)
     _record_chunk_stage("river_fx",phase_usec)
     phase_usec=Time.get_ticks_usec()
     _apply_chunk_lod(co,root)
@@ -742,6 +771,63 @@ func _add_chunk(co: Vector2i) -> void:
         float(started_usec-queued_usec)*0.001,last_chunk_load_ms,
         s9_current_chunk_stages,mobile_quality_level,
         player.global_position if player!=null else Vector3.ZERO)
+
+func _advance_cosmetic_jobs() -> void:
+    var start_usec: int=Time.get_ticks_usec()
+    while not cosmetic_jobs.is_empty():
+        var job: Dictionary=cosmetic_jobs.pop_front()
+        var co: Vector2i=job["co"]
+        if not chunks.has(co):
+            # Old chunk was evicted before decoration. Never attach stale work.
+            if Time.get_ticks_usec()-start_usec>=S9_COSMETIC_BUDGET_US:
+                break
+            continue
+        var root: Node3D=chunks[co]
+        var stage: int=int(job["stage"])
+        var state: Dictionary=job["state"]
+        var phase_usec: int=Time.get_ticks_usec()
+        var finished: bool=true
+        var label: String=""
+        match stage:
+            0:
+                label="trees"
+                finished=_trees(root,co,state)
+            1:
+                label="grass"
+                finished=_grass(root,co,state)
+            2:
+                label="river_rocks"
+                if co.x>=-1 and co.x<=0:
+                    finished=_rocks(root,co,state)
+            3:
+                label="river_mist"
+                if co.x>=-1 and co.x<=0 and mobile_quality_level!=QUALITY_FAST and not root.has_node("NearRiverMist"):
+                    finished=_river_mist(root,co,state)
+            _:
+                finished=true
+        var phase_ms: float=float(Time.get_ticks_usec()-phase_usec)*0.001
+        cosmetic_phase_peak_ms[label]=maxf(float(cosmetic_phase_peak_ms.get(label,0.0)),phase_ms)
+        if finished:
+            job["stage"]=stage+1
+            job["state"]={"cursor":0}
+            _apply_chunk_lod(co,root)
+        else:
+            job["state"]=state
+        if int(job["stage"])<=3:
+            cosmetic_jobs.append(job)
+        else:
+            cosmetic_completed_chunks+=1
+        if Time.get_ticks_usec()-start_usec>=S9_COSMETIC_BUDGET_US:
+            break
+
+func _cosmetic_rng(state: Dictionary, seed_value: int) -> RandomNumberGenerator:
+    if state.has("rng"):
+        return state["rng"] as RandomNumberGenerator
+    var rng: RandomNumberGenerator=RandomNumberGenerator.new()
+    rng.seed=seed_value
+    if not state.is_empty():
+        state["rng"]=rng
+    return rng
 
 func _apply_chunk_lod(co: Vector2i, chunk: Node3D) -> void:
     if player == null:
@@ -857,44 +943,51 @@ func _water(root: Node3D, co: Vector2i, cached: Dictionary = {}) -> void:
     root.add_child(water_instance)
     _record_chunk_stage("water_scene_attach",phase_usec)
 
-func _river_mist(root: Node3D, co: Vector2i) -> void:
-    # Low-opacity condensation in the water corridor. One batched MultiMesh,
-    # NO camera-following full screen overlays or fake volumetric rendering.
-    var random: RandomNumberGenerator = RandomNumberGenerator.new()
-    random.seed = 88973 + (co.x * 29791 + co.y * 999983) * 19
-    var transforms: Array[Transform3D] = []
-    var origin_x: float = root.position.x
-    var origin_z: float = root.position.z
-    for i in range(22):
-        var z: float = origin_z + random.randf_range(0.7,CELL-0.7)
-        var banks: Vector2 = river_profile.banks_at_z(z)
-        # Clip the mist generation range to the actual wet portion of THIS
-        # chunk. A skinny left-bank slice legitimately has fewer patches.
-        var low_x: float = maxf(banks.x+0.12,origin_x+0.12)
-        var high_x: float = minf(banks.y-0.12,origin_x+CELL-0.12)
-        if high_x-low_x < 0.35:
+func _river_mist(root: Node3D, co: Vector2i, state: Dictionary={}) -> bool:
+    # Keep RNG state and exact spatial formula across multiple frames.
+    var staged: bool=not state.is_empty()
+    var random: RandomNumberGenerator=_cosmetic_rng(state,88973+(co.x*29791+co.y*999983)*19)
+    var transforms: Array[Transform3D]=[]
+    if staged and state.has("transforms"):
+        transforms=state["transforms"]
+    var begin: int=int(state.get("cursor",0)) if staged else 0
+    var until: int=mini(begin+1,22) if staged else 22
+    var origin_x: float=root.position.x
+    var origin_z: float=root.position.z
+    for i in range(begin,until):
+        var z: float=origin_z+random.randf_range(0.7,CELL-0.7)
+        var banks: Vector2=river_profile.banks_at_z(z)
+        var low_x: float=maxf(banks.x+0.12,origin_x+0.12)
+        var high_x: float=minf(banks.y-0.12,origin_x+CELL-0.12)
+        if high_x-low_x<0.35:
             continue
-        var x: float = random.randf_range(low_x,high_x)
-        var height: float = river_profile.surface_height(z) + random.randf_range(0.12,0.32)
-        var radius: float = random.randf_range(0.8,1.8)
+        var x: float=random.randf_range(low_x,high_x)
+        var height: float=river_profile.surface_height(z)+random.randf_range(0.12,0.32)
+        var radius: float=random.randf_range(0.8,1.8)
         transforms.append(Transform3D(Basis(Vector3.UP,random.randf_range(0.0,TAU)).scaled(Vector3(radius,1.0,radius)),Vector3(x-origin_x,height,z-origin_z)))
+    if staged:
+        state["cursor"]=until
+        state["transforms"]=transforms
+        if until<22:
+            return false
     if transforms.is_empty():
-        return
-    var quad: PlaneMesh = PlaneMesh.new()
-    quad.size = Vector2(3.6,2.0)
-    quad.material = atmosphere.mist_material
-    var mm: MultiMesh = MultiMesh.new()
-    mm.transform_format = MultiMesh.TRANSFORM_3D
-    mm.mesh = quad
-    mm.instance_count = transforms.size()
+        return true
+    var quad: PlaneMesh=PlaneMesh.new()
+    quad.size=Vector2(3.6,2.0)
+    quad.material=atmosphere.mist_material
+    var mm: MultiMesh=MultiMesh.new()
+    mm.transform_format=MultiMesh.TRANSFORM_3D
+    mm.mesh=quad
+    mm.instance_count=transforms.size()
     for i in range(transforms.size()):
         mm.set_instance_transform(i,transforms[i])
-    var instance: MultiMeshInstance3D = MultiMeshInstance3D.new()
-    instance.name = "NearRiverMist"
-    instance.multimesh = mm
-    instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-    instance.visibility_range_end = 42.0
+    var instance: MultiMeshInstance3D=MultiMeshInstance3D.new()
+    instance.name="NearRiverMist"
+    instance.multimesh=mm
+    instance.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    instance.visibility_range_end=42.0
     root.add_child(instance)
+    return true
 
 func _pine_mesh() -> Mesh:
     var st: SurfaceTool = SurfaceTool.new()
@@ -960,75 +1053,106 @@ func _tri(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, color: Color) -> 
     st.set_color(color)
     st.add_vertex(c)
 
-func _trees(root: Node3D, co: Vector2i) -> void:
-    var rng: RandomNumberGenerator = RandomNumberGenerator.new()
-    rng.seed = 300001 + (co.x * 1640531513 + co.y * 805459861) * 13
-    var xforms: Array[Transform3D] = []
-    for i in range(46):
-        var x: float = rng.randf_range(0.0, CELL)
-        var z: float = rng.randf_range(0.0, CELL)
-        var wx: float = root.position.x + x
-        var wz: float = root.position.z + z
-        var y: float = _height(wx, wz)
+func _trees(root: Node3D, co: Vector2i, state: Dictionary={}) -> bool:
+    var staged: bool=not state.is_empty()
+    var rng: RandomNumberGenerator=_cosmetic_rng(state,300001+(co.x*1640531513+co.y*805459861)*13)
+    var xforms: Array[Transform3D]=[]
+    if staged and state.has("xforms"):
+        xforms=state["xforms"]
+    var begin: int=int(state.get("cursor",0)) if staged else 0
+    var until: int=mini(begin+6,46) if staged else 46
+    for i in range(begin,until):
+        var x: float=rng.randf_range(0.0,CELL)
+        var z: float=rng.randf_range(0.0,CELL)
+        var wx: float=root.position.x+x
+        var wz: float=root.position.z+z
+        var y: float=_height(wx,wz)
         var near_bank: bool=absf(wx)<=45.0 and river_profile.shore_distance(Vector2(wx,wz))<6.0
-        if near_bank or y > 28.0:
+        if near_bank or y>28.0:
             continue
-        if Vector2(wx - SPAWN_X, wz - SPAWN_Z).length() < 7.0:
+        if Vector2(wx-SPAWN_X,wz-SPAWN_Z).length()<7.0:
             continue
-        var scale: float = rng.randf_range(0.76, 1.66)
-        var basis: Basis = Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3(scale, scale * rng.randf_range(0.9, 1.2), scale))
-        xforms.append(Transform3D(basis, Vector3(x, y - 0.05, z)))
-    _multimesh(root, pine_mesh, "Pines", xforms)
+        var scale: float=rng.randf_range(0.76,1.66)
+        var basis: Basis=Basis(Vector3.UP,rng.randf_range(0.0,TAU)).scaled(Vector3(scale,scale*rng.randf_range(0.9,1.2),scale))
+        xforms.append(Transform3D(basis,Vector3(x,y-0.05,z)))
+    if staged:
+        state["cursor"]=until
+        state["xforms"]=xforms
+        if until<46:
+            return false
+    _multimesh(root,pine_mesh,"Pines",xforms)
+    return true
 
-func _grass(root: Node3D, co: Vector2i) -> void:
-    var rng: RandomNumberGenerator = RandomNumberGenerator.new()
-    rng.seed = 105533 + (co.x * 122949829 + co.y * 1000003) * 7
-    var xforms: Array[Transform3D] = []
-    for i in range(150):
-        var x: float = rng.randf_range(0.0, CELL)
-        var z: float = rng.randf_range(0.0, CELL)
-        var wx: float = root.position.x + x
-        var wz: float = root.position.z + z
-        var y: float = _height(wx, wz)
+func _grass(root: Node3D, co: Vector2i, state: Dictionary={}) -> bool:
+    var staged: bool=not state.is_empty()
+    var rng: RandomNumberGenerator=_cosmetic_rng(state,105533+(co.x*122949829+co.y*1000003)*7)
+    var xforms: Array[Transform3D]=[]
+    if staged and state.has("xforms"):
+        xforms=state["xforms"]
+    var begin: int=int(state.get("cursor",0)) if staged else 0
+    var until: int=mini(begin+15,150) if staged else 150
+    for i in range(begin,until):
+        var x: float=rng.randf_range(0.0,CELL)
+        var z: float=rng.randf_range(0.0,CELL)
+        var wx: float=root.position.x+x
+        var wz: float=root.position.z+z
+        var y: float=_height(wx,wz)
         var near_bank: bool=absf(wx)<=45.0 and river_profile.shore_distance(Vector2(wx,wz))<2.4
-        if near_bank or y > 18.0:
+        if near_bank or y>18.0:
             continue
-        var size: float = rng.randf_range(0.65, 1.45)
-        xforms.append(Transform3D(Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3(size, size, size)), Vector3(x, y + 0.015, z)))
-    _multimesh(root, grass_mesh, "Grass", xforms)
+        var size: float=rng.randf_range(0.65,1.45)
+        xforms.append(Transform3D(Basis(Vector3.UP,rng.randf_range(0.0,TAU)).scaled(Vector3(size,size,size)),Vector3(x,y+0.015,z)))
+    if staged:
+        state["cursor"]=until
+        state["xforms"]=xforms
+        if until<150:
+            return false
+    _multimesh(root,grass_mesh,"Grass",xforms)
+    return true
 
-func _rocks(root: Node3D, co: Vector2i) -> void:
-    # Deterministic regional sediment placement: no continuous gravel bands.
-    # Small stones remain instanced and non-physical. S3 will register the
-    # large obstructing rocks for flow deflection and localized foam.
-    var rng: RandomNumberGenerator = RandomNumberGenerator.new()
-    rng.seed = 80333 + (co.x * 528319 + co.y * 851111) * 3
-    var pebbles: Array[Transform3D] = []
-    var cobbles: Array[Transform3D] = []
-    for i in range(280):
-        var x: float = rng.randf_range(0.0, CELL)
-        var z: float = rng.randf_range(0.0, CELL)
-        var wx: float = root.position.x + x
-        var wz: float = root.position.z + z
-        var p: Vector2 = Vector2(wx, wz)
-        var state: Dictionary = river_profile.sample(p)
-        var sediment: Dictionary = shore_substrate.sample(state, p)
-        var sdf: float = float(state["shore_sdf"])
-        if sdf > 5.5 or sdf < -4.5:
+func _rocks(root: Node3D, co: Vector2i, state: Dictionary={}) -> bool:
+    # Small, non-physical stones are computed incrementally, with identical
+    # per-coordinate RNG sequence and original shader/geometry.
+    var staged: bool=not state.is_empty()
+    var rng: RandomNumberGenerator=_cosmetic_rng(state,80333+(co.x*528319+co.y*851111)*3)
+    var pebbles: Array[Transform3D]=[]
+    var cobbles: Array[Transform3D]=[]
+    if staged and state.has("pebbles"):
+        pebbles=state["pebbles"]
+        cobbles=state["cobbles"]
+    var begin: int=int(state.get("cursor",0)) if staged else 0
+    var until: int=mini(begin+14,280) if staged else 280
+    for i in range(begin,until):
+        var x: float=rng.randf_range(0.0,CELL)
+        var z: float=rng.randf_range(0.0,CELL)
+        var wx: float=root.position.x+x
+        var wz: float=root.position.z+z
+        var pos: Vector2=Vector2(wx,wz)
+        var river: Dictionary=river_profile.sample(pos)
+        var sediment: Dictionary=shore_substrate.sample(river,pos)
+        var sdf: float=float(river["shore_sdf"])
+        if sdf>5.5 or sdf< -4.5:
             continue
-        if rng.randf() > float(sediment["stone_density"]):
+        if rng.randf()>float(sediment["stone_density"]):
             continue
-        var y: float = _height(wx, wz)
-        var spin: float = rng.randf_range(0.0, TAU)
-        var base: Basis = Basis(Vector3.UP,spin)
-        if rng.randf() < 0.75:
-            var size: float = rng.randf_range(0.08,0.27)
-            pebbles.append(Transform3D(base.scaled(Vector3(size*1.45,size*0.47,size)),Vector3(x,y+size*0.10,z)))
+        var y: float=_height(wx,wz)
+        var spin: float=rng.randf_range(0.0,TAU)
+        var basis: Basis=Basis(Vector3.UP,spin)
+        if rng.randf()<0.75:
+            var size: float=rng.randf_range(0.08,0.27)
+            pebbles.append(Transform3D(basis.scaled(Vector3(size*1.45,size*0.47,size)),Vector3(x,y+size*0.10,z)))
         else:
-            var size: float = rng.randf_range(0.27,0.78)
-            cobbles.append(Transform3D(base.scaled(Vector3(size*1.20,size*0.55,size)),Vector3(x,y+size*0.18,z)))
+            var size: float=rng.randf_range(0.27,0.78)
+            cobbles.append(Transform3D(basis.scaled(Vector3(size*1.20,size*0.55,size)),Vector3(x,y+size*0.18,z)))
+    if staged:
+        state["cursor"]=until
+        state["pebbles"]=pebbles
+        state["cobbles"]=cobbles
+        if until<280:
+            return false
     _multimesh(root,pebble_mesh,"FinePebbles",pebbles)
     _multimesh(root,pebble_mesh,"Cobbles",cobbles)
+    return true
 
 func _major_rocks(root: Node3D, co: Vector2i) -> void:
     # Same RiverObstacles contract is sampled in the flow atlas and used to
