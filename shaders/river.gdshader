@@ -24,9 +24,9 @@ uniform vec4 foam_tint : source_color = vec4(0.86,0.91,0.84,1.0);
 varying vec3 world_position;
 varying float river_edge;
 
-float linear_depth_at(vec2 at_uv) {
+float linear_depth_at(vec2 at_uv, mat4 inv_projection) {
     float raw = texture(opaque_depth, at_uv).r;
-    vec4 p = INV_PROJECTION_MATRIX * vec4(at_uv*2.0-1.0,raw,1.0);
+    vec4 p = inv_projection * vec4(at_uv*2.0-1.0,raw,1.0);
     return max(0.0,-p.z/max(abs(p.w),0.00001));
 }
 
@@ -64,7 +64,7 @@ void fragment() {
     // Opaque bed depth minus transparent-water fragment depth. For Vulkan
     // NDC depth 0..1, INV_PROJECTION_MATRIX is the documented reconstruction.
     float surface_eye_depth = max(0.0,-VERTEX.z);
-    float opaque_eye_depth = linear_depth_at(SCREEN_UV);
+    float opaque_eye_depth = linear_depth_at(SCREEN_UV, INV_PROJECTION_MATRIX);
     float optical_path = clamp(max(0.0,opaque_eye_depth-surface_eye_depth),0.0,optical_max);
     float shallow = exp(-optical_path*0.72);
     vec3 tint = mix(deep_tint.rgb,shallow_tint.rgb,shallow);
@@ -73,7 +73,7 @@ void fragment() {
     // Check displaced opaque depth to avoid pulling *foreground* land/rock
     // across the waterline. Fall back to unchanged screen sample on failure.
     if (enable_refraction && refraction_strength > 0.001) {
-        float moved_depth = linear_depth_at(distorted_uv);
+        float moved_depth = linear_depth_at(distorted_uv, INV_PROJECTION_MATRIX);
         if (moved_depth <= surface_eye_depth+0.08) {
             distorted_uv = SCREEN_UV;
         }
