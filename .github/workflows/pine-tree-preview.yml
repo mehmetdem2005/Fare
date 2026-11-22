@@ -1,9 +1,9 @@
-name: Pine Tree - Godot 4.7.2 Test and True Render
+name: Pine Tree v2 - Realistic Godot 4.7.2 Render
 
 on:
   push:
     branches:
-      - test/pine-tree-godot-472-ci
+      - test/pine-v2-realistic-godot-472-ci
     paths:
       - 'pine_ci/**'
       - '.github/workflows/pine-tree-preview.yml'
@@ -55,6 +55,23 @@ jobs:
           print("EXACT_PINE_SCRIPT_OK", len(content), checksum)
           PY
           fi
+
+      - name: Patch pine realism and verify exact script identity
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import zlib, base64
+          chunks = [Path("pine_ci/patch/realism_01.txt"), Path("pine_ci/patch/realism_02.txt")]
+          encoded = "".join(p.read_text().strip() for p in chunks)
+          assert len(encoded) == 5924, len(encoded)
+          delta = zlib.decompress(base64.b64decode(encoded))
+          Path("/tmp/pine_realism.patch").write_bytes(delta)
+          print("PINE_REALISM_PATCH_BYTES", len(delta))
+          PY
+          patch --batch pine_ci/PineTreeGenerator.gd /tmp/pine_realism.patch
+          sha256sum pine_ci/PineTreeGenerator.gd
+          test "$(sha256sum pine_ci/PineTreeGenerator.gd | cut -d' ' -f1)" = "de8f9e334773b4028f690606416db5b0bdde797252d74474cd74225693f4471a"
 
       - name: Preserve editable GD source in CI branch
         run: |
