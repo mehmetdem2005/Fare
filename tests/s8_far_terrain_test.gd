@@ -33,8 +33,11 @@ func _run() -> void:
         var legacy: Dictionary=profile.ground_sample(Vector2(p.x,p.z),float(game.call("_base_height",p.x,p.z)))
         var old_colors: Dictionary=substrate.sample(legacy,Vector2(p.x,p.z))
         var actual: Color=colors[i]
-        if absf(float(legacy["terrain_y"])-p.y)>0.00001:
-            _fail("fast path changed terrain height at "+str(p))
+        var expected_y: float=float(legacy["terrain_y"])
+        # ArrayMesh vertex positions use single-precision coordinates.
+        # At ~200m world X, a few 1e-5 m units of rounding are expected.
+        if absf(expected_y-p.y)>0.0005:
+            _fail("fast path terrain height diverged at "+str(p)+" expected_y="+str(expected_y)+" delta="+str(p.y-expected_y))
             return
         # ArrayMesh stores COLOR as quantized channel data on the GPU.
         # A ~1/255 difference is not a change to the underlying substrate
