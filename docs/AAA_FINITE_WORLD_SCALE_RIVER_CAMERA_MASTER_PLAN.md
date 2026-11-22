@@ -17,6 +17,8 @@
 > KARAR-004: AAA görünüm hedefi; AAA bütçe, donanım veya otomatik kalite garantisi değildir. Android performans ve sanat kalitesi AYRI kabul kapılarından geçer.
 >
 > KARAR-005: Bu dosya iş paketlerinin bağımlılıklarını ve doğrulama koşullarını tanımlar. Uygulama, oyun dosyalarını değiştirme, yeni harita imal etme ve APK build bu planın kapsamı dışındadır.
+> KARAR-006: Çevrenin devasa hissi gerçek metre ve fare gövde/göz oranlarıyla inşa edilir. Örnek 9 cm fare, insan ve farklı yaşta 5–30m çam referansları bölüm 18'de karşılaştırılır.
+> KARAR-007: Nehir genişliği ve iki kıyı birbirini tekrar eden paralel sinüsler olmayacaktır. Kıyı, derinlik, su kotu ve akış; topografik/jeomorfolojik gerekçe ile yerel olarak değişecektir.
 
 ---
 
@@ -425,3 +427,165 @@ Her paket uygulandığında aşağıdaki bilgiler ayrı teknik uygulama dosyası
 - Godot Mobile/Forward+ decals sınırlamaları: https://docs.godotengine.org/en/stable/tutorials/3d/using_decals.html
 
 **Sürümleme:** Bu dosyada yalnız planlama değişikliği yapılabilir; implementation commits, APK üretimi ve sahne değişimleri ayrı onay/çalışma etaplarıdır. Kullanıcının gördüğü gerçek eskiz/oynanış kabulü, shader derlenmesiyle eşdeğer değildir.
+
+---
+
+# 18. DEVASA DÜNYA VE DOĞAL DEĞİŞKEN NEHİR — ÖLÇEK REFERANSI GENİŞLETMESİ (2026-11-22)
+
+## 18.1. Zorunlu tasarım ilkeleri
+
+- Final dünya **sonlu** olacak; mevcut harita yalnız teknik prototip. Yeni harita rastgele procedural bir vadiyi büyütmek yerine, doğal coğrafyası ve erişim rotaları elle tasarlanmış bir alan.
+- Dünya fare için **gerçekten devasa** hissettirmeli. İnsanların gördüğü sıradan bir ağaç, kaya, kütük, çukur veya nehir fareye göre farklı bir coğrafyadır. Bu farkı sahte global ölçek çarpanı değil **gerçek fiziksel oran** yaratacak.
+- Her obje tek kaynaktan belirlenen gerçek metreyle gelir. Fare, collision, rig, gövde/göz yüksekliği, kamera, nehir derinliği ve su fiziği hep aynı metre dünyasındadır.
+- Çamların **yükseklikleri birbirinden farklı** olmalı. Kullanıcının 3–5 insan boyu örneği geçerli bir başlangıç referansıdır; yetişkin bazı çamların bundan çok daha uzun olabileceği de tasarımda açıkça görülecek.
+- Nehir **cetvelle çizilmiş iki paralel kıyı** gibi olmayacak. Sol ve sağ kıyı, ıslak su genişliği, taşkın yatağı, havuz derinliği ve akıntı yer yer ve gerekçeli şekilde değişir. Tekrarlanan tek frekanslı sinus genişliği, aynı aralıklarla kaya ve eşit çapraz kesit yasak.
+- Kamera ağaçların bütününü aynı kareye sığdırmak uğruna otomatik olarak insan boyuna yükselmez. Düşük fare gözünün doğal yarattığı muazzam büyüklük hissi korunur. Oynanış güvenliği ve görünürlük testleri ayrı yapılır.
+- **Bu sayfada sunulan tüm metre aralıkları prototip ölçüm örneğidir, final harita ölçüsü değildir.** Gerçek 49-bone GLB ölçülmeden ve fare türü seçilmeden sabitleme yapılmaz.
+
+## 18.2. Gerçek dünya ölçeğine dayanan örnek hesap — kaç fare boyu?
+
+Kaynaklar: Mammal Society ev faresinin baş+gövde uzunluğunu 70–90 mm olarak verir; USDA Forest Service olgun sarıçam boyunu sıkça 15–30 m aralığında bildirir. Bu, Fare Martin'in türü veya final ağacı seçildi demek değildir. Düşünme örneği olarak 9 cm farenin **kuyruk hariç gövdesi** L = 0.09 m, farenin varsayımsal göz yüksekliği E = 0.035 m, örnek insan boyu H = 1.70 m seçilir. Göz yüksekliği **model ölçümü değildir**.
+
+| Referans | Varsayımsal fiziksel boyut | 9 cm gövdeye göre oran | Fare gözünden algı görevi |
+|---|---:|---:|---|
+| Fare — burun/kuyruk kökü | 0.09 m | 1 L | Tüm ölçeğin fiziksel referansı |
+| Fare göz hizası | 0.035 m (ölçülecek) | 0.39 L | Kamera düzeyi; gövde yüksekliğiyle karıştırılmayacak |
+| Ufak çakıl | 0.03 m | 0.33 L | Fare için basılabilir / takılabilir ayrıntı |
+| Kaya parçası | 0.15 m | 1.7 L | Yol üzerindeki tırmanma olayı |
+| Büyük kaya | 0.80 m | 8.9 L | Duvar/kale hissi; yalnız dekor değil |
+| Kök kemeri açıklığı | 0.12–0.45 m | 1.3–5 L | Sıkışılabilir / geçilebilir / kapanabilir koridor |
+| Çam gövde çapı (örnek) | 0.35–0.90 m | 3.9–10 L | Kabuk olukları ve kökler çevre coğrafyası |
+| İnsan boyu referansı | 1.70 m | 18.9 L | Fare için devasa canlı; oyunda insan olması şart değil |
+| İnsanın 3 katı kısa/orta çam | 5.10 m | 56.7 L | Genç ağaç bile kale hissi |
+| İnsanın 5 katı çam | 8.50 m | 94.4 L | Fareden bakılınca tepe çoğunlukla kadraj dışında |
+| Olgun çam örneği | 15–30 m | 167–333 L | Enorm gövde ve uzak/neredeyse görünmez tepe |
+
+**Boy karşılaştırması yöntemi:** 1.70 m insan / 0.09 m fare gövdesi yaklaşık 19 gövde uzunluğudur. 15 m çam / 0.09 m fare yaklaşık 167, 30 m çam / fare yaklaşık 333 gövde uzunluğudur. **Uzunluk ve yüksekliği birbiriyle karşılaştırırken bunu açıkça söyleriz**; fare sırt yüksekliği veya göz yüksekliğiyle boy oranı aynı sayı değildir. E=3.5 cm örneğinde 15 m ağaç göz yüksekliğinin yaklaşık 429 katıdır, 30 m ağaç yaklaşık 857 katıdır.
+
+**Neden farklı boydaki ağaçlar gerekli?** 5–8 m çamları her yere eşit dağıtmak ölçekli bir dünya değil dekor katalogu oluşturur. Fidan, eğilmiş genç çam, 15–30 m olgun ağaç, devrilmiş gövde, kırık dal, seyrek açıklık ve kök çıkıntıları, topografya ve yaş/habitatla bağlantılı olmalı. Ağaç yükseklik dağılımı tamamen uniform random olmayacak.
+
+**Tasarımda yasak kolaycılıklar:** ağaç yüksekliğini kameraya göre değiştirmek, uzaklaştırıldıkça dünyayı sıkıştırmak, fareyi yalnız görsel olarak küçültüp 0.84 m çarpışma kapsülünü bırakmak, fareyi görünür kılmak için kamerayı sürekli 3–4 m yukarı yükseltmek.
+
+## 18.3. Devasa dünya nasıl hissedilir — kamera, rota ve mikro coğrafya
+
+Aynı 9 cm fare referansında 20 m yol yaklaşık 222 gövde uzunluğudur. Dünyanın yüzlerce kilometrekare olması şart değildir; **fareden bakılan gerçek 20 m**, birkaç kök kemeri, kaya ve kıyı geçişiyle muazzam bir güzergâh olabilir. Ancak bu oranda uzun yolların boş ve tekrar eden düz zemin üzerinde koşturma süresi olarak dayatılması da yanlıştır.
+
+- **0–0.5 m mikro ölçek:** çakıl, kuru yaprak, yosun, yağmur izi, çamur, kabuk çatlağı; ayak ve yakın kamera kalite alanı.
+- **0.5–3 m anlık mekân:** taş arkası, kök tüneli, basamak, kütük altı, düşmüş dal; hareket ve kamera yüzey takibi.
+- **3–15 m bölge:** iki dev ağaç arasındaki oyuk, nehir kıyısından görüş, avcıdan saklanma, ışık havuzu.
+- **15–80 m makro sahne:** orman dokusu, yamaç, açılan nehir ve devrilmiş ağaç gövdesinin kompozisyonu.
+- **80 m+ arka dünya:** sanatçı yerleştirdiği ana silüet ve topoğrafya. Uzak alan gerçek mesafeyi korur ama mobilde HLOD/impostor ile verimli çizilebilir.
+
+**Göz hizası sinematografisi:** Fare ağacın dibinde ise ağacın tepesini zorla gösterme. Kabuk detayına yaklaş, çıkıntılı kökü dev bir köprü gibi okut, gövdenin yukarı kaybolmasına izin ver; gerçek tepe yalnız açıklıkta veya oyuncu manuel yukarı bakınca görünür. Yüksek denetim kamerasının güzel görünmesi kalite kabulü değildir.
+
+**Kamera oran laboratuvarı:** Aynı scene içine 9 cm referans fare, 1.70 m insan silüeti (yalnız editör katmanında), 5.1 / 8.5 / 15 / 30 m ağaç konur. Fare göz hizası, kötü prototip kameranın yüksekliği ve önerilen alçak üçüncü şahıs açıları karşılaştırılır. Fare ekranda görünürken çevrenin büyüklüğü okunmalı; aşırı fisheye, yanlış FOV ve sert parallax hilesi kullanılmaz.
+
+**Teknik bağlantı:** Paket A ScaleBible ile Kamera Paket E arasında kamera takip mesafesi metre sabiti değil fare gövde uzunluğu L, göz E, eğim ve engel görünürlüğüne bağlı profil olur. Fare fiziği, kök geçidi collider genişliği, 3D ses mesafesi ve hava/ışık perspektifi de aynı ölçülerle çalışır.
+
+## 18.4. Nehir asla şerit gibi olmayacak — genişlik referans tablosu
+
+Aşağıdaki genişlikler *son harita için zorunlu bir nehir türü değildir*. Tek bir 9 cm gövde örneğiyle, suyun fareye göre ne kadar büyük görünebileceğini düşünmek için önerilen tasarım örnekleridir.
+
+| Kanal parçası | Islak su yüzeyi genişliği | Fareye göre yaklaşık | Jeomorfolojik bağlam |
+|---|---:|---:|---|
+| Yan kol / küçük dere | 0.4–1.5 m | 4–17 L | Su sızıntısı veya ana kanala bağlı yan kol |
+| Dar kayalık boğaz | 2–5 m | 22–56 L | Kaya-kesit daralması; hızlı akış mümkün |
+| Doğal orman içi nehir | 6–14 m | 67–156 L | Tek ana kanal, karşı kıyı uzağa düşer |
+| Geniş açılan havuz | 15–30 m | 167–333 L | Düşük hız, büyük su alanı, derin dip mümkündür |
+| Taşkın yatağı / çok kollu bölüm | Farklı birleşen kanallar | Her kol ayrı ölçülür | Kum/çakıl bar, ada, yan giriş ve taşkın izi |
+
+**Dikkat:** "Dar bölümden sonra geniş havuz" bir animasyon efekti değil gerçek arazi şekli olmalıdır. 3 m kanalın aniden 30 m kanal olması ancak çevre geolojisi, kot, yan kol/debi veya birikim havzası bakımından açıklanabiliyorsa tasarlanır. Kendi başına sayısal çeşitlilik bir güzellik ölçütü değildir.
+
+### 18.4.1. Bağımsız kıyılar ve değişen enkesit
+
+Artık sağ ve sol kıyı yalnız centerline'a aynı uzaklıkta çizilen iki sınır olarak ele alınmayacak. **left_bank(s) ve right_bank(s) bağımsız, elle düzenlenebilir, kıyı yükselti ve yatak malzemesi içeren üç boyutlu eğrilerdir.** Bunların ortası bile mutlaka akış ekseni değildir.
+
+- Dış kıyıda oyulmuş 1.5 m yükseklik, iç kıyıda çakıl dolgulu 0.2 m eğimli su geçidi olabilir. Fare için 1.5 m banket 16.7 gövde uzunluğunda dik duvardır.
+- En derin nehir hattı yani **thalweg**, her zaman kanalın geometrik ortasında bulunmaz; kıvrımlarda dışa kayabilir, kaya arkasında çukur oluşabilir, çakıl setinde yükselir.
+- Kıyılar paralel ilerlemez: bazıları köklerle güçlü biçimde tutulur, bazıları çöker, bazıları taşkınla geri çekilir, bazılarında su altında geniş sahanlık vardır.
+- Suyun görünen genişliği (W_wetted) ile taşkın sınırının genişliği (W_bankfull) ve bütün floodplain genişliği ayrı veri alanlarıdır.
+- Adalar, çevresinden akan iki kol, mevsimsel kuru kanal ve taşkınla birikmiş kök kütüğü topografyaya uygun yerleştirilir. Her 40 m chunk'ta bir "aynı ada" yok.
+- Nehrin bir kesitte nispeten düz akması doğal olabilir. **Hedef düzlük yasağı değil, sebebi olmayan cetvel-şekli ve periyodik tekrar yasağıdır.**
+
+### 18.4.2. Nehir storyboard'u — geçici, elle tasarlanacak ardışıklık
+
+Bu satırlar haritanın nihai nehir planı değil, morfoloji farklılığını açıklayan bir örnek:
+
+| Sahne karakteri | Örnek genişlik | Gerekçe | Farenin deneyimi |
+|---|---|---|---|
+| Köklü giriş vadisi | 4–8 m | Kök ve dar topoğrafya | Dev kökler arasından suya yaklaşır |
+| Dış kıyı oyuntulu kıvrım | 8–16 m | Erozyon + karşı kıyıda çakıl bar | Bir kıyı uçurum, diğeri sığ ve geniş |
+| Kaya eşiğinde sıkışma | 3–6 m | Ana kayanın kanal daraltması | Ses ve akıntı artar; rota değişir |
+| Açılan havuz | 14–28 m | Daralmadan sonraki daha büyük havza ve scour | Sakin yüzey, korkutucu derin su |
+| Çakıl adası / ayrılan kanal | Bağımsız sol/sağ kol | Birikim, sediman ve taşkın | Oyun alanı adalarla dallanır |
+
+Kıyı ve derinlik şekilleri arasında belirgin kopma olmaz; 5 sahne aynı sırayla tekrarlanan yüzme engelleri hâline gelmez.
+
+## 18.5. Derinlik birikinti olmayacak — fare gövdesine göre su rejimi
+
+Derinlik, mutlak metreye göre ve ayrıca **fare gövde yüksekliği H_body** ile karşılaştırılacak. Bu yükseklik gerçek rig ölçümü gelmeden sabitlenmez. Aşağıdaki 0.04 m sırt/beden yüksekliği sadece karşılaştırma için varsayımdır.
+
+| Su ortamı | Örnek derinlik | Varsayımsal 4 cm fare yüksekliğine oran | Oynanış etkisi |
+|---|---:|---:|---|
+| Kıyı su filmi | 0.005–0.02 m | 0.13–0.5× | Islak ayak/çamur ve su yansısı |
+| Sığ çakıl akışı | 0.03–0.12 m | 0.75–3× | Geçiş, itiş, sendeleme veya yüzmeye hazırlık |
+| Olağan kanal | 0.20–0.80 m | 5–20× | Fare için ciddi su ortamı; yüzme/akıntı |
+| Derin havuz | 1–3 m (tasarım örneği) | 25–75× | Su altında karanlık dip ve yüzeyden uzaklık |
+| Ani kıyı düşümü | 0.3–1.5 m yerel yükseklik | 7.5–37.5× | Kıyıdan düşme tehlikesi ve kamera uyumu |
+
+**Derinlik artırmak bütün suyu derin yapmak değildir.** Gerçekçi bir nehirde sığ, derin, düz, çukurlu ve ana akım kıyıdan farklı yerlerde bulunur. Havuzun derinliği su çizgisiyle birlikte çalışır; tek bir sinüs dalgasına kilitlenmez. Render bed mesh, collision, suda yüzme ve underwater depth attenuation aynı veri setini kullanır.
+
+Çukur geometrisinde kaba tek heightmap bazı girintiler, banket altı oyuklar, taş/odun altındaki boşluklar için yetersiz olabilir: özel mesh/SDF veya ek yerel geometri gerektiğinde offline hazırlanır. Final ortam oyuncunun ayağının çarpacağı toprağı detaylı göstermeli; sualtında düz bir mavi yüzey bulunamaz.
+
+## 18.6. Nehrin suyu genişlik ve derinliğe tepki verecek
+
+Nehir şekli değişiyor diye aynı su yüzeyi dokusunun 20 metrelik alana gerilmesi de yasak. Alan ve ortalama hızın yerel ilişkisi önce kaba süreklilik denetimiyle kontrol edilir: Q yaklaşık A × V; debi, enkesit, hız ve eğim açıklanabilir olmalı. Bu formül tam CFD değildir; görsel/oynansal tutarsızlıkları yakalamak için ön denetimdir.
+
+- Kaya boğazında hız, yüzey eğrisi ve kayanın arkasındaki kırılan akım ayrı örneklenir; tüm nehirde eşit beyaz çizgiler oluşturulmaz.
+- İç kıyı sedimanı, dış kıyı oyulması, kayaya çarpan köpük, ana akıntı ve karşı akım cepleri ortak topoğrafyayla uyumlu olur.
+- Havuz genişleyince yüzeyin bazı bölümleri sakin, bazı bölgeleri dönen veya tabandan kalkan kabarcıklı olabilir. **Sakin su da derin ve tehlikeli olabilir.**
+- Yan kol/ada yakınında akış yönü yalnız ana nehir spline'ından çıkarılamaz; kollar için ayrı debi paylaşımı, birleşme ve vortex davranışları düşünülür.
+- Foam atlas ve su normal dokusu tekrarı 30–60 saniye sabit kamerayla denetlenir. Her noktadaki görsel su vektörü fiziksel akımla tutarlı olmalıdır.
+
+**Jeomorfoloji dayanağı:** U.S. National Park Service, havuz ve sığ-set dizileri, dış kıyıda aşınma, iç kıyıda birikim ve yatak genişliğine bağlı biçimler için örnekler sunar. Ancak bilimsel tipik mesafeleri sinüs tekrar aralığı gibi kopyalamayacağız.
+
+## 18.7. Devasa dünya için yüzeye uyumlu kamera — yeni karar ölçütleri
+
+Mevcut sabit 3.4 m takip mesafesi, 9 cm fare için 37.8 gövde uzunluğudur ve fare göz yüksekliği varsayımıyla ~97 göz yüksekliğine karşılık gelir. Kamera fazla yükselir/uzaklaşırsa ağaçlar büyük gerçek ölçüde olsa bile oyuncu kendisini drone gözünde hisseder.
+
+- Varsayılan kamera **fareyi görebileceği kadar geride** ama onu insan seviyesinden izlemeyecek şekilde planlanır; takip mesafesi metre yerine L, E ve kamera/ground-probe durumuna bağlanır.
+- Yamaç aşağı inerken ilerideki yüzeyi, çıkarken kaya duvarını okuyabilir. Göz yüksekliği ve zemin normalini kısa süreli filtreleyerek titremeyen, ufku gereksiz devirmeyen kamera modları planlanır.
+- Yanında 20 m çam varsa bütün ağacı göstermek için farenin uzağına kaçmak yasak: dik gövde birkaç kare boyunca yukarı kaybolabilir; bu devasa his için doğru görseldir.
+- Suya girerken su çizgisi ekranda yükselir; su altında gerçek derinliğe bağlı ışık sönmesi olabilir, ancak dokunun tüm görseli kapattığı yapay duvar ve aşırı bulanıklık kullanılmaz.
+- Oyuncu kamerayı manuel çevirdiğinde otomatik tırmanış/iniş/engel tepkisiyle çatışmayan öncelik kuralları hazırlanır.
+- Kamera doğruluk testi yalnız tek screenshot değildir: zemin eğiminde, su kenarında, ağaç dibinde, kök tünelinde, hızlı koşarken ve kamerayı döndürürken 30 FPS senaryosu doğrulanır.
+
+## 18.8. Özel QA araçları ve teslimler
+
+**ColossusScaleLab:** 9 cm referans fare + 1.7m insan editör silüeti + 5.1/8.5/15/30 m çam + kök ve kaya; gerçek GLB AABB ölçülünce varsayımsal değerler güncellenir. Çıktı: ölçek matrisi, 3 kamera açısı, metre/gövde uzunluğu denetimi, 49-bone rig durumu.
+
+**MouseViewLab:** Aynı mekânda kuşbakış referans, gerçek fare göz seviyesi ve oynanabilir yakın üçüncü şahıs kadrajı. Ağacın uzak tepesi yerine gövde/kökün dev hissi, erişilebilir zemin ve fare görünürlüğü test edilir.
+
+**RiverWidthLab:** Sol/sağ bağımsız kıyı verisi, W_wetted(s) ve W_bankfull(s) eğrileri, farklı genişlik/darlık, çakıl adası, kıvrım, taşkın izi; cross-section ve fare sahil kamerası birlikte kıyaslanır.
+
+**RiverDepthLab:** Sığ kum seti / derin havuz / dış kıyı oyulması / kaya ardı scour; render su çizgisi, collision, taban derinliği ve suda karakter fiziği aynı referansla test edilir.
+
+**FlowContinuityLab:** Dar boğazın yukarısı/içi/çıkışı, geniş havuz ve iki kollu adada debi/hız/foam sahnesi; 30/60 saniye tekrarlı motif, akış yönü ve su shader maliyeti değerlendirilir.
+
+**TerrainNarrativeLab:** Rastgele şekil yerine açıklanabilir kaya, kök, su, sediman ve habitat: her hero kesitinin neden böyle oluştuğu, görünür jeomorfolojik işaretlerle anlatılabilir olmalı.
+
+### Kabul işaretleri
+
+- **Ölçek doğrulaması:** Farenin gerçek GLB boyu, collider, göz, kamera ve ağaçlar ortak 1m dünya sözleşmesine uyuyor; her ağacın boyu/çapı biyom ve yaşla açıklanabiliyor.
+- **Devasa hissiyat:** Fare gözünden en az 3 farklı sahnede ağacın/orman tabanının/kayanın fareye oranı okunur; büyük his için sahte dünya büyütme veya kamerayı gizlice yüksekten izletme yok.
+- **Nehir doğallığı:** 100m örnek kesitte her yerde aynı iki kıyı arası, aynı periyodik genişleme ve düzenli tekrarlanan bank şekli görünmüyor; doğal bir düz kesit varsa sebebi biliniyor.
+- **Derinlik tutarlılığı:** Derin havuz suyu varsayımsal fare beden yüksekliğinin çok katı; sığ geçit doğal ve anlamlı bir oynanış istisnası; collision ile gerçek bed geometrisi uyuşuyor.
+- **Kamera güvenliği:** Eğime, su yüzeyine ve büyük çevre objelerine uyumlu; kullanıcı kontrolünü bozmadan düşük fare bakışını koruyor.
+- **Mobil performans:** Android 11/Mali'de p95/p99, su ekran kaplaması, RAM ve ısı ayrıca ölçülür. Güzel screenshot veya GitHub headless test tek başına AAA kalite kanıtı değildir.
+
+### Gerekli teknik ve doğa referansları
+
+- Mammal Society, House Mouse ölçüsü: https://mammal.org.uk/species-hub/full-species-hub/discover-mammals/species-house-mouse
+- USDA Forest Service, Scots pine olgun boyu: https://research.fs.usda.gov/feis/species-reviews/pinsyl
+- U.S. National Park Service, river/fluvial morphology: https://www.nps.gov/articles/fluvial-geomorphology-monitoring-stream-systems-in-response-to-a-changing-environment.htm
+- Önceki planın Paket A–I bölümleri bu ek bölümle birlikte uygulanır; **yeni örnek ölçekler tasarım kararı olarak kesinleştirilmiş değildir**.
