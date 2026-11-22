@@ -43,6 +43,10 @@ func load_chunk(co: Vector2i) -> Dictionary:
         hits+=1
     return chunk
 
+func has_user(co: Vector2i) -> bool:
+    var p: String=_prefix(co,false)
+    return FileAccess.file_exists(p+"terrain.res") and FileAccess.file_exists(p+"collision.res")
+
 func has_pack(co: Vector2i) -> bool:
     var p: String = _prefix(co,true)
     return FileAccess.file_exists(p+"terrain.res") and FileAccess.file_exists(p+"collision.res")

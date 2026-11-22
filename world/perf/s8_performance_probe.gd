@@ -162,6 +162,16 @@ func _refresh_snapshot() -> void:
         "fixed_scene_mode":bool(game.get("s9_fixed_scene")),
         "stream_queue_length":(game.get("queue") as Array).size(),
         "chunk_trace":trace.get_report() if trace!=null else {},
+        "s9_cpu_prefetch_enabled":bool(game.get("s9_worker_enabled")),
+        "s9_cpu_prefetch_inflight":(game.get("s9_worker_tasks") as Dictionary).size(),
+        "s9_cpu_prefetch_ready":(game.get("s9_worker_ready") as Dictionary).size(),
+        "s9_cpu_prefetch_started":int(game.get("s9_worker_started")),
+        "s9_cpu_prefetch_finished":int(game.get("s9_worker_finished")),
+        "s9_cpu_prefetch_used":int(game.get("s9_worker_used")),
+        "s9_cpu_prefetch_discarded":int(game.get("s9_worker_discarded")),
+        "s9_cpu_prefetch_collision_fallback":int(game.get("s9_worker_collision_fallback")),
+        "s9_cpu_prefetch_deferred_requests":int(game.get("s9_worker_deferred_requests")),
+        "s9_cpu_prefetch_last_worker_ms":snappedf(float(game.get("s9_worker_latest_cpu_ms")),0.01),
         "cosmetic_jobs_pending":(game.get("cosmetic_jobs") as Array).size(),
         "cosmetic_completed_chunks":int(game.get("cosmetic_completed_chunks")),
         "cosmetic_phase_peak_ms":(game.get("cosmetic_phase_peak_ms") as Dictionary).duplicate(),
@@ -215,6 +225,7 @@ func _refresh_snapshot() -> void:
     text_value+="Sabit sahne %s  Sirada %d\n" % [str(snapshot["fixed_scene_mode"]),int(snapshot["stream_queue_length"])]
     text_value+="Chunk stages ms: "+str(snapshot["chunk_stage_peak_ms"])+"\n"
     text_value+="Gorsel parcaciklar bekliyor %d\n" % int(snapshot["cosmetic_jobs_pending"])
+    text_value+="CPU onhazirla %d/%d Kullanim %d\n" % [int(snapshot["s9_cpu_prefetch_ready"]),int(snapshot["s9_cpu_prefetch_inflight"]),int(snapshot["s9_cpu_prefetch_used"])]
     text_value+="* Godot'un raporladigi; GPU zamani degil\n"
     if not last_save_path.is_empty():
         text_value+="Kayit: "+last_save_path.get_file()

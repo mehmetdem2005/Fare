@@ -79,6 +79,20 @@ const S9_COSMETIC_BUDGET_US: int = 3000
 var cosmetic_jobs: Array[Dictionary] = []
 var cosmetic_phase_peak_ms: Dictionary = {}
 var cosmetic_completed_chunks: int = 0
+# S9.3b CPU-only worker prefetch. Main thread owns every Node/ArrayMesh,
+# ImageTexture and collision; no worker may read the active game scene.
+const S9_MAX_CPU_WORKERS: int = 2
+const S9_MAX_READY_DATA: int = 6
+var s9_worker_enabled: bool = true
+var s9_worker_tasks: Dictionary = {}
+var s9_worker_ready: Dictionary = {}
+var s9_worker_started: int = 0
+var s9_worker_finished: int = 0
+var s9_worker_used: int = 0
+var s9_worker_discarded: int = 0
+var s9_worker_collision_fallback: int = 0
+var s9_worker_deferred_requests: int = 0
+var s9_worker_latest_cpu_ms: float = 0.0
 var s9_fixed_scene_center: Vector2i = Vector2i.ZERO
 var max_chunk_load_ms: float = 0.0
 var last_chunk_load_ms: float = 0.0
@@ -174,6 +188,10 @@ func set_mobile_quality(level: int) -> void:
     if mobile_quality_level==QUALITY_FAST and terrain_lite_mat==null:
         push_warning("Fast terrain shader is missing; preserving full terrain material")
     _update_chunk_lod()
+    if s9_fixed_scene and mobile_quality_level!=QUALITY_FAST:
+        # Quality changes reintroduce geometry jobs. The fixed-scene
+        # measurement must never silently include their CPU cost.
+        s9_fixed_scene=false
     if mobile_quality_level!=QUALITY_FAST:
         # Fast quality avoids constructing invisible river mist altogether.
         # A later quality upgrade schedules its deterministic restoration.
@@ -196,7 +214,7 @@ func _record_chunk_stage(name: String, began_usec: int) -> void:
     s9_current_chunk_stages[name]=elapsed_ms
 
 func set_s9_fixed_scene(enabled: bool) -> bool:
-    if enabled and (chunks.size()!=25 or not queue.is_empty() or not cosmetic_jobs.is_empty()):
+    if enabled and (chunks.size()!=25 or not queue.is_empty() or not cosmetic_jobs.is_empty() or not s9_worker_tasks.is_empty()):
         return false
     s9_fixed_scene=enabled
     s9_fixed_scene_center=_current_chunk() if enabled else Vector2i.ZERO
@@ -402,6 +420,8 @@ func _emit_water_ripples(delta: float) -> void:
 func _process(delta: float) -> void:
     var script_start_usec: int=Time.get_ticks_usec()
     elapsed += delta
+    if OS.get_name()=="Android":
+        _s9_poll_cpu_tasks()
     # Fixed-scene A/B mode is for stationary render testing only. Leaving
     # the source chunk automatically restores collision-safe streaming.
     if s9_fixed_scene and _current_chunk()!=s9_fixed_scene_center:
@@ -411,6 +431,8 @@ func _process(delta: float) -> void:
         chunk_timer = 0.0
         if not s9_fixed_scene:
             _queue_chunks()
+            if OS.get_name()=="Android":
+                _s9_predictive_prefetch()
     lod_update_timer+=delta
     if lod_update_timer>0.40:
         lod_update_timer=0.0
@@ -699,23 +721,137 @@ func _queue_chunks() -> void:
             part.queue_free()
             chunks.erase(co)
 
+func _s9_start_cpu_task(co: Vector2i) -> bool:
+    if not s9_worker_enabled:
+        return false
+    if s9_worker_tasks.has(co) or s9_worker_ready.has(co):
+        return true
+    if s9_worker_tasks.size()>=S9_MAX_CPU_WORKERS:
+        return false
+    if chunk_cache.has_pack(co) or chunk_cache.has_user(co):
+        return false
+    var job: S9PureChunkData=S9PureChunkData.new()
+    job.co=co
+    var task_id: int=WorkerThreadPool.add_task(Callable(job,"build"),false,"Fare terrain river CPU")
+    s9_worker_tasks[co]={"task_id":task_id,"job":job}
+    s9_worker_started+=1
+    return true
+
+func _s9_poll_cpu_tasks() -> void:
+    for key in s9_worker_tasks.keys():
+        var co: Vector2i=key
+        var ticket: Dictionary=s9_worker_tasks[co]
+        var id: int=int(ticket["task_id"])
+        if not WorkerThreadPool.is_task_completed(id):
+            continue
+        WorkerThreadPool.wait_for_task_completion(id)
+        s9_worker_tasks.erase(co)
+        s9_worker_finished+=1
+        var job: S9PureChunkData=ticket["job"] as S9PureChunkData
+        s9_worker_latest_cpu_ms=job.worker_elapsed_ms
+        var center: Vector2i=_current_chunk()
+        if not job.completed or maxi(absi(co.x-center.x),absi(co.y-center.y))>4:
+            s9_worker_discarded+=1
+            continue
+        s9_worker_ready[co]=job
+    # Bounded CPU buffer cache: prioritise chunks likely to become needed.
+    while s9_worker_ready.size()>S9_MAX_READY_DATA:
+        var center: Vector2i=_current_chunk()
+        var evict: Vector2i=center
+        var greatest: int=-1
+        for key in s9_worker_ready.keys():
+            var co: Vector2i=key
+            var distance: int=absi(co.x-center.x)+absi(co.y-center.y)
+            if distance>greatest:
+                greatest=distance
+                evict=co
+        s9_worker_ready.erase(evict)
+        s9_worker_discarded+=1
+
+func _s9_predictive_prefetch() -> void:
+    if not s9_worker_enabled or s9_fixed_scene:
+        return
+    if s9_worker_tasks.size()>=S9_MAX_CPU_WORKERS or s9_worker_ready.size()>=S9_MAX_READY_DATA:
+        return
+    if player==null:
+        return
+    var vel: Vector2=Vector2(player.velocity.x,player.velocity.z)
+    if vel.length()<0.4:
+        return
+    var now: Vector2i=_current_chunk()
+    var predicted_x: float=player.global_position.x+vel.x*3.0
+    var predicted_z: float=player.global_position.z+vel.y*3.0
+    var predicted: Vector2i=Vector2i(floori(predicted_x/CELL),floori(predicted_z/CELL))
+    var candidates: Array[Dictionary]=[]
+    for z in range(-3,4):
+        for x in range(-3,4):
+            if maxi(absi(x),absi(z))!=3:
+                continue
+            var co: Vector2i=now+Vector2i(x,z)
+            if absi(co.x-predicted.x)>2 or absi(co.y-predicted.y)>2:
+                continue
+            if chunks.has(co) or s9_worker_tasks.has(co) or s9_worker_ready.has(co):
+                continue
+            if chunk_cache.has_pack(co) or chunk_cache.has_user(co):
+                continue
+            var priority: float=float(absi(co.x-predicted.x)+absi(co.y-predicted.y))*8.0+float(absi(x)+absi(z))*0.25
+            candidates.append({"co":co,"priority":priority})
+    candidates.sort_custom(func(a: Dictionary,b: Dictionary) -> bool:
+        return float(a["priority"])<float(b["priority"]))
+    for option in candidates:
+        if s9_worker_tasks.size()>=S9_MAX_CPU_WORKERS:
+            break
+        _s9_start_cpu_task(option["co"])
+
+func _s9_collision_urgent(co: Vector2i) -> bool:
+    var center: Vector2i=_current_chunk()
+    return maxi(absi(co.x-center.x),absi(co.y-center.y))<=1
+
+func _exit_tree() -> void:
+    # Every WorkerThreadPool task MUST be joined eventually.
+    # Closing a scene may block while the two remaining CPU jobs terminate.
+    for ticket in s9_worker_tasks.values():
+        WorkerThreadPool.wait_for_task_completion(int(ticket["task_id"]))
+    s9_worker_tasks.clear()
+    s9_worker_ready.clear()
+
 func _add_chunk(co: Vector2i, defer_details: bool=false) -> void:
     if chunks.has(co):
         return
     var started_usec: int=Time.get_ticks_usec()
     var queued_usec: int=int(s9_queue_requested_usec.get(co,started_usec))
+    var phase_usec: int=Time.get_ticks_usec()
+    var cached: Dictionary=chunk_cache.load_chunk(co)
+    var prepared: S9PureChunkData=s9_worker_ready.get(co,null) as S9PureChunkData
+    if cached.is_empty() and prepared==null and OS.get_name()=="Android" and s9_worker_enabled and not ChunkBakeCache.bypass_disk:
+        # For outer two rings, do not block a frame on ~1s CPU generation.
+        # Current + adjacent ring always use synchronous safety fallback
+        # so teleport/fast travel never leaves a missing ground collider.
+        if not _s9_collision_urgent(co):
+            _s9_start_cpu_task(co)
+            if not queue.has(co):
+                queue.append(co)
+            s9_worker_deferred_requests+=1
+            return
+        s9_worker_collision_fallback+=1
     s9_queue_requested_usec.erase(co)
     s9_current_chunk_stages={}
-    var root: Node3D = Node3D.new()
-    root.name = "Chunk_%d_%d" % [co.x, co.y]
-    root.position = Vector3(float(co.x) * CELL, 0.0, float(co.y) * CELL)
-    add_child(root)
-    chunks[co] = root
-    var phase_usec: int=Time.get_ticks_usec()
-    var cached: Dictionary = chunk_cache.load_chunk(co)
     _record_chunk_stage("cache_read",phase_usec)
+    var root: Node3D=Node3D.new()
+    root.name="Chunk_%d_%d" % [co.x,co.y]
+    root.position=Vector3(float(co.x)*CELL,0.0,float(co.y)*CELL)
+    add_child(root)
+    chunks[co]=root
     phase_usec=Time.get_ticks_usec()
-    var mesh: ArrayMesh = cached["terrain"] if cached.has("terrain") else _generate_terrain_mesh(root)
+    var mesh: ArrayMesh
+    if cached.has("terrain"):
+        mesh=cached["terrain"] as ArrayMesh
+    elif prepared!=null:
+        mesh=prepared.create_terrain_mesh()
+        s9_worker_used+=1
+        s9_worker_ready.erase(co)
+    else:
+        mesh=_generate_terrain_mesh(root)
     _record_chunk_stage("terrain_mesh",phase_usec)
     if cached.is_empty():
         chunk_cache_miss_count+=1
@@ -749,7 +885,7 @@ func _add_chunk(co: Vector2i, defer_details: bool=false) -> void:
     phase_usec=Time.get_ticks_usec()
     # River water and obstructing boulders remain in the critical path.
     if co.x >= -1 and co.x <= 0:
-        _water(root,co,cached)
+        _water(root,co,cached,prepared)
         if not defer_details:
             var rocks_usec: int=Time.get_ticks_usec()
             _rocks(root,co)
@@ -873,14 +1009,19 @@ func _save_one_cache_chunk() -> void:
                 cache_saves+=1
             break
 
-func _water(root: Node3D, co: Vector2i, cached: Dictionary = {}) -> void:
+func _water(root: Node3D, co: Vector2i, cached: Dictionary = {}, prepared: S9PureChunkData = null) -> void:
     var phase_usec: int=Time.get_ticks_usec()
     var reuse: Dictionary=water_resource_cache.get(co,{})
     var water_mesh: ArrayMesh
     if not reuse.is_empty():
         water_mesh=reuse["mesh"] as ArrayMesh
     else:
-        water_mesh=cached["water"] if cached.has("water") else river_surface_builder.build_chunk(river_profile,co,CELL)
+        if cached.has("water"):
+            water_mesh=cached["water"] as ArrayMesh
+        elif prepared!=null and not prepared.water_arrays.is_empty():
+            water_mesh=prepared.create_water_mesh()
+        else:
+            water_mesh=river_surface_builder.build_chunk(river_profile,co,CELL)
     _record_chunk_stage("water_mesh",phase_usec)
     if water_mesh==null or water_mesh.get_surface_count()==0:
         return
@@ -905,7 +1046,10 @@ func _water(root: Node3D, co: Vector2i, cached: Dictionary = {}) -> void:
         var origin: Vector2=Vector2(root.position.x,root.position.z)
         phase_usec=Time.get_ticks_usec()
         # V2 atlas is the single flow source for physics and visual shader.
-        atlas=river_flow_atlas_cache.fetch(co,river_profile,river_flow_field,CELL)
+        if prepared!=null and not prepared.flow_rgba8.is_empty():
+            atlas=prepared.create_flow_image()
+        else:
+            atlas=river_flow_atlas_cache.fetch(co,river_profile,river_flow_field,CELL)
         _record_chunk_stage("flow_atlas_fetch",phase_usec)
         phase_usec=Time.get_ticks_usec()
         var atlas_texture: Texture2D=ImageTexture.create_from_image(atlas)
