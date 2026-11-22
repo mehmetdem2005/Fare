@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Temporary engineering/debug icon; not a replacement for game art. -->
+  <rect width="512" height="512" rx="112" fill="#132A2C"/>
+  <path d="M66 362Q103 329 143 330Q168 330 193 352Q240 389 297 345Q356 303 422 324" fill="none" stroke="#2B5458" stroke-width="27" stroke-linecap="round"/>
+  <ellipse cx="257" cy="275" rx="125" ry="97" fill="#A8A99A"/>
+  <circle cx="190" cy="170" r="59" fill="#A8A99A"/>
+  <circle cx="190" cy="170" r="35" fill="#BC938D"/>
+  <circle cx="326" cy="170" r="59" fill="#A8A99A"/>
+  <circle cx="326" cy="170" r="35" fill="#BC938D"/>
+  <ellipse cx="255" cy="288" rx="96" ry="69" fill="#B9B9A9"/>
+  <ellipse cx="206" cy="270" rx="11" ry="15" fill="#1B292A"/>
+  <ellipse cx="308" cy="270" rx="11" ry="15" fill="#1B292A"/>
+  <ellipse cx="257" cy="312" rx="19" ry="14" fill="#A47575"/>
+  <path d="M253 324q-11 16-31 17M261 324q11 16 31 17" fill="none" stroke="#4D5754" stroke-width="5" stroke-linecap="round"/>
+  <path d="M230 319L153 302M230 330L149 341M283 319L360 302M283 330L363 341" fill="none" stroke="#63736D" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="411" cy="95" r="15" fill="#7EB4B4"/>
+</svg>
