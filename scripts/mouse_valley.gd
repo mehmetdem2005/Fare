@@ -813,7 +813,8 @@ func _trees(root: Node3D, co: Vector2i) -> void:
         var wx: float = root.position.x + x
         var wz: float = root.position.z + z
         var y: float = _height(wx, wz)
-        if river_profile.shore_distance(Vector2(wx, wz)) < 6.0 or y > 28.0:
+        var near_bank: bool=absf(wx)<=45.0 and river_profile.shore_distance(Vector2(wx,wz))<6.0
+        if near_bank or y > 28.0:
             continue
         if Vector2(wx - SPAWN_X, wz - SPAWN_Z).length() < 7.0:
             continue
@@ -832,7 +833,8 @@ func _grass(root: Node3D, co: Vector2i) -> void:
         var wx: float = root.position.x + x
         var wz: float = root.position.z + z
         var y: float = _height(wx, wz)
-        if river_profile.shore_distance(Vector2(wx, wz)) < 2.4 or y > 18.0:
+        var near_bank: bool=absf(wx)<=45.0 and river_profile.shore_distance(Vector2(wx,wz))<2.4
+        if near_bank or y > 18.0:
             continue
         var size: float = rng.randf_range(0.65, 1.45)
         xforms.append(Transform3D(Basis(Vector3.UP, rng.randf_range(0.0, TAU)).scaled(Vector3(size, size, size)), Vector3(x, y + 0.015, z)))
@@ -936,12 +938,24 @@ func _generate_terrain_mesh(root: Node3D) -> ArrayMesh:
             var lz: float = float(iz) * dz
             var wx: float = root.position.x + lx
             var wz: float = root.position.z + lz
-            var info: Dictionary = river_profile.ground_sample(Vector2(wx, wz), _base_height(wx, wz))
-            verts.append(Vector3(lx, float(info["terrain_y"]), lz))
-            uv.append(Vector2(wx, wz) * 0.1)
-            uv2.append(Vector2(maxf(0.0,float(info["depth"])),0.0))
-            var sediment: Dictionary = shore_substrate.sample(info, Vector2(wx, wz))
-            colors.append(Color(float(sediment["gravel"]), float(sediment["wetness"]), float(sediment["silt"]), float(sediment["forest"])))
+            var base_y: float=_base_height(wx,wz)
+            if absf(wx)>45.0:
+                # >45m is beyond the maximum possible river/soil transition.
+                # Preserve EXACT old geomorphology/forest material formula,
+                # skip dozens of spline/SDF trig operations per distant vertex.
+                verts.append(Vector3(lx,base_y,lz))
+                uv.append(Vector2(wx,wz)*0.1)
+                uv2.append(Vector2.ZERO)
+                var macro: float=shore_substrate.macro.get_noise_2d(wx,wz)
+                var forest_cover: float=clampf(0.31+0.15*macro,0.0,0.52)
+                colors.append(Color(0.0,0.0,0.0,forest_cover))
+            else:
+                var info: Dictionary=river_profile.ground_sample(Vector2(wx,wz),base_y)
+                verts.append(Vector3(lx,float(info["terrain_y"]),lz))
+                uv.append(Vector2(wx,wz)*0.1)
+                uv2.append(Vector2(maxf(0.0,float(info["depth"])),0.0))
+                var sediment: Dictionary=shore_substrate.sample(info,Vector2(wx,wz))
+                colors.append(Color(float(sediment["gravel"]),float(sediment["wetness"]),float(sediment["silt"]),float(sediment["forest"])))
     for iz in range(rows):
         for ix in range(columns):
             var ix0: int = maxi(ix - 1, 0)
@@ -966,7 +980,13 @@ func _generate_terrain_mesh(root: Node3D) -> ArrayMesh:
     for iz in range(GRID):
         for ix in range(columns - 1):
             var a: int = iz * columns + ix
-            indices.append_array(PackedInt32Array([a, a + 1, a + columns, a + 1, a + columns + 1, a + columns]))
+            # Avoid allocating a temporary PackedInt32Array per quad.
+            indices.append(a)
+            indices.append(a+1)
+            indices.append(a+columns)
+            indices.append(a+1)
+            indices.append(a+columns+1)
+            indices.append(a+columns)
     var arrays: Array = []
     arrays.resize(Mesh.ARRAY_MAX)
     arrays[Mesh.ARRAY_VERTEX] = verts

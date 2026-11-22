@@ -217,6 +217,12 @@ jobs:
           timeout 100 godot --headless --path . --script res://tests/s6_shore_ripple_test.gd 2>&1 | tee /tmp/s6_shore_ripple.log
           grep -q S6_SHORE_RIPPLE_OK /tmp/s6_shore_ripple.log
           if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S6_SHORE_RIPPLE_FAIL' /tmp/s6_shore_ripple.log; then exit 1; fi
+      - name: S8 verify far terrain CPU shortcut matches original geomorphology and PBR
+        run: |
+          set -o pipefail
+          timeout 120 godot --headless --path . --script res://tests/s8_far_terrain_test.gd 2>&1 | tee /tmp/s8_far_terrain.log
+          grep -q S8_FAR_TERRAIN_OK /tmp/s8_far_terrain.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|S8_FAR_TERRAIN_FAIL' /tmp/s8_far_terrain.log; then exit 1; fi
       # Optional real Vulkan render proof, separate from strict headless tests.
       # Software GPU is not Android; do not treat success as device visual QA.
       - name: Install software Vulkan and virtual display for visual probe
@@ -279,6 +285,7 @@ jobs:
             /tmp/river_s7.log
             /tmp/s8_stream.log
             /tmp/s8_metrics.log
+            /tmp/s8_far_terrain.log
             /tmp/s5_sun_sync.log
             /tmp/s8_apk_export.log
             /tmp/s4_vulkan_render.log

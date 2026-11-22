@@ -31,7 +31,12 @@ func build_chunk(profile: RiverProfile, co: Vector2i, cell: float) -> ArrayMesh:
     for iz in range(ALONG_STEPS):
         for ix in range(ACROSS_STEPS):
             var a: int = iz * row + ix
-            indices.append_array(PackedInt32Array([a, a + 1, a + row, a + 1, a + row + 1, a + row]))
+            indices.append(a)
+            indices.append(a+1)
+            indices.append(a+row)
+            indices.append(a+1)
+            indices.append(a+row+1)
+            indices.append(a+row)
     var arrays: Array = []
     arrays.resize(Mesh.ARRAY_MAX)
     arrays[Mesh.ARRAY_VERTEX] = vertices
