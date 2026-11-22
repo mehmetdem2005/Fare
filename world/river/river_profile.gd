@@ -94,9 +94,18 @@ func sample(point: Vector2) -> Dictionary:
     result["shore_gravel"] = 1.0 - smoothstep(-0.4, 3.5, sdf)
     # S3 will replace this placeholder velocity with obstacle-aware 2D flow.
     var speed: float = 0.4 + 0.25 * (1.0 - smoothstep(0.2, 1.25, float(result["depth"])))
-    result["flow_xz"] = (result["tangent"] as Vector2) * speed
+    var tangent: Vector2 = result["tangent"]
+    result["flow_xz"] = tangent * speed
     result["turbulence"] = 0.0
     return result
+
+func ground_sample(point: Vector2, base_terrain: float) -> Dictionary:
+    # For mesh generation: one spline/SDF query supplies bed height and vertex
+    # material masks; avoid the prior 5 expensive queries per vertex.
+    var data: Dictionary = sample(point)
+    var sdf: float = float(data["shore_sdf"])
+    data["terrain_y"] = float(data["bed_y"]) if sdf <= 0.0 else lerpf(float(data["water_y"]), base_terrain, smoothstep(0.0, BANK_TRANSITION, sdf))
+    return data
 
 func shore_distance(point: Vector2) -> float:
     return float(_shape(point)["shore_sdf"])

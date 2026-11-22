@@ -33,6 +33,21 @@ func _run() -> void:
         if float(center["water_y"]) <= float(center["bed_y"]):
             _fail("negative depth at z=" + str(z))
             return
+    # AT-01: 1,200 deterministic positions around the bank and riverbed.
+    for n in range(1200):
+        var z: float = -250.0 + float(n % 300) * 2.1
+        var xc: float = r.center_x(z)
+        var x: float = xc + 19.0 * sin(float(n) * 2.39996323)
+        var state: Dictionary = r.sample(Vector2(x,z))
+        var dep: float = float(state["depth"])
+        if dep < -0.00001 or is_nan(dep) or is_inf(dep):
+            _fail("invalid depth at " + str(Vector2(x,z)))
+            return
+        var sdf: float = float(state["shore_sdf"])
+        if sdf >= 0.0 and dep > 0.00001:
+            _fail("positive river depth outside banks at " + str(Vector2(x,z)))
+            return
+        samples += 1
     # Explicitly different reaches; do not keep the old flat rectangular trench.
     var shoal: float = float(r.sample(Vector2(r.center_x(20.0),20.0))["depth"])
     var pool: float = float(r.sample(Vector2(r.center_x(100.0),100.0))["depth"])

@@ -5,8 +5,6 @@ extends Node3D
 const CELL: float = 40.0
 const GRID: int = 56 # global Z rows shared by every terrain chunk; adaptive X rows
 const RADIUS: int = 2
-const RIVER_HALF: float = 7.8
-const WATER_Y: float = 0.18
 const WALK_SPEED: float = 3.4
 const RUN_SPEED: float = 5.9
 const JUMP_SPEED: float = 4.8
@@ -388,11 +386,14 @@ func _river_x(z: float) -> float:
     # Legacy helpers call this: always use the S1 shared profile now.
     return river_profile.center_x(z)
 
-func _height(x: float, z: float) -> float:
+func _base_height(x: float, z: float) -> float:
     var valley: float = 2.0 + height_noise.get_noise_2d(x, z) * 2.5 + detail_noise.get_noise_2d(x, z) * 0.4
     var mountain_factor: float = smoothstep(30.0, 110.0, absf(x))
     var mountain: float = 12.0 * mountain_factor + pow(mountain_factor, 1.55) * (13.0 + absf(height_noise.get_noise_2d(x + 91.0, z)) * 20.0)
-    return river_profile.terrain_height(x, z, valley + mountain)
+    return valley + mountain
+
+func _height(x: float, z: float) -> float:
+    return river_profile.terrain_height(x, z, _base_height(x, z))
 
 func _terrain_x_grid(chunk_x: float) -> PackedFloat32Array:
     # Perimeter vertices land on exact tile boundaries; fine steps only near
@@ -445,19 +446,38 @@ func _add_chunk(co: Vector2i) -> void:
     var columns: int = x_grid.size()
     var rows: int = GRID + 1
     var dz: float = CELL / float(GRID)
+    # Generate color + height using ONE RiverProfile sample per vertex.
+    # Approximate smooth interior normals from neighboring vertices rather
+    # than calling the expensive spline sampler four more times per vertex.
     for iz in range(rows):
         for ix in range(columns):
             var lx: float = x_grid[ix]
             var lz: float = float(iz) * dz
             var wx: float = root.position.x + lx
             var wz: float = root.position.z + lz
-            verts.append(Vector3(lx, _height(wx, wz), lz))
-            var slope_x: float = _height(wx + 0.2, wz) - _height(wx - 0.2, wz)
-            var slope_z: float = _height(wx, wz + 0.2) - _height(wx, wz - 0.2)
-            normals.append(Vector3(-slope_x, 0.4, -slope_z).normalized())
+            var info: Dictionary = river_profile.ground_sample(Vector2(wx, wz), _base_height(wx, wz))
+            verts.append(Vector3(lx, float(info["terrain_y"]), lz))
             uv.append(Vector2(wx, wz) * 0.1)
-            var sample: Dictionary = river_profile.sample(Vector2(wx, wz))
-            colors.append(Color(clampf(float(sample["shore_gravel"]), 0.0, 1.0), clampf(float(sample["wetness"]), 0.0, 1.0), 0.0, 1.0))
+            colors.append(Color(clampf(float(info["shore_gravel"]), 0.0, 1.0), clampf(float(info["wetness"]), 0.0, 1.0), 0.0, 1.0))
+    for iz in range(rows):
+        for ix in range(columns):
+            var ix0: int = maxi(ix - 1, 0)
+            var ix1: int = mini(ix + 1, columns - 1)
+            var iz0: int = maxi(iz - 1, 0)
+            var iz1: int = mini(iz + 1, rows - 1)
+            var dx_vec: Vector3 = verts[iz * columns + ix1] - verts[iz * columns + ix0]
+            var dz_vec: Vector3 = verts[iz1 * columns + ix] - verts[iz0 * columns + ix]
+            var n: Vector3 = dz_vec.cross(dx_vec).normalized()
+            if ix == 0 or ix == columns - 1 or iz == 0 or iz == rows - 1:
+                # Use identical world-space finite differences for neighboring
+                # chunks so perimeter normal interpolation has no visible seam.
+                var v: Vector3 = verts[iz * columns + ix]
+                var wx: float = root.position.x + v.x
+                var wz: float = root.position.z + v.z
+                var slope_x: float = _height(wx + 0.2, wz) - _height(wx - 0.2, wz)
+                var slope_z: float = _height(wx, wz + 0.2) - _height(wx, wz - 0.2)
+                n = Vector3(-slope_x, 0.4, -slope_z).normalized()
+            normals.append(n)
     for iz in range(GRID):
         for ix in range(columns - 1):
             var a: int = iz * columns + ix
