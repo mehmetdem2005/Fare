@@ -9,6 +9,13 @@ var cursor: int = 0
 var samples: int = 0
 # These session-wide counters preserve rare stalls beyond the rolling sample ring.
 var longest_frame_ms: float = 0.0
+# Engine _process(delta) may cap elapsed time during stalls; monotonic
+# wall gaps measure between actual callback arrivals without re-labeling
+# an app background/resume pause as a proven gameplay hitch.
+var wall_gap_last_tick_usec: int = 0
+var wall_gap_last_ms: float = 0.0
+var wall_gap_max_ms: float = 0.0
+var wall_gap_over_500ms_total: int = 0
 var frame_over_50ms_total: int = 0
 var long_frame_500ms_total: int = 0
 var refresh: float = 0.0
@@ -95,7 +102,16 @@ func _toggle() -> void:
     if panel.visible:
         _refresh_snapshot()
 
+func _record_wall_gap(now_usec: int) -> void:
+    if wall_gap_last_tick_usec>0 and now_usec>wall_gap_last_tick_usec:
+        wall_gap_last_ms=float(now_usec-wall_gap_last_tick_usec)*0.001
+        wall_gap_max_ms=maxf(wall_gap_max_ms,wall_gap_last_ms)
+        if wall_gap_last_ms>=500.0:
+            wall_gap_over_500ms_total+=1
+    wall_gap_last_tick_usec=now_usec
+
 func _process(delta: float) -> void:
+    _record_wall_gap(Time.get_ticks_usec())
     if game==null or delta<=0.00001:
         return
     # Do not silently discard 500ms+ hitches. App resume can also cause
@@ -146,6 +162,9 @@ func _refresh_snapshot() -> void:
         "fixed_scene_mode":bool(game.get("s9_fixed_scene")),
         "stream_queue_length":(game.get("queue") as Array).size(),
         "chunk_trace":trace.get_report() if trace!=null else {},
+        "water_resource_cache_hits":int(game.get("water_resource_cache_hits")),
+        "water_resource_cache_misses":int(game.get("water_resource_cache_misses")),
+        "water_resource_cache_entries":(game.get("water_resource_cache") as Dictionary).size(),
         "engine":str(Engine.get_version_info().get("string","unknown")),
         "platform":OS.get_name(),
         "renderer":str(ProjectSettings.get_setting("rendering/renderer/rendering_method","unknown")),
@@ -156,6 +175,9 @@ func _refresh_snapshot() -> void:
         "frame_p95_ms":snappedf(_percentile(ordered,0.95),0.01),
         "frame_p99_ms":snappedf(_percentile(ordered,0.99),0.01),
         "longest_frame_ms":snappedf(longest_frame_ms,0.01),
+        "wall_gap_last_ms":snappedf(wall_gap_last_ms,0.01),
+        "wall_gap_max_ms":snappedf(wall_gap_max_ms,0.01),
+        "wall_gap_over_500ms_total":wall_gap_over_500ms_total,
         "frame_over_50ms_total":frame_over_50ms_total,
         "long_frame_500ms_total":long_frame_500ms_total,
         "draw_calls_reported":int(draw_calls),
@@ -181,6 +203,7 @@ func _refresh_snapshot() -> void:
     text_value+="FPS ~ %.1f  Ortalama %.2f ms\n" % [fps,mean]
     text_value+="p95 %.2f ms  p99 %.2f ms\n" % [float(snapshot["frame_p95_ms"]),float(snapshot["frame_p99_ms"])]
     text_value+="Max %.0f ms  >50ms %d  >=500ms %d\n" % [longest_frame_ms,frame_over_50ms_total,long_frame_500ms_total]
+    text_value+="Gercek aralik max %.0f ms  >=500 %d\n" % [wall_gap_max_ms,wall_gap_over_500ms_total]
     text_value+="Draw %d  GPU bellek* %.1f MB\n" % [int(draw_calls),video_mem_mb]
     text_value+="RAM* %.1f MB  Chunk %d\n" % [static_mb,chunks.size()]
     text_value+="Hazir %d  Uretilen %d\n" % [int(snapshot["cache_pack_or_user_hits"]),int(snapshot["cache_generated_misses"])]

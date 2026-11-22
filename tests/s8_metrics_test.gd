@@ -36,6 +36,12 @@ func _run() -> void:
     if int(after_hitch["long_frame_500ms_total"])!=1 or int(after_hitch["frame_over_50ms_total"])!=3:
         _fail("slow-frame and long-frame event counters wrong")
         return
+    # Godot's _process(delta) can be capped even when a wall-clock gap is huge.
+    probe.wall_gap_last_tick_usec=1_000_000
+    probe._record_wall_gap(2_900_000)
+    if float(probe.wall_gap_max_ms)<1899.9 or int(probe.wall_gap_over_500ms_total)!=1:
+        _fail("monotonic wall gap lost a 1.9s stall")
+        return
     probe._save_report()
     var path: String=probe.last_save_path
     if path.is_empty() or not FileAccess.file_exists(path):

@@ -3,7 +3,9 @@ extends RefCounted
 ## Low-frequency 256-job CPU trace. GPU queue/upload latency is NOT captured.
 const MAX_JOBS: int = 256
 const STAGE_NAMES: Array[String] = [
-    "cache_read","terrain_mesh","collider","vegetation","river_fx","publish"
+    "cache_read","terrain_mesh","collider","vegetation","river_fx","publish",
+    "water_mesh","flow_atlas_fetch","water_texture_submit","water_materials",
+    "water_scene_attach","river_rocks","major_rocks","river_mist"
 ]
 var jobs: Array[Dictionary] = []
 var total_jobs: int = 0

@@ -49,6 +49,13 @@ var terrain_mat: ShaderMaterial
 var terrain_lite_mat: ShaderMaterial
 var water_mat: ShaderMaterial
 var water_lite_mat: ShaderMaterial
+# S9.1c: Keep recent water mesh, flow image/texture and material pairs.
+# LRU bound prevents unbounded GPU resources in the open world.
+const WATER_RESOURCE_CACHE_LIMIT: int = 32
+var water_resource_cache: Dictionary = {}
+var water_resource_cache_lru: Array[Vector2i] = []
+var water_resource_cache_hits: int = 0
+var water_resource_cache_misses: int = 0
 var chunk_cache: ChunkBakeCache = ChunkBakeCache.new()
 var pending_cache_writes: Array[Vector2i] = []
 var chunk_cache_hit_count: int = 0
@@ -716,9 +723,15 @@ func _add_chunk(co: Vector2i) -> void:
     # full-width surfaces and no disappearing negative-X bank.
     if co.x >= -1 and co.x <= 0:
         _water(root,co,cached)
+        var stage_start_usec: int=Time.get_ticks_usec()
         _rocks(root, co)
+        _record_chunk_stage("river_rocks",stage_start_usec)
+        stage_start_usec=Time.get_ticks_usec()
         _major_rocks(root, co)
+        _record_chunk_stage("major_rocks",stage_start_usec)
+        stage_start_usec=Time.get_ticks_usec()
         _river_mist(root,co)
+        _record_chunk_stage("river_mist",stage_start_usec)
     _record_chunk_stage("river_fx",phase_usec)
     phase_usec=Time.get_ticks_usec()
     _apply_chunk_lod(co,root)
@@ -775,37 +788,74 @@ func _save_one_cache_chunk() -> void:
             break
 
 func _water(root: Node3D, co: Vector2i, cached: Dictionary = {}) -> void:
-    var water_mesh: ArrayMesh = cached["water"] if cached.has("water") else river_surface_builder.build_chunk(river_profile, co, CELL)
-    if water_mesh.get_surface_count() == 0:
+    var phase_usec: int=Time.get_ticks_usec()
+    var reuse: Dictionary=water_resource_cache.get(co,{})
+    var water_mesh: ArrayMesh
+    if not reuse.is_empty():
+        water_mesh=reuse["mesh"] as ArrayMesh
+    else:
+        water_mesh=cached["water"] if cached.has("water") else river_surface_builder.build_chunk(river_profile,co,CELL)
+    _record_chunk_stage("water_mesh",phase_usec)
+    if water_mesh==null or water_mesh.get_surface_count()==0:
         return
-    var water_instance: MeshInstance3D = MeshInstance3D.new()
-    water_instance.name = "FlowingWater"
-    water_instance.mesh = water_mesh
-    # Per-chunk RGBA8 flow atlas; CPU/physics and GPU visual sample the same field.
-    var chunk_material: ShaderMaterial = water_mat.duplicate() as ShaderMaterial
-    var origin: Vector2 = Vector2(root.position.x,root.position.z)
-    # Old S8-A v3 terrain packs contain the ORIGINAL flow atlas.
-    # Prefer versioned vortex field v2 instead of mismatching CPU and GPU.
-    var atlas: Image = river_flow_atlas_cache.fetch(co,river_profile,river_flow_field,CELL)
-    var atlas_texture: Texture2D = ImageTexture.create_from_image(atlas)
+    var water_instance: MeshInstance3D=MeshInstance3D.new()
+    water_instance.name="FlowingWater"
+    water_instance.mesh=water_mesh
+    var chunk_material: ShaderMaterial
+    var lite: ShaderMaterial
+    var atlas: Image
+    if not reuse.is_empty():
+        water_resource_cache_hits+=1
+        water_resource_cache_lru.erase(co)
+        water_resource_cache_lru.append(co)
+        atlas=reuse["flow_image"] as Image
+        chunk_material=reuse["high"] as ShaderMaterial
+        lite=reuse["low"] as ShaderMaterial
+        # Scene lighting can change while a chunk is out of the 5x5 RAM window.
+        atmosphere.configure_river(chunk_material)
+        atmosphere.configure_river(lite)
+    else:
+        water_resource_cache_misses+=1
+        var origin: Vector2=Vector2(root.position.x,root.position.z)
+        phase_usec=Time.get_ticks_usec()
+        # V2 atlas is the single flow source for physics and visual shader.
+        atlas=river_flow_atlas_cache.fetch(co,river_profile,river_flow_field,CELL)
+        _record_chunk_stage("flow_atlas_fetch",phase_usec)
+        phase_usec=Time.get_ticks_usec()
+        var atlas_texture: Texture2D=ImageTexture.create_from_image(atlas)
+        # Wall time of CPU submit, NOT proven GPU completion time.
+        _record_chunk_stage("water_texture_submit",phase_usec)
+        phase_usec=Time.get_ticks_usec()
+        chunk_material=water_mat.duplicate() as ShaderMaterial
+        chunk_material.set_shader_parameter("flow_atlas",atlas_texture)
+        chunk_material.set_shader_parameter("chunk_origin",origin)
+        chunk_material.set_shader_parameter("chunk_size",CELL)
+        chunk_material.set_shader_parameter("wave_map",wave_texture)
+        water_quality.configure(chunk_material,WaterQualitySettings.BALANCED)
+        atmosphere.configure_river(chunk_material)
+        lite=water_lite_mat.duplicate() as ShaderMaterial
+        lite.set_shader_parameter("flow_atlas",atlas_texture)
+        lite.set_shader_parameter("wave_map",wave_texture)
+        lite.set_shader_parameter("chunk_origin",origin)
+        lite.set_shader_parameter("chunk_size",CELL)
+        atmosphere.configure_river(lite)
+        _record_chunk_stage("water_materials",phase_usec)
+        water_resource_cache[co]={
+            "mesh":water_mesh,"flow_image":atlas,"flow_texture":atlas_texture,
+            "high":chunk_material,"low":lite
+        }
+        water_resource_cache_lru.append(co)
+        while water_resource_cache_lru.size()>WATER_RESOURCE_CACHE_LIMIT:
+            var expired: Vector2i=water_resource_cache_lru.pop_front()
+            water_resource_cache.erase(expired)
     water_instance.set_meta("flow_image",atlas)
-    chunk_material.set_shader_parameter("flow_atlas",atlas_texture)
-    chunk_material.set_shader_parameter("chunk_origin",origin)
-    chunk_material.set_shader_parameter("chunk_size",CELL)
-    chunk_material.set_shader_parameter("wave_map",wave_texture)
-    water_quality.configure(chunk_material,WaterQualitySettings.BALANCED)
-    atmosphere.configure_river(chunk_material)
     water_instance.set_meta("high_water_material",chunk_material)
-    var lite: ShaderMaterial = water_lite_mat.duplicate() as ShaderMaterial
-    lite.set_shader_parameter("flow_atlas",atlas_texture)
-    lite.set_shader_parameter("wave_map",wave_texture)
-    lite.set_shader_parameter("chunk_origin",origin)
-    lite.set_shader_parameter("chunk_size",CELL)
-    atmosphere.configure_river(lite)
     water_instance.set_meta("low_water_material",lite)
-    water_instance.material_override = chunk_material
-    water_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    water_instance.material_override=chunk_material
+    water_instance.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    phase_usec=Time.get_ticks_usec()
     root.add_child(water_instance)
+    _record_chunk_stage("water_scene_attach",phase_usec)
 
 func _river_mist(root: Node3D, co: Vector2i) -> void:
     # Low-opacity condensation in the water corridor. One batched MultiMesh,
