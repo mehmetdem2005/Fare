@@ -17,6 +17,15 @@ var river_surface_builder: RiverSurfaceBuilder = RiverSurfaceBuilder.new()
 var shore_substrate: ShoreSubstrate = ShoreSubstrate.new()
 var river_flow_field: RiverFlowField = RiverFlowField.new()
 var river_obstacles: RiverObstacles = RiverObstacles.new()
+var mouse_water: MouseWaterInteraction = MouseWaterInteraction.new()
+var camera_water: UnderwaterCameraFX
+var ripple_pool: WaterRipplePool
+var wet_fur_material: StandardMaterial3D
+var wet_meshes: Array[MeshInstance3D] = []
+var wet_overlay_active: bool = false
+var last_wet_value: float = -1.0
+var ripple_time: float = 0.0
+var last_water_state: int = MouseWaterInteraction.DRY
 var atmosphere: ForestAtmosphere
 var water_quality: WaterQualitySettings = WaterQualitySettings.new()
 var wave_texture: Texture2D
@@ -67,6 +76,7 @@ func _ready() -> void:
     _create_actor()
     _create_camera()
     _create_hud()
+    _setup_water_fx()
     # Build 3x3 chunks before the first frame; stream the outer ring later.
     var center: Vector2i = _current_chunk()
     for cz in range(-1, 2):
@@ -160,6 +170,7 @@ func _create_actor() -> void:
         imported = clean_source.instantiate() as Node3D
     if imported != null:
         model_holder.add_child(imported)
+        _setup_wet_fur(imported)
         var skeletons: Array[Node] = imported.find_children("*", "Skeleton3D", true, false)
         if not skeletons.is_empty():
             rig = skeletons[0] as Skeleton3D
@@ -193,6 +204,62 @@ func _create_hud() -> void:
     hud.set_script(load("res://scripts/controls.gd"))
     overlay.add_child(hud)
 
+func _setup_water_fx() -> void:
+    camera_water = UnderwaterCameraFX.new()
+    camera_water.name = "UnderwaterCameraFX"
+    camera_water.surface_profile = river_profile
+    add_child(camera_water)
+    ripple_pool = WaterRipplePool.new()
+    ripple_pool.name = "WaterRipplePool"
+    add_child(ripple_pool)
+
+func _setup_wet_fur(imported: Node3D) -> void:
+    # Shared transparent overlay follows the EXISTING skinned mesh; never
+    # rewrite original material slots, rig weights, or UV coordinates.
+    wet_fur_material = StandardMaterial3D.new()
+    wet_fur_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    wet_fur_material.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
+    wet_fur_material.albedo_color = Color(0.075,0.115,0.10,0.10)
+    wet_fur_material.roughness = 0.27
+    wet_fur_material.metallic = 0.0
+    var meshes: Array[Node] = imported.find_children("*","MeshInstance3D",true,false)
+    for child in meshes:
+        var candidate: MeshInstance3D = child as MeshInstance3D
+        if candidate != null and wet_meshes.size() < 4:
+            wet_meshes.append(candidate)
+    # All overlay draw calls disabled while fully dry.
+    wet_overlay_active = false
+
+func _update_fur_wetness() -> void:
+    if wet_fur_material == null:
+        return
+    var damp: float = mouse_water.wetness
+    var should_show: bool = damp > 0.02
+    if should_show != wet_overlay_active:
+        wet_overlay_active = should_show
+        for m in wet_meshes:
+            m.material_overlay = wet_fur_material if should_show else null
+    if should_show and absf(damp-last_wet_value)>0.018:
+        wet_fur_material.albedo_color = Color(0.075,0.115,0.10,0.115*damp)
+        last_wet_value = damp
+
+func _emit_water_ripples(delta: float) -> void:
+    if ripple_pool == null or player == null:
+        return
+    if mouse_water.state == MouseWaterInteraction.DRY:
+        ripple_time = 0.0
+        last_water_state = MouseWaterInteraction.DRY
+        return
+    ripple_time -= delta
+    var speed: float = Vector2(player.velocity.x,player.velocity.z).length()
+    var first_contact: bool = last_water_state == MouseWaterInteraction.DRY or last_water_state != mouse_water.state
+    if first_contact or (ripple_time <= 0.0 and speed > 0.12):
+        var direction: Vector2 = Vector2(player.velocity.x,player.velocity.z).normalized()
+        var point: Vector2 = Vector2(player.global_position.x,player.global_position.z)+direction*0.21
+        ripple_pool.splash(point,mouse_water.water_y,0.7 if mouse_water.state == MouseWaterInteraction.SWIMMING else 0.43)
+        ripple_time = 0.38 if mouse_water.state == MouseWaterInteraction.SWIMMING else 0.56
+    last_water_state = mouse_water.state
+
 func _process(delta: float) -> void:
     elapsed += delta
     chunk_timer += delta
@@ -204,6 +271,9 @@ func _process(delta: float) -> void:
         if not chunks.has(next) and _near(next):
             _add_chunk(next)
     _update_camera(delta)
+    if camera_water != null:
+        camera_water.update_camera(view_camera.global_position,delta)
+    _update_fur_wetness()
     _animate_mouse(delta)
     if hud != null:
         hud.set("joystick", stick)
@@ -211,7 +281,8 @@ func _process(delta: float) -> void:
         hud.set("speed", Vector2(player.velocity.x, player.velocity.z).length())
         hud.set("chunk_count", chunks.size())
         hud.set("sprinting", running)
-        hud.set("jumping", not player.is_on_floor())
+        hud.set("jumping", not player.is_on_floor() and mouse_water.state != MouseWaterInteraction.SWIMMING)
+        hud.set("message",mouse_water.label())
         hud.set("rig_status", ("%dB ANIM" % rig.get_bone_count()) if mouse_animation != null and rig != null else ("BONES %d" % rig.get_bone_count() if rig != null else "STATIC"))
 
 func _physics_process(delta: float) -> void:
@@ -234,25 +305,20 @@ func _physics_process(delta: float) -> void:
     var desired: Vector3 = right * axis.x + forward * axis.y
     if desired.length() > 1.0:
         desired = desired.normalized()
-    var wants_run: bool = (run_pointer >= 0 or mouse_action == "run" or Input.is_key_pressed(KEY_SHIFT)) and desired.length() > 0.08 and stamina > 0.4
+    mouse_water.update(river_profile,river_flow_field,player.global_position,delta)
+    var swimming: bool = mouse_water.state == MouseWaterInteraction.SWIMMING
+    var wants_run: bool = not swimming and (run_pointer >= 0 or mouse_action == "run" or Input.is_key_pressed(KEY_SHIFT)) and desired.length() > 0.08 and stamina > 0.4
     running = wants_run
-    stamina = clampf(stamina + (-18.0 if wants_run else 12.0) * delta, 0.0, 100.0)
-    var target: Vector3 = desired * (RUN_SPEED if wants_run else WALK_SPEED)
-    var acceleration: float = minf(1.0, delta * (10.0 if player.is_on_floor() else 4.0))
-    player.velocity.x = lerpf(player.velocity.x, target.x, acceleration)
-    player.velocity.z = lerpf(player.velocity.z, target.z, acceleration)
-    if player.is_on_floor():
-        if player.velocity.y < 0.0:
-            player.velocity.y = -0.1
-        if jump_buffer and stamina >= 15.0:
-            player.velocity.y = JUMP_SPEED
-            stamina -= 15.0
-    else:
-        player.velocity.y -= 13.0 * delta
+    stamina = clampf(stamina + (-18.0 if wants_run else (1.0 if swimming and desired.length()>0.08 else 12.0))*delta,0.0,100.0)
+    var jump_action: bool = jump_buffer and stamina >= (5.0 if swimming else 15.0)
+    if jump_action:
+        stamina -= 5.0 if swimming else 15.0
+    mouse_water.apply_velocity(player,desired,wants_run,jump_action,delta,WALK_SPEED,RUN_SPEED,JUMP_SPEED)
     jump_buffer = false
     if desired.length() > 0.08:
         player.rotation.y = lerp_angle(player.rotation.y, atan2(-desired.x, -desired.z), minf(delta * 13.0, 1.0))
     player.move_and_slide()
+    _emit_water_ripples(delta)
     if player.global_position.y < -18.0:
         player.global_position = Vector3(SPAWN_X, _height(SPAWN_X, SPAWN_Z) + SPAWN_HEIGHT_ABOVE_TERRAIN, SPAWN_Z)
         player.velocity = Vector3.ZERO
@@ -370,14 +436,16 @@ func _animate_mouse(delta: float) -> void:
     var horizontal_speed: float = Vector2(player.velocity.x, player.velocity.z).length()
     var moving: float = clampf(horizontal_speed / WALK_SPEED, 0.0, 1.0)
     phase += delta * (13.0 if running else 8.1) * moving
-    model_holder.position.y = -0.41 + 0.012 * sin(phase * 2.0) * moving
+    var swimming: bool = mouse_water.state == MouseWaterInteraction.SWIMMING
+    model_holder.position.y = -0.41 + (0.014*sin(phase*1.7) if swimming else 0.012*sin(phase*2.0)*moving)
+    model_holder.rotation.x = lerpf(model_holder.rotation.x,-0.10 if swimming else 0.0,minf(delta*3.0,1.0))
     # Preserve the genuine 49-bone Blender action AND the corrective morph tracks.
     # Old handmade rotations bypassed corrective shapekeys and bent the abdomen.
     if mouse_animation != null:
-        if moving > 0.10:
+        if moving > 0.10 or swimming:
             if not mouse_animation.is_playing():
                 mouse_animation.play("MouseRig")
-            mouse_animation.speed_scale = 1.5 if running else 0.80
+            mouse_animation.speed_scale = 0.54 if swimming else (1.5 if running else 0.80)
         elif mouse_animation.is_playing():
             mouse_animation.stop()
         return

@@ -82,6 +82,12 @@ jobs:
           timeout 100 godot --headless --path . --script res://tests/atmos_s5_test.gd 2>&1 | tee /tmp/atmos_s5.log
           grep -q ATMOS_S5_OK /tmp/atmos_s5.log
           if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|ATMOS_S5_FAIL' /tmp/atmos_s5.log; then exit 1; fi
+      - name: S6 mouse wading/swimming current, underwater camera and ripple regression
+        run: |
+          set -o pipefail
+          timeout 100 godot --headless --path . --script res://tests/river_s6_test.gd 2>&1 | tee /tmp/river_s6.log
+          grep -q WATER_S6_OK /tmp/river_s6.log
+          if grep -E 'Parse Error|SCRIPT ERROR|ERROR:|WATER_S6_FAIL' /tmp/river_s6.log; then exit 1; fi
       # Optional real Vulkan render proof, separate from strict headless tests.
       # Software GPU is not Android; do not treat success as device visual QA.
       - name: Install software Vulkan and virtual display for visual probe
@@ -135,6 +141,7 @@ jobs:
             /tmp/river_s3.log
             /tmp/river_s4.log
             /tmp/atmos_s5.log
+            /tmp/river_s6.log
             /tmp/s4_vulkan_render.log
             /tmp/s4_mobile_vulkan.png
           if-no-files-found: ignore

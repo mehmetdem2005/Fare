@@ -16,7 +16,7 @@ This is the authoritative non-skippable roadmap for the river engineering projec
 | S3 | Flow vectors, boulder flow wake, RGBA8 GPU atlases and causal foam | FIRST IMPLEMENTATION; CI + ANDROID PENDING | Deterministic geometry and physical velocity/foam correlation; visual water/running physics and device checks open |
 | S4 | Mobile depth absorption, safe limited refraction, Fresnel sky, real-bed caustics | CODE + HEADLESS PASS; MOBILE VISUAL OPEN | Godot 4.7.2 shader/UV2/quality tests pass. 960x540 CI capture fell back to OpenGL (VK_KHR_surface unavailable), so NOT Vulkan proof; Android render/GPU metrics open |
 | S5 | Procedural sky, directional pine shadows, river mist, fog and time-of-day | CODE IN REVIEW; HEADLESS/ANDROID PENDING | Central ForestAtmosphere, 3 preset states, S4 reflection linked, bounded mist batches; real Android aesthetic/shadow/GPU still open |
-| S6 | Mouse probes, swimming/buoyancy/drag, underwater camera/wet fur | NOT STARTED | Walk/shallow/swim states, no state oscillation |
+| S6 | Mouse water probes, depth-gated swim, flow drag/buoyancy, wet fur overlay, ripple pool, underwater camera | CODE IN REVIEW; CI + ANDROID PENDING | Water motion physics, camera hysteresis and 12 ring cap tested; real rig swim gait, waterline visual and actual Mobile GPU pending |
 | S7 | Spatial audio, footprints, droplets, leaves, bubbles, micro events | NOT STARTED | Event/lifetime bounded, camera-linked sound |
 | S8 | Android device proof, LOD/preset tuning, performance/thermal | NOT STARTED | Target 30fps measured and screenshots approved |
 
