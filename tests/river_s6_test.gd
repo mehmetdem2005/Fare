@@ -83,5 +83,42 @@ func _run() -> void:
     if water.wetness<0.01:
         _fail("water wetness never updated")
         return
+    # S6 true gameplay acceptance: warp the ACTUAL rigged mouse over a deep
+    # 3D river region, then let CharacterBody3D move_and_slide and the whole
+    # game's _physics_process run. A RefCounted math-only test is insufficient.
+    var center_chunk_x: int = floori(x_pool/40.0)
+    var center_chunk_z: int = floori(z_pool/40.0)
+    for dx in range(-1,2):
+        for dz in range(-1,2):
+            game.call("_add_chunk",Vector2i(center_chunk_x+dx,center_chunk_z+dz))
+    actor.global_position = Vector3(x_pool,float(deep["water_y"])+0.7,z_pool)
+    actor.velocity = Vector3.ZERO
+    var start_xz: Vector2 = Vector2(actor.global_position.x,actor.global_position.z)
+    var ever_swimming: bool = false
+    for tick in range(170):
+        await physics_frame
+        var in_game_water: MouseWaterInteraction = game.get("mouse_water") as MouseWaterInteraction
+        if in_game_water.state == MouseWaterInteraction.SWIMMING:
+            ever_swimming = true
+    var actual_water: MouseWaterInteraction = game.get("mouse_water") as MouseWaterInteraction
+    var error_y: float = absf(actor.global_position.y - profile.surface_height(actor.global_position.z))
+    var moved_xz: float = start_xz.distance_to(Vector2(actor.global_position.x,actor.global_position.z))
+    if not ever_swimming or actual_water.state != MouseWaterInteraction.SWIMMING:
+        _fail("live CharacterBody never entered/preserved swimming state")
+        return
+    if error_y>0.36:
+        _fail("live CharacterBody buoyancy failed, height error="+str(error_y))
+        return
+    if moved_xz<0.23:
+        _fail("live mouse not carried by current after releasing joystick, drift="+str(moved_xz))
+        return
+    var live_pool: WaterRipplePool = game.get("ripple_pool") as WaterRipplePool
+    if live_pool.count_active() <= 0:
+        _fail("real swim movement did not create wake rings")
+        return
+    if actual_water.wetness<0.5:
+        _fail("live mouse fur never became wet")
+        return
+    print("S6_LIVE_PHYSICS_OK drift=",moved_xz," surface_error=",error_y," wake=",live_pool.count_active())
     print("WATER_S6_OK shoal=",shoal["depth"]," pool=",deep["depth"]," float_error=",final_depth," current=",water.flow_xz.length()," camera_hysteresis=ok ripples=12 rig=",rig.get_bone_count())
     quit(0)

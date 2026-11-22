@@ -310,7 +310,8 @@ func _physics_process(delta: float) -> void:
     var wants_run: bool = not swimming and (run_pointer >= 0 or mouse_action == "run" or Input.is_key_pressed(KEY_SHIFT)) and desired.length() > 0.08 and stamina > 0.4
     running = wants_run
     stamina = clampf(stamina + (-18.0 if wants_run else (1.0 if swimming and desired.length()>0.08 else 12.0))*delta,0.0,100.0)
-    var jump_action: bool = jump_buffer and stamina >= (5.0 if swimming else 15.0)
+    # A midair tap cannot consume stamina without executing a jump.
+    var jump_action: bool = jump_buffer and (swimming or player.is_on_floor()) and stamina >= (5.0 if swimming else 15.0)
     if jump_action:
         stamina -= 5.0 if swimming else 15.0
     mouse_water.apply_velocity(player,desired,wants_run,jump_action,delta,WALK_SPEED,RUN_SPEED,JUMP_SPEED)

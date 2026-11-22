@@ -20,3 +20,6 @@
 
 ## Unit and integration checks
 - dry spawn preserved by main smoke; shoal wade, pool swim, current drift, buoyancy stabilization, camera hysteresis, ripple pool bounded, 49bone still intact.
+
+## Actual CharacterBody3D swim regression
+The automated S6 test now also loads real chunk collision in the z=100m deep pool, drops the original 49-bone player from above the water, and runs 170 real physics ticks. It refuses to pass if the player sinks, remains on floor instead of swimming, stands still despite nonzero flow with joystick released, has no active wake, or never becomes wet. This is an in-engine physics test, **not a Mobile rendering proof**.
