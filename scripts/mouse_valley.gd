@@ -366,6 +366,8 @@ func _physics_process(delta: float) -> void:
     if desired.length() > 1.0:
         desired = desired.normalized()
     mouse_water.update(river_profile,river_flow_field,player.global_position,delta)
+    if river_soundscape != null:
+        river_soundscape.notify_water_contact(mouse_water.state,mouse_water.water_y,player.global_position)
     var swimming: bool = mouse_water.state == MouseWaterInteraction.SWIMMING
     var wants_run: bool = not swimming and (run_pointer >= 0 or mouse_action == "run" or Input.is_key_pressed(KEY_SHIFT)) and desired.length() > 0.08 and stamina > 0.4
     running = wants_run

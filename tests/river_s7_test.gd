@@ -18,7 +18,7 @@ func _run() -> void:
     if sound==null or micro==null:
         _fail("no integrated S7 systems")
         return
-    if sound.low_pass==null or sound.calm==null or sound.rapids==null:
+    if sound.low_pass==null or sound.calm==null or sound.rapids==null or sound.drops==null:
         _fail("spatial layers or filter contract absent")
         return
     # Headless test uses no real mixer; Android must create FareRiver bus.
@@ -27,6 +27,27 @@ func _run() -> void:
         return
     if sound.calm==null or sound.rapids==null or sound.calm.stream==null or sound.rapids.stream==null:
         _fail("spatial audio sources not loaded")
+        return
+    var clip: AudioStreamWAV=sound.drops.stream as AudioStreamWAV
+    if clip==null or clip.loop_mode!=AudioStreamWAV.LOOP_DISABLED:
+        _fail("unused or repeating water-entry sound")
+        return
+    var before: int=sound.contact_events
+    sound.notify_water_contact(MouseWaterInteraction.SHALLOW,0.18,Vector3(0.0,0.2,5.0))
+    sound.notify_water_contact(MouseWaterInteraction.SHALLOW,0.18,Vector3(0.0,0.2,5.0))
+    if sound.contact_events!=before+1 or absf(sound.drops.global_position.y-0.18)>0.0001:
+        _fail("water sound event duplicate or wrong height")
+        return
+    sound.update_water_sound(false,0.20)
+    var source: Vector3=sound.rapids.global_position
+    var closest: float=INF
+    var rock_look: RiverObstacles=RiverObstacles.new()
+    var cam_index: int=roundi(sound.camera.global_position.z/RiverObstacles.ROCK_SPACING_M)
+    for i in range(cam_index-1,cam_index+2):
+        var rock: Dictionary=rock_look.obstacle_at(i,game.get("river_profile"))
+        closest=minf(closest,Vector2(source.x,source.z).distance_to(rock["xz"]))
+    if closest>0.03:
+        _fail("rapid sound not placed at real rock")
         return
     sound.update_water_sound(true,0.40)
     if sound.low_pass.cutoff_hz>=14500.0:

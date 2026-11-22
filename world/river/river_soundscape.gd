@@ -11,6 +11,11 @@ var underwater: bool = false
 var low_pass: AudioEffectLowPassFilter
 var calm: AudioStreamPlayer3D
 var rapids: AudioStreamPlayer3D
+var drops: AudioStreamPlayer3D
+var last_water_state: int = MouseWaterInteraction.DRY
+var last_contact_ms: int = -100000
+var contact_events: int = 0
+var rocks: RiverObstacles = RiverObstacles.new()
 var update_clock: float = 0.0
 var filter_hz: float = 16000.0
 var active: bool = true
@@ -34,6 +39,9 @@ func _ready() -> void:
         AudioServer.add_bus_effect(bus_index,low_pass)
     calm=_make_player("CalmCurrent","res://assets/audio/river_calm.wav")
     rapids=_make_player("RockRapids","res://assets/audio/river_rapids.wav")
+    drops=_make_player("ContactDrops","res://assets/audio/river_drops.wav",false)
+    drops.max_distance=13.0
+    drops.volume_db=-22.0
 
 func _exit_tree() -> void:
     # The headless Godot tests also own an AudioServer; leaving buses behind
@@ -42,13 +50,15 @@ func _exit_tree() -> void:
         calm.stop()
     if rapids != null:
         rapids.stop()
+    if drops != null:
+        drops.stop()
     var index: int = AudioServer.get_bus_index(AUDIO_BUS)
     if owns_bus and index>=0:
         AudioServer.remove_bus(index)
     low_pass=null
     bus_index=-1
 
-func _make_player(label: String, resource_path: String) -> AudioStreamPlayer3D:
+func _make_player(label: String, resource_path: String, looping: bool = true) -> AudioStreamPlayer3D:
     var player: AudioStreamPlayer3D = AudioStreamPlayer3D.new()
     player.name=label
     player.max_distance=35.0
@@ -57,12 +67,12 @@ func _make_player(label: String, resource_path: String) -> AudioStreamPlayer3D:
     player.volume_db=-40.0
     var clip: AudioStreamWAV = load(resource_path) as AudioStreamWAV
     if clip != null:
-        clip.loop_mode=AudioStreamWAV.LOOP_FORWARD
+        clip.loop_mode=AudioStreamWAV.LOOP_FORWARD if looping else AudioStreamWAV.LOOP_DISABLED
         player.stream=clip
     else:
         push_error("S7 missing generated river audio: "+resource_path)
     add_child(player)
-    if clip!=null and active:
+    if clip!=null and active and looping:
         player.play()
     return player
 
@@ -78,14 +88,45 @@ func update_water_sound(camera_submerged: bool, delta: float) -> void:
     var eye: Vector3 = camera.global_position
     var z: float = eye.z
     var center: float = profile.center_x(z)
-    var p: Vector2 = Vector2(center,z)
-    var river: Dictionary = profile.sample(p)
-    var current: Dictionary = flow.sample(profile,p)
+    var river: Dictionary = profile.sample(Vector2(center,z))
     var y: float = float(river["water_y"])+0.05
     calm.global_position=Vector3(center,y,z)
-    rapids.global_position=Vector3(center+1.2,y,z+3.0)
     var distance: float = maxf(0.0,absf(eye.x-center)-float(river["width"]))
     var attenuation: float = clampf(distance/26.0,0.0,1.0)
-    var rapids_gain: float = clampf(float(current["turbulence"])*0.70+float(current["speed"])*0.26,0.0,1.0)
     calm.volume_db=lerpf(calm.volume_db,-16.0-attenuation*29.0,0.34)
-    rapids.volume_db=lerpf(rapids.volume_db,-26.0+8.0*rapids_gain-attenuation*28.0,0.34)
+    # Actual nearest S3 obstruction, rather than an imaginary rapid.
+    var index: int=roundi(z/RiverObstacles.ROCK_SPACING_M)
+    var nearest: Dictionary={}
+    var nearest_sq: float=INF
+    for i in range(index-1,index+2):
+        var rock: Dictionary=rocks.obstacle_at(i,profile)
+        var rp: Vector2=rock["xz"]
+        var distance_sq: float=rp.distance_squared_to(Vector2(eye.x,eye.z))
+        if distance_sq<nearest_sq:
+            nearest_sq=distance_sq
+            nearest=rock
+    if not nearest.is_empty():
+        var rock_pos: Vector2=nearest["xz"]
+        var radius: float=float(nearest["radius"])
+        var downstream: Dictionary=flow.sample(profile,rock_pos+Vector2(0.0,radius*1.0))
+        rapids.global_position=Vector3(rock_pos.x,profile.surface_height(rock_pos.y)+0.1,rock_pos.y)
+        var gain: float=clampf(float(downstream["turbulence"])*0.8+float(downstream["speed"])*0.18,0.0,1.0)
+        var rock_attenuation: float=clampf(sqrt(nearest_sq)/33.0,0.0,1.0)
+        rapids.volume_db=lerpf(rapids.volume_db,-25.0+9.0*gain-rock_attenuation*27.0,0.34)
+
+func notify_water_contact(state: int, water_y: float, position: Vector3) -> void:
+    if state == last_water_state:
+        return
+    var old: int=last_water_state
+    last_water_state=state
+    var now_ms: int=Time.get_ticks_msec()
+    if now_ms-last_contact_ms < 320:
+        return
+    if old == MouseWaterInteraction.DRY or state == MouseWaterInteraction.DRY or state == MouseWaterInteraction.SWIMMING:
+        last_contact_ms=now_ms
+        contact_events+=1
+        if drops != null:
+            drops.global_position=Vector3(position.x,water_y,position.z)
+            if active and drops.stream != null:
+                drops.pitch_scale=0.94 if state == MouseWaterInteraction.SWIMMING else 1.08
+                drops.play()
