@@ -42,6 +42,14 @@ jobs:
               print('RESTORED_FILES', z.namelist())
           PY
 
+      - name: Install playable demo scenes and standalone demo smoke test
+        run: |
+          set -euo pipefail
+          cp sapling_mobile_v4/overlay/scripts/demo_stage.gd sapling_mobile_v4/godot/scripts/demo_stage.gd
+          cp sapling_mobile_v4/overlay/demo_pine.tscn sapling_mobile_v4/godot/demo_pine.tscn
+          cp sapling_mobile_v4/overlay/demo_forest.tscn sapling_mobile_v4/godot/demo_forest.tscn
+          cp sapling_mobile_v4/overlay/tests/demo_smoke.gd sapling_mobile_v4/godot/tests/demo_smoke.gd
+
       - name: Retrieve authentic Sapling video tree artifact
         env:
           GH_TOKEN: ${{ github.token }}
@@ -89,6 +97,13 @@ jobs:
           grep -q 'PINE_MOBILE_CI_OK' godot-smoke.log
           if grep -Ei 'Parse Error|SCRIPT ERROR|ERROR:' godot-smoke.log; then exit 1; fi
 
+      - name: Test both demo scenes are actually playable (camera + light + ground)
+        run: |
+          set -o pipefail
+          timeout 120 godot --headless --audio-driver Dummy --path sapling_mobile_v4/godot --script res://tests/demo_smoke.gd 2>&1 | tee godot-demo-smoke.log
+          grep -q 'PINE_DEMO_CI_OK' godot-demo-smoke.log
+          if grep -Ei 'Parse Error|SCRIPT ERROR|ERROR:' godot-demo-smoke.log; then exit 1; fi
+
       - name: TRUE Godot GL screenshot — LOD0 close
         run: |
           set -o pipefail
@@ -132,6 +147,7 @@ jobs:
             godot-version.txt
             godot-import.log
             godot-smoke.log
+            godot-demo-smoke.log
             optimized-report.log
             render-lod0.log
             render-lod1.log
