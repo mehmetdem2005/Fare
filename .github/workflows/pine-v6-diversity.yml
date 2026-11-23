@@ -1,0 +1,121 @@
+name: Pine v6 — Sapling 9 realistic shape families
+
+on:
+  push:
+    branches: [feat/pine-v6-silhouette-diversity]
+    paths:
+      - 'sapling_video/pine_v6_source.zlib.b64'
+      - '.github/workflows/pine-v6-diversity.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: sapling_video
+          sparse-checkout-cone-mode: true
+
+      - name: Install Blender and headless OpenGL
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq python3-numpy blender xvfb libgl1-mesa-dri libgl1 libx11-6 libxcursor1 libxinerama1 libxrandr2 libxi6 libasound2t64
+          blender --version | head -n 2 | tee blender-version.txt
+
+      - name: Recover exact tree authoring code and official Sapling extension
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64,zlib,hashlib
+          from pathlib import Path
+          raw=zlib.decompress(base64.b64decode(Path('sapling_video/pine_v6_source.zlib.b64').read_text().strip()))
+          assert hashlib.sha256(raw).hexdigest()=='47c7d1354745a9b0d80a4daf060f7b2f2dc95bf1f4e963a291cda00ed30776ec'
+          Path('sapling_video/blender_pine_v6.py').write_bytes(raw)
+          compile(raw,'blender_pine_v6.py','exec')
+          print('PINE_V6_SOURCE_VALID',len(raw))
+          PY
+          mkdir -p /tmp/blender_addons/add_curve_sapling/presets
+          BASE=https://raw.githubusercontent.com/blender/blender-addons/main/add_curve_sapling
+          curl --fail --location --retry 4 "$BASE/__init__.py" -o /tmp/blender_addons/add_curve_sapling/__init__.py
+          curl --fail --location --retry 4 "$BASE/utils.py" -o /tmp/blender_addons/add_curve_sapling/utils.py
+          curl --fail --location --retry 4 "$BASE/presets/small_pine.py" -o /tmp/blender_addons/add_curve_sapling/presets/small_pine.py
+
+      - name: Generate NINE truly different pine silhouettes using real Blender Sapling
+        run: |
+          set -euo pipefail
+          for pair in spire:1101 broad:1102 elder:1103 wind:1104 sapling:1105 high_crown:1106 dense:1107 split:1108 coastal:1109; do
+            profile="${pair%:*}"
+            seed="${pair#*:}"
+            mkdir -p "sapling_video/v6_generated/seed_$seed"
+            echo "=== BLENDER SAPLING $profile seed $seed ==="
+            SAPLING_PROFILE="$profile" SAPLING_SEED="$seed" SAPLING_ADDON_DIR=/tmp/blender_addons SAPLING_OUTPUT_DIR="$GITHUB_WORKSPACE/sapling_video/v6_generated/seed_$seed" timeout 160 blender -b --factory-startup --python sapling_video/blender_pine_v6.py 2>&1 | tee "sapling_video/v6_generated/seed_$seed.log"
+            grep -q 'SAPLING_V6_VARIATION_OK' "sapling_video/v6_generated/seed_$seed.log"
+            test -s "sapling_video/v6_generated/seed_$seed/sapling_seeded.glb"
+            test -s "sapling_video/v6_generated/seed_$seed/sapling_seeded.blend"
+          done
+
+      - name: Validate nine distinct structures and cross-seed reproducibility
+        run: |
+          set -euo pipefail
+          mkdir -p sapling_video/v6_generated/repeat_1104
+          SAPLING_PROFILE=wind SAPLING_SEED=1104 SAPLING_ADDON_DIR=/tmp/blender_addons SAPLING_OUTPUT_DIR="$GITHUB_WORKSPACE/sapling_video/v6_generated/repeat_1104" timeout 160 blender -b --factory-startup --python sapling_video/blender_pine_v6.py > sapling_video/v6_generated/repeat.log 2>&1
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('sapling_video/v6_generated')
+          ss=[1101,1102,1103,1104,1105,1106,1107,1108,1109]
+          manifests=[json.loads((root/f'seed_{s}/manifest.json').read_text()) for s in ss]
+          assert len(set(m['geometry_signature'] for m in manifests))==9
+          assert len(set(m['profile'] for m in manifests))==9
+          assert all(m['root_count']>=5 for m in manifests)
+          assert manifests[3]['geometry_signature']==json.loads((root/'repeat_1104/manifest.json').read_text())['geometry_signature']
+          for m in manifests:
+            assert m['models']['Sapling_Branches_Trunk']['faces']>1000
+            assert m['models']['Sapling_Needles']['faces']>100
+          (root/'VARIANTS_V6.json').write_text(json.dumps({'seeds':ss,'profiles':{str(s):m['profile'] for s,m in zip(ss,manifests)},'manifests':manifests},indent=2))
+          print('SAPLING_NINE_REAL_SEEDS_AND_DETERMINISM_OK')
+          PY
+
+      - name: Install real Godot v4.7.2
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 -o /tmp/godot472.zip 'https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip'
+          unzip -q /tmp/godot472.zip -d /tmp
+          sudo install -m 755 /tmp/Godot_v4.7.2-stable_linux.x86_64 /usr/local/bin/godot
+          godot --version | tee godot-version.txt
+          grep -q '^4.7.2.stable' godot-version.txt
+
+      - name: Import and render true Sapling example silhouettes in Godot 4.7.2
+        run: |
+          set -euo pipefail
+          mkdir -p sapling_video/v6_generated/screenshots sapling_video/godot/out
+          for seed in 1101 1102 1103 1104 1105 1106 1107 1108 1109; do
+            cp "sapling_video/v6_generated/seed_$seed/sapling_seeded.glb" sapling_video/godot/sapling_pine.glb
+            timeout 110 godot --headless --audio-driver Dummy --editor --path sapling_video/godot --import --quit > "sapling_video/v6_generated/godot_import_$seed.log" 2>&1
+            timeout 120 xvfb-run -a -s '-screen 0 1280x1000x24' godot --audio-driver Dummy --rendering-driver opengl3 --rendering-method gl_compatibility --path sapling_video/godot --script res://render_sapling.gd > "sapling_video/v6_generated/godot_render_$seed.log" 2>&1
+            grep -q 'VIDEO_SAPLING_RENDER_OK' "sapling_video/v6_generated/godot_render_$seed.log"
+            cp sapling_video/godot/out/sapling_video_exact_godot472.png "sapling_video/v6_generated/screenshots/seed_$seed.png"
+          done
+          echo 'SAPLING_NINE_GODOT_472_RENDER_OK'
+
+      - name: Upload editable Blender sources, GLBs, manifests, and nine real Godot PNGs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pine-v6-nine-real-sapling-silhouettes-godot472
+          path: |
+            sapling_video/v6_generated/seed_*/sapling_seeded.glb
+            sapling_video/v6_generated/seed_*/sapling_seeded.blend
+            sapling_video/v6_generated/seed_*/manifest.json
+            sapling_video/v6_generated/screenshots/*.png
+            sapling_video/v6_generated/VARIANTS_V6.json
+            sapling_video/v6_generated/godot_*.log
+            sapling_video/blender_pine_v6.py
+            blender-version.txt
+            godot-version.txt
+          if-no-files-found: warn
