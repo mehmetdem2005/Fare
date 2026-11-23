@@ -33,6 +33,11 @@ jobs:
           from pathlib import Path
           contents=zlib.decompress(base64.b64decode(Path('sapling_video/seeded_source.zlib.b64').read_text().strip()))
           assert hashlib.sha256(contents).hexdigest() == 'de02215598efbec0533b6f543b55d5a0114fd170c7582fedfe69d4dca6ee5c8f'
+          # Orient outer root faces outwards; needed for Godot back-face culling.
+          original=b'faces.extend(((a,a+1,b),(a+1,b+1,b)))'
+          replacement=b'faces.extend(((a,b,a+1),(a+1,b,b+1)))'
+          assert original in contents
+          contents=contents.replace(original,replacement)
           Path('sapling_video/blender_seeded_sapling.py').write_bytes(contents)
           print('RECOVERED_EXACT_SEEDED_SOURCE',len(contents))
           PY
@@ -91,6 +96,9 @@ jobs:
             timeout 120 xvfb-run -a -s '-screen 0 1280x1000x24' godot --audio-driver Dummy --rendering-driver opengl3 --rendering-method gl_compatibility --path sapling_video/godot --script res://render_sapling.gd 2>&1 | tee "sapling_video/godot_render_$seed.log"
             grep -q 'VIDEO_SAPLING_RENDER_OK' "sapling_video/godot_render_$seed.log"
             cp sapling_video/godot/out/sapling_video_exact_godot472.png "sapling_video/generated/screenshots/seed_$seed.png"
+            timeout 120 xvfb-run -a -s '-screen 0 1280x1000x24' godot --audio-driver Dummy --rendering-driver opengl3 --rendering-method gl_compatibility --path sapling_video/godot --script res://render_sapling.gd -- --roots-closeup 2>&1 | tee "sapling_video/godot_roots_$seed.log"
+            grep -q 'VIDEO_SAPLING_RENDER_OK' "sapling_video/godot_roots_$seed.log"
+            cp sapling_video/godot/out/sapling_roots_closeup_godot472.png "sapling_video/generated/screenshots/seed_${seed}_roots.png"
           done
           echo 'SAPLING_TRUE_SEED_RENDER_CI_OK'
 
@@ -107,6 +115,7 @@ jobs:
             sapling_video/seed_*.log
             sapling_video/godot_import_*.log
             sapling_video/godot_render_*.log
+            sapling_video/godot_roots_*.log
             blender-version.txt
             godot-version.txt
           if-no-files-found: warn
