@@ -150,7 +150,8 @@ func _test_scene() -> void:
     swipe.position = Vector2(850.0, 360.0)
     swipe.screen_relative = Vector2(65.0, 10.0)
     router._input(swipe)
-    await process_frame
+    # SceneTree.process_frame resumes before Node._process; step the render-camera explicitly.
+    camera_rig._process(1.0/60.0)
     if absf(camera_rig.yaw_angle - cam_start) < 0.08:
         _fail("new physical-pixel camera drag did not orbit")
         return
