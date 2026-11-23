@@ -1,0 +1,79 @@
+name: Fare Mobile Camera Joystick — Godot 4.7.2 Tests
+
+on:
+  push:
+    branches:
+      - feat/mobile-camera-joystick-v1-ci
+    paths:
+      - 'controls_ci/**'
+      - '.github/workflows/fare-mobile-controls.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-controls:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - name: Recover exact controller sources
+        run: |
+          python3 - <<'PY'
+          import tarfile, base64, lzma, io
+          from pathlib import Path
+          target=Path("controls_ci/project")
+          target.mkdir(parents=True,exist_ok=True)
+          raw=lzma.decompress(base64.b64decode(Path("controls_ci/payload.b64").read_text().strip()))
+          with tarfile.open(fileobj=io.BytesIO(raw),mode="r:") as tar:
+              tar.extractall(target,filter="data")
+          assert (target/"scripts/controls/touch_input_router.gd").is_file()
+          print("CONTROLS_PROJECT_EXTRACTED",len(list(target.rglob("*"))))
+          PY
+      - name: Install Godot 4.7.2 and headless OpenGL dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb unzip libgl1 libgl1-mesa-dri libx11-6 libxcursor1 libxinerama1 libxrandr2 libxi6 libasound2t64
+          curl -fL --retry 4 -o /tmp/godot472.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          unzip -q /tmp/godot472.zip -d /tmp
+          sudo install -m755 /tmp/Godot_v4.7.2-stable_linux.x86_64 /usr/local/bin/godot
+          godot --version | tee godot-version.txt
+          grep -q "^4.7.2.stable" godot-version.txt
+      - name: Import and parse all scripts
+        run: |
+          set -o pipefail
+          timeout 120 godot --headless --audio-driver Dummy --editor --path controls_ci/project --import --quit 2>&1 | tee godot-import.log
+          if grep -Ei 'SCRIPT ERROR|Parse Error|ERROR:.*script' godot-import.log; then exit 1; fi
+      - name: Test joystick and pointer ownership
+        run: |
+          set -o pipefail
+          timeout 120 godot --headless --audio-driver Dummy --path controls_ci/project --script res://tests/controls_smoke.gd 2>&1 | tee controls-smoke.log
+          grep -q "CONTROLS_SMOKE_OK" controls-smoke.log
+      - name: Test independent camera and spring collision
+        run: |
+          set -o pipefail
+          timeout 120 godot --headless --audio-driver Dummy --path controls_ci/project --script res://tests/scene_smoke.gd 2>&1 | tee scene-smoke.log
+          grep -q "CAMERA_SCENE_SMOKE_OK" scene-smoke.log
+      - name: Capture real Godot 4.7.2 gameplay camera screenshot
+        run: |
+          set -o pipefail
+          timeout 120 xvfb-run -a -s '-screen 0 1280x720x24' godot --audio-driver Dummy --rendering-driver opengl3 --rendering-method gl_compatibility --path controls_ci/project --script res://tests/render_controls.gd 2>&1 | tee godot-render.log
+          grep -q "CONTROL_RENDER_OK" godot-render.log
+          test -s controls_ci/project/out/mouse_camera_joystick_godot472.png
+      - name: Upload CI evidence and PNG screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-mobile-camera-joystick-godot-472
+          if-no-files-found: warn
+          path: |
+            controls_ci/project/out/*.png
+            controls_ci/project/scripts/controls/*.gd
+            controls_ci/project/tests/*.gd
+            controls_ci/project/demo_controls.tscn
+            godot-version.txt
+            godot-import.log
+            controls-smoke.log
+            scene-smoke.log
+            godot-render.log
