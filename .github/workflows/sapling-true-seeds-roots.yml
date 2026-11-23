@@ -133,6 +133,8 @@ jobs:
           sudo install -m 755 /tmp/Godot_v4.7.2-stable_linux.x86_64 /usr/local/bin/godot
           godot --version | tee godot-version.txt
           grep -q '^4.7.2.stable' godot-version.txt
+          mkdir -p sapling_video/generated/tools
+          cp /usr/local/bin/godot sapling_video/generated/tools/godot472
 
       - name: Import and render two real seeded GLBs using Godot 4.7.2
         run: |
@@ -160,6 +162,7 @@ jobs:
             sapling_video/generated/seed_2718/*
             sapling_video/generated/seed_4096/*
             sapling_video/generated/screenshots/*
+            sapling_video/generated/tools/godot472
             sapling_video/blender_seeded_sapling.py
             sapling_video/seed_*.log
             sapling_video/godot_import_*.log
