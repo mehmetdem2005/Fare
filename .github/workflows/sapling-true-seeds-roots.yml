@@ -56,33 +56,33 @@ jobs:
           old=b'root_count=add_buttress_roots(SEED)'
           assert old in contents
           flare=b"""root_count=add_buttress_roots(SEED)
-# Root-aligned cambial buttresses, tapered smoothly into the real Sapling trunk.
-roots_obj=bpy.data.objects.get('Sapling_Roots')
-trunk_obj=bpy.data.objects.get('tree')
-if roots_obj is not None and trunk_obj is not None:
-    per_root=(14+1)*(10+1)
-    root_angles=[]
-    for root_index in range(root_count):
-        first=root_index*per_root+4*(10+1)
-        ring=roots_obj.data.vertices[first:first+11]
-        mid_x=sum(v.co.x for v in ring)/len(ring)
-        mid_y=sum(v.co.y for v in ring)/len(ring)
-        root_angles.append(math.atan2(mid_y,mid_x))
-    for v in trunk_obj.data.vertices:
-        x,y,z=v.co
-        radius=math.sqrt(x*x+y*y)
-        if 0.0<=z<.5 and .006<radius<.32:
-            phase=math.atan2(y,x)
-            weight=0.0
-            for ra in root_angles:
-                d=(phase-ra+math.pi)%(2*math.pi)-math.pi
-                weight=max(weight,math.exp(-.5*(d/.33)**2))
-            f=min(1.,z/.5)
-            f=f*f*(3.-2.*f)
-            factor=1.0+(.32*weight+.08)*(1.0-f)
-            v.co.x*=factor
-            v.co.y*=factor
-"""
+          # Root-aligned cambial buttresses, tapered smoothly into the real Sapling trunk.
+          roots_obj=bpy.data.objects.get('Sapling_Roots')
+          trunk_obj=bpy.data.objects.get('tree')
+          if roots_obj is not None and trunk_obj is not None:
+              per_root=(14+1)*(10+1)
+              root_angles=[]
+              for root_index in range(root_count):
+                  first=root_index*per_root+4*(10+1)
+                  ring=roots_obj.data.vertices[first:first+11]
+                  mid_x=sum(v.co.x for v in ring)/len(ring)
+                  mid_y=sum(v.co.y for v in ring)/len(ring)
+                  root_angles.append(math.atan2(mid_y,mid_x))
+              for v in trunk_obj.data.vertices:
+                  x,y,z=v.co
+                  radius=math.sqrt(x*x+y*y)
+                  if 0.0<=z<.5 and .006<radius<.32:
+                      phase=math.atan2(y,x)
+                      weight=0.0
+                      for ra in root_angles:
+                          d=(phase-ra+math.pi)%(2*math.pi)-math.pi
+                          weight=max(weight,math.exp(-.5*(d/.33)**2))
+                      f=min(1.,z/.5)
+                      f=f*f*(3.-2.*f)
+                      factor=1.0+(.32*weight+.08)*(1.0-f)
+                      v.co.x*=factor
+                      v.co.y*=factor
+          """
           contents=contents.replace(old,flare)
           Path('sapling_video/blender_seeded_sapling.py').write_bytes(contents)
           print('RECOVERED_EXACT_SEEDED_SOURCE',len(contents))
