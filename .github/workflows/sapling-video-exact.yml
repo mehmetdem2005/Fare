@@ -50,6 +50,9 @@ jobs:
           test -s sapling_video/godot/sapling_pine.glb
           test -s sapling_video/godot/sapling_small_pine_exact.blend
           test -s sapling_video/godot/recipe.json
+          # Godot imports .blend files as assets and requires Blender Editor settings in headless mode.
+          # Keep the editable Blender source outside the Godot project root.
+          mv sapling_video/godot/sapling_small_pine_exact.blend sapling_video/sapling_small_pine_exact.blend
 
       - name: Install actual Godot v4.7.2 stable
         run: |
@@ -81,7 +84,7 @@ jobs:
           path: |
             sapling_video/godot/out/*.png
             sapling_video/godot/*.glb
-            sapling_video/godot/*.blend
+            sapling_video/*.blend
             sapling_video/godot/recipe.json
             sapling_video/build_sapling.py
             sapling-generate.log
