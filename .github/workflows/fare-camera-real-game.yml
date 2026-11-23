@@ -41,6 +41,31 @@ jobs:
           set -o pipefail
           timeout 480 godot --headless --audio-driver Dummy --path . --script res://tests/smoke.gd 2>&1 | tee real-game-smoke.log
           grep -q "SMOKE_OK" real-game-smoke.log
+      - name: Package complete original Fare Valley with new controls
+        if: success()
+        run: |
+          python3 - <<'PY'
+          import zipfile, subprocess
+          from pathlib import Path
+          out=Path('/tmp/Fare_Vadisi_Kamera_Joystick_Godot_4_7_2.zip')
+          names=subprocess.check_output(['git','ls-files','-z']).split(b'\0')
+          included=0
+          with zipfile.ZipFile(out,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=6) as z:
+              for raw in names:
+                  if not raw: continue
+                  path=Path(raw.decode())
+                  if path.is_file():
+                      z.write(path,str(path))
+                      included+=1
+          print('FULL_ORIGINAL_FARE_PROJECT_ARCHIVED',included,'files',out.stat().st_size,'bytes')
+          PY
+      - name: Upload complete playable original game ZIP
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-valley-camera-joystick-original-game-project
+          path: /tmp/Fare_Vadisi_Kamera_Joystick_Godot_4_7_2.zip
+          if-no-files-found: error
       - name: Upload measured logs
         if: always()
         uses: actions/upload-artifact@v4
