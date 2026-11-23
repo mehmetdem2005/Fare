@@ -1,0 +1,140 @@
+name: Sapling Pine AAA Mobile Optimisation - Godot 4.7.2 CI
+
+on:
+  push:
+    branches:
+      - feat/sapling-mobile-aaa-optimized
+    paths:
+      - 'sapling_mobile_v4/**'
+      - '.github/workflows/sapling-mobile-optimised.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  optimized-mobile-pine:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: sapling_mobile_v4
+          sparse-checkout-cone-mode: true
+
+      - name: Restore exact optimized-project source archive
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from io import BytesIO
+          import base64,zlib,zipfile
+          root=Path('sapling_mobile_v4')
+          data=root.joinpath('payload.txt').read_text().strip()
+          assert len(data)==15072, len(data)
+          compressed=base64.b64decode(data)
+          archive=zlib.decompress(compressed)
+          with zipfile.ZipFile(BytesIO(archive)) as z:
+              for name in z.namelist():
+                  if name.startswith('/') or '..' in Path(name).parts: raise ValueError(name)
+              z.extractall(root)
+              print('RESTORED_FILES', z.namelist())
+          PY
+
+      - name: Retrieve authentic Sapling video tree artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/source-sapling
+          gh run download 45086342397 --repo "${{ github.repository }}" --name "sapling-video-exact-blender-godot472" --dir /tmp/source-sapling
+          SOURCE=$(find /tmp/source-sapling -name sapling_pine.glb -type f | head -n1)
+          test -s "$SOURCE"
+          cp "$SOURCE" /tmp/sapling_video_original.glb
+          echo "Original GLB byte count: $(wc -c < /tmp/sapling_video_original.glb)"
+
+      - name: Install tested Python mesh and procedural atlas tooling
+        run: |
+          python3 -m venv /tmp/pine-venv
+          /tmp/pine-venv/bin/pip install --disable-pip-version-check -q numpy pillow trimesh networkx
+
+      - name: Regenerate mobile LODs from authentic Blender tree
+        run: |
+          set -o pipefail
+          /tmp/pine-venv/bin/python sapling_mobile_v4/source/optimize_sapling_mobile.py --source /tmp/sapling_video_original.glb --output sapling_mobile_v4/godot/assets 2>&1 | tee optimized-report.log
+          grep -q 'PINE_MOBILE_OPTIMIZE_OK' optimized-report.log
+          test -s sapling_mobile_v4/godot/assets/technical_report.json
+
+      - name: Install Godot v4.7.2 stable and offscreen GL
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb libgl1-mesa-dri libgl1 libx11-6 libxcursor1 libxinerama1 libxrandr2 libxi6 libasound2t64 mesa-vulkan-drivers libvulkan1
+          curl -fL --retry 3 -o /tmp/godot472.zip 'https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip'
+          unzip -q /tmp/godot472.zip -d /tmp
+          sudo install -m 755 /tmp/Godot_v4.7.2-stable_linux.x86_64 /usr/local/bin/godot
+          godot --version | tee godot-version.txt
+          grep -q '^4.7.2.stable' godot-version.txt
+
+      - name: Import GLBs, PNGs, parse all shared-material and instancing scripts
+        run: |
+          set -o pipefail
+          timeout 180 godot --headless --audio-driver Dummy --editor --path sapling_mobile_v4/godot --import --quit 2>&1 | tee godot-import.log
+          if grep -Ei 'Parse Error|SCRIPT ERROR|ERROR:' godot-import.log; then exit 1; fi
+
+      - name: LOD geometry, shared material and MultiMesh correctness test
+        run: |
+          set -o pipefail
+          timeout 120 godot --headless --audio-driver Dummy --path sapling_mobile_v4/godot --script res://tests/pine_mobile_smoke.gd 2>&1 | tee godot-smoke.log
+          grep -q 'PINE_MOBILE_CI_OK' godot-smoke.log
+          if grep -Ei 'Parse Error|SCRIPT ERROR|ERROR:' godot-smoke.log; then exit 1; fi
+
+      - name: TRUE Godot GL screenshot — LOD0 close
+        run: |
+          set -o pipefail
+          timeout 120 xvfb-run -a -s '-screen 0 1280x1000x24' godot --audio-driver Dummy --rendering-driver opengl3 --rendering-method gl_compatibility --path sapling_mobile_v4/godot --script res://tests/render_preview.gd -- --lod=0 2>&1 | tee render-lod0.log
+          grep -q 'PINE_MOBILE_RENDER_OK lod0' render-lod0.log
+          test -s sapling_mobile_v4/godot/screenshots/pine_optimized_lod0.png
+
+      - name: TRUE Godot GL screenshot — LOD1 medium
+        run: |
+          set -o pipefail
+          timeout 120 xvfb-run -a -s '-screen 0 1280x1000x24' godot --audio-driver Dummy --rendering-driver opengl3 --rendering-method gl_compatibility --path sapling_mobile_v4/godot --script res://tests/render_preview.gd -- --lod=1 2>&1 | tee render-lod1.log
+          grep -q 'PINE_MOBILE_RENDER_OK lod1' render-lod1.log
+
+      - name: TRUE Godot GL screenshot — MultiMesh forest
+        run: |
+          set -o pipefail
+          timeout 120 xvfb-run -a -s '-screen 0 1280x1000x24' godot --audio-driver Dummy --rendering-driver opengl3 --rendering-method gl_compatibility --path sapling_mobile_v4/godot --script res://tests/render_preview.gd -- --forest 2>&1 | tee render-forest.log
+          grep -q 'PINE_MOBILE_RENDER_OK forest' render-forest.log
+
+      - name: Optional Vulkan Mobile software renderer validation
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          timeout 120 xvfb-run -a -s '-screen 0 1280x1000x24' godot --audio-driver Dummy --rendering-driver vulkan --rendering-method mobile --path sapling_mobile_v4/godot --script res://tests/render_preview.gd -- --lod=0 2>&1 | tee mobile-vulkan-check.log
+          grep -q 'PINE_MOBILE_RENDER_OK lod0' mobile-vulkan-check.log
+
+      - name: Preserve real PNGs, LOD GLBs, atlases, sources and engine logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pine-aaa-mobile-472-renders-and-assets
+          path: |
+            sapling_mobile_v4/godot/screenshots/*.png
+            sapling_mobile_v4/godot/assets/*.glb
+            sapling_mobile_v4/godot/assets/technical_report.json
+            sapling_mobile_v4/godot/assets/textures/*.png
+            sapling_mobile_v4/godot/scripts/*.gd
+            sapling_mobile_v4/godot/*.tscn
+            sapling_mobile_v4/godot/project.godot
+            sapling_mobile_v4/source/*.py
+            godot-version.txt
+            godot-import.log
+            godot-smoke.log
+            optimized-report.log
+            render-lod0.log
+            render-lod1.log
+            render-forest.log
+            mobile-vulkan-check.log
+          if-no-files-found: warn
