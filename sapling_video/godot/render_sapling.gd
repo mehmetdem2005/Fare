@@ -4,6 +4,7 @@ func _initialize() -> void:
     call_deferred("_go")
 
 func _go() -> void:
+    var roots_closeup: bool = OS.get_cmdline_user_args().has("--roots-closeup")
     root.size = Vector2i(1200, 1000)
     var stage := Node3D.new()
     root.add_child(stage)
@@ -47,6 +48,8 @@ func _go() -> void:
         if node is MeshInstance3D:
             var instance: MeshInstance3D = node as MeshInstance3D
             if instance.mesh != null:
+                if roots_closeup and "needle" in instance.name.to_lower():
+                    instance.visible = false
                 var bounds: AABB = instance.global_transform * instance.mesh.get_aabb()
                 if has_geo:
                     box = box.merge(bounds)
@@ -67,11 +70,11 @@ func _go() -> void:
         return
     var camera := Camera3D.new()
     stage.add_child(camera)
-    camera.position = Vector3(tree_height * 1.35, tree_height * 0.8, tree_height * 2.5)
-    camera.fov = 47
+    camera.position = Vector3(1.65, 0.82, 2.65) if roots_closeup else Vector3(tree_height * 1.35, tree_height * 0.8, tree_height * 2.5)
+    camera.fov = 42 if roots_closeup else 47
     camera.near = 0.03
     camera.far = 200
-    camera.look_at(box.get_center(), Vector3.UP)
+    camera.look_at(Vector3(0.0, 0.21, 0.0) if roots_closeup else box.get_center(), Vector3.UP)
     camera.current = true
     await process_frame
     await process_frame
@@ -83,7 +86,7 @@ func _go() -> void:
         quit(1)
         return
     DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://out"))
-    var path := "res://out/sapling_video_exact_godot472.png"
+    var path := "res://out/sapling_roots_closeup_godot472.png" if roots_closeup else "res://out/sapling_video_exact_godot472.png"
     var error := image.save_png(path)
     if error != OK:
         push_error("VIDEO_SAPLING_RENDER_FAIL: " + error_string(error))
