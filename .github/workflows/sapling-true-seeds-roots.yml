@@ -50,7 +50,7 @@ jobs:
       - name: Generate authentic branch topology separately for seed 1337 and seed 2718
         run: |
           set -o pipefail
-          for seed in 1337 2718; do
+          for seed in 1337 2718 4096; do
             mkdir -p "sapling_video/generated/seed_$seed"
             SAPLING_SEED="$seed" SAPLING_ADDON_DIR=/tmp/blender_addons SAPLING_OUTPUT_DIR="$GITHUB_WORKSPACE/sapling_video/generated/seed_$seed" timeout 150 blender -b --factory-startup --python sapling_video/blender_seeded_sapling.py 2>&1 | tee "sapling_video/seed_$seed.log"
             grep -q 'SAPLING_SEED_ROOT_OK' "sapling_video/seed_$seed.log"
@@ -70,9 +70,11 @@ jobs:
           a=json.loads((base/"seed_1337/manifest.json").read_text())
           b=json.loads((base/"repeat_1337/manifest.json").read_text())
           c=json.loads((base/"seed_2718/manifest.json").read_text())
+          d=json.loads((base/"seed_4096/manifest.json").read_text())
           assert a["geometry_signature"]==b["geometry_signature"], "Same seed produced different geometry"
           assert a["geometry_signature"]!=c["geometry_signature"], "Different seeds produced same tree"
-          assert a["root_count"]>=6 and c["root_count"]>=6
+          assert a["geometry_signature"]!=d["geometry_signature"] and c["geometry_signature"]!=d["geometry_signature"]
+          assert min(a["root_count"],c["root_count"],d["root_count"])>=6
           assert "Sapling_Roots" in a["models"] and "Sapling_Needles" in a["models"]
           print("SAPLING_SEED_DETERMINISM_OK",a["geometry_signature"],c["geometry_signature"])
           PY
@@ -90,7 +92,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p sapling_video/generated/screenshots
-          for seed in 1337 2718; do
+          for seed in 1337 2718 4096; do
             cp "sapling_video/generated/seed_$seed/sapling_seeded.glb" sapling_video/godot/sapling_pine.glb
             timeout 100 godot --headless --audio-driver Dummy --editor --path sapling_video/godot --import --quit > "sapling_video/godot_import_$seed.log" 2>&1
             timeout 120 xvfb-run -a -s '-screen 0 1280x1000x24' godot --audio-driver Dummy --rendering-driver opengl3 --rendering-method gl_compatibility --path sapling_video/godot --script res://render_sapling.gd 2>&1 | tee "sapling_video/godot_render_$seed.log"
@@ -110,6 +112,7 @@ jobs:
           path: |
             sapling_video/generated/seed_1337/*
             sapling_video/generated/seed_2718/*
+            sapling_video/generated/seed_4096/*
             sapling_video/generated/screenshots/*
             sapling_video/blender_seeded_sapling.py
             sapling_video/seed_*.log
