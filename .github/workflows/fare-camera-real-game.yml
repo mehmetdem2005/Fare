@@ -1,0 +1,53 @@
+name: Fare Valley — Rebuilt Mobile Camera & Joystick (Real Game)
+
+on:
+  push:
+    branches:
+      - feat/river-camera-joystick-rebuild
+    paths:
+      - 'scripts/**'
+      - 'project.godot'
+      - 'tests/smoke.gd'
+      - '.github/workflows/fare-camera-real-game.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  godot-real-game:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Install Godot v4.7.2 and Linux 3D dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq unzip xvfb libgl1 libgl1-mesa-dri libx11-6 libxcursor1 libxinerama1 libxrandr2 libxi6 libasound2t64
+          curl -fL --retry 4 -o /tmp/godot472.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          unzip -q /tmp/godot472.zip -d /tmp
+          sudo install -m 755 /tmp/Godot_v4.7.2-stable_linux.x86_64 /usr/local/bin/godot
+          godot --version | tee godot-version.txt
+          grep -q "^4.7.2.stable" godot-version.txt
+      - name: Import actual Fare Valley project, materials, original mouse rig
+        run: |
+          set -o pipefail
+          timeout 300 godot --headless --audio-driver Dummy --editor --path . --import --quit 2>&1 | tee godot-import-real.log
+          if grep -Ei 'SCRIPT ERROR|Parse Error|ERROR:.*script' godot-import-real.log; then exit 1; fi
+      - name: Test real river, mouse animation, floating joystick, spring camera
+        run: |
+          set -o pipefail
+          timeout 480 godot --headless --audio-driver Dummy --path . --script res://tests/smoke.gd 2>&1 | tee real-game-smoke.log
+          grep -q "SMOKE_OK" real-game-smoke.log
+      - name: Upload measured logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fare-original-game-new-camera-smoke
+          if-no-files-found: warn
+          path: |
+            godot-version.txt
+            godot-import-real.log
+            real-game-smoke.log
