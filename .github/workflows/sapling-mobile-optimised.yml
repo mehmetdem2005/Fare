@@ -32,7 +32,7 @@ jobs:
           import base64,zlib,zipfile
           root=Path('sapling_mobile_v4')
           data=root.joinpath('payload.txt').read_text().strip()
-          assert len(data)==15072, len(data)
+          assert len(data)==15100, len(data)
           compressed=base64.b64decode(data)
           archive=zlib.decompress(compressed)
           with zipfile.ZipFile(BytesIO(archive)) as z:
