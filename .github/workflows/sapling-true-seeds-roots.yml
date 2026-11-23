@@ -1,0 +1,112 @@
+name: Sapling True Seed + Roots - Blender and Godot 4.7.2
+
+on:
+  push:
+    branches: [feat/sapling-true-seeds-natural-roots]
+    paths: ['sapling_video/**', '.github/workflows/sapling-true-seeds-roots.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate-test-and-render:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: sapling_video
+          sparse-checkout-cone-mode: true
+
+      - name: Install Blender 4 and Linux software renderer
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq python3-numpy blender xvfb libgl1-mesa-dri libgl1 libx11-6 libxcursor1 libxinerama1 libxrandr2 libxi6 libasound2t64
+          blender --version | head -n 1 | tee blender-version.txt
+
+      - name: Recover exact seeded generator and fetch the official Sapling addon
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64,hashlib,zlib
+          from pathlib import Path
+          contents=zlib.decompress(base64.b64decode(Path('sapling_video/seeded_source.zlib.b64').read_text().strip()))
+          assert hashlib.sha256(contents).hexdigest() == 'de02215598efbec0533b6f543b55d5a0114fd170c7582fedfe69d4dca6ee5c8f'
+          Path('sapling_video/blender_seeded_sapling.py').write_bytes(contents)
+          print('RECOVERED_EXACT_SEEDED_SOURCE',len(contents))
+          PY
+          mkdir -p /tmp/blender_addons/add_curve_sapling/presets
+          BASE=https://raw.githubusercontent.com/blender/blender-addons/main/add_curve_sapling
+          curl --fail --location --retry 4 "$BASE/__init__.py" -o /tmp/blender_addons/add_curve_sapling/__init__.py
+          curl --fail --location --retry 4 "$BASE/utils.py" -o /tmp/blender_addons/add_curve_sapling/utils.py
+          curl --fail --location --retry 4 "$BASE/presets/small_pine.py" -o /tmp/blender_addons/add_curve_sapling/presets/small_pine.py
+
+      - name: Generate authentic branch topology separately for seed 1337 and seed 2718
+        run: |
+          set -o pipefail
+          for seed in 1337 2718; do
+            mkdir -p "sapling_video/generated/seed_$seed"
+            SAPLING_SEED="$seed" SAPLING_ADDON_DIR=/tmp/blender_addons SAPLING_OUTPUT_DIR="$GITHUB_WORKSPACE/sapling_video/generated/seed_$seed" timeout 150 blender -b --factory-startup --python sapling_video/blender_seeded_sapling.py 2>&1 | tee "sapling_video/seed_$seed.log"
+            grep -q 'SAPLING_SEED_ROOT_OK' "sapling_video/seed_$seed.log"
+            test -s "sapling_video/generated/seed_$seed/sapling_seeded.glb"
+            test -s "sapling_video/generated/seed_$seed/sapling_seeded.blend"
+          done
+
+      - name: Determinism regression - regenerate seed 1337 and compare geometry signature
+        run: |
+          set -o pipefail
+          mkdir -p sapling_video/generated/repeat_1337
+          SAPLING_SEED=1337 SAPLING_ADDON_DIR=/tmp/blender_addons SAPLING_OUTPUT_DIR="$GITHUB_WORKSPACE/sapling_video/generated/repeat_1337" timeout 150 blender -b --factory-startup --python sapling_video/blender_seeded_sapling.py 2>&1 | tee sapling_video/repeat_1337.log
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          base=Path("sapling_video/generated")
+          a=json.loads((base/"seed_1337/manifest.json").read_text())
+          b=json.loads((base/"repeat_1337/manifest.json").read_text())
+          c=json.loads((base/"seed_2718/manifest.json").read_text())
+          assert a["geometry_signature"]==b["geometry_signature"], "Same seed produced different geometry"
+          assert a["geometry_signature"]!=c["geometry_signature"], "Different seeds produced same tree"
+          assert a["root_count"]>=6 and c["root_count"]>=6
+          assert "Sapling_Roots" in a["models"] and "Sapling_Needles" in a["models"]
+          print("SAPLING_SEED_DETERMINISM_OK",a["geometry_signature"],c["geometry_signature"])
+          PY
+
+      - name: Install Godot 4.7.2 and check actual version
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 -o /tmp/godot472.zip "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip"
+          unzip -q /tmp/godot472.zip -d /tmp
+          sudo install -m 755 /tmp/Godot_v4.7.2-stable_linux.x86_64 /usr/local/bin/godot
+          godot --version | tee godot-version.txt
+          grep -q '^4.7.2.stable' godot-version.txt
+
+      - name: Import and render two real seeded GLBs using Godot 4.7.2
+        run: |
+          set -euo pipefail
+          mkdir -p sapling_video/generated/screenshots
+          for seed in 1337 2718; do
+            cp "sapling_video/generated/seed_$seed/sapling_seeded.glb" sapling_video/godot/sapling_pine.glb
+            timeout 100 godot --headless --audio-driver Dummy --editor --path sapling_video/godot --import --quit > "sapling_video/godot_import_$seed.log" 2>&1
+            timeout 120 xvfb-run -a -s '-screen 0 1280x1000x24' godot --audio-driver Dummy --rendering-driver opengl3 --rendering-method gl_compatibility --path sapling_video/godot --script res://render_sapling.gd 2>&1 | tee "sapling_video/godot_render_$seed.log"
+            grep -q 'VIDEO_SAPLING_RENDER_OK' "sapling_video/godot_render_$seed.log"
+            cp sapling_video/godot/out/sapling_video_exact_godot472.png "sapling_video/generated/screenshots/seed_$seed.png"
+          done
+          echo 'SAPLING_TRUE_SEED_RENDER_CI_OK'
+
+      - name: Publish source, seeded .blend and .glb files, logs and real screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sapling-true-seeds-roots-godot472
+          path: |
+            sapling_video/generated/seed_1337/*
+            sapling_video/generated/seed_2718/*
+            sapling_video/generated/screenshots/*
+            sapling_video/blender_seeded_sapling.py
+            sapling_video/seed_*.log
+            sapling_video/godot_import_*.log
+            sapling_video/godot_render_*.log
+            blender-version.txt
+            godot-version.txt
+          if-no-files-found: warn
