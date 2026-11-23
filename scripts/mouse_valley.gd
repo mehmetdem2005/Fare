@@ -44,6 +44,8 @@ var model_holder: Node3D
 var rig: Skeleton3D
 var mouse_animation: AnimationPlayer
 var view_camera: Camera3D
+var mobile_camera_rig: FareThirdPersonCamera
+var mobile_input: FareTouchInputRouter
 var hud: Control
 var terrain_mat: ShaderMaterial
 var terrain_lite_mat: ShaderMaterial
@@ -309,23 +311,36 @@ func _create_actor() -> void:
         push_error("Mouse GLB missing from the project!")
 
 func _create_camera() -> void:
-    view_camera = Camera3D.new()
-    view_camera.name = "ThirdPersonCamera"
-    view_camera.current = true
-    view_camera.fov = 65.0
-    view_camera.near = 0.055
-    view_camera.far = 205.0
-    add_child(view_camera)
-    _update_camera(1.0)
+    # Brand-new controller stack. Camera is independent from player rotation.
+    mobile_input = FareTouchInputRouter.new()
+    mobile_input.name = "MobileInputRouter"
+    add_child(mobile_input)
+    mobile_camera_rig = FareThirdPersonCamera.new()
+    mobile_camera_rig.name = "MobileThirdPersonCameraRig"
+    mobile_camera_rig.body_height = 0.84
+    mobile_camera_rig.camera_distance_in_body_heights = 4.1
+    mobile_camera_rig.normal_fov = 68.0
+    add_child(mobile_camera_rig)
+    mobile_camera_rig.connect_controls(player, mobile_input)
+    view_camera = mobile_camera_rig.view_camera
 
 func _create_hud() -> void:
     var overlay: CanvasLayer = CanvasLayer.new()
+    overlay.name = "GameHUDLayer"
     overlay.layer = 10
     add_child(overlay)
+    # Retain existing telemetry API for river/chunk diagnostics, without legacy controls.
     hud = Control.new()
     hud.set_script(load("res://scripts/controls.gd"))
     hud.set("build_tag", S9BuildIdentity.BUILD_TAG)
     overlay.add_child(hud)
+    hud.visible = false
+    var thumb_overlay: FareTouchHUD = FareTouchHUD.new()
+    thumb_overlay.name = "FloatingJoystickHUD"
+    thumb_overlay.router = mobile_input
+    thumb_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    overlay.add_child(thumb_overlay)
+    thumb_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 func _setup_river_audio_and_micro() -> void:
     river_soundscape=RiverSoundscape.new()
@@ -460,7 +475,7 @@ func _process(delta: float) -> void:
             _add_chunk(next,OS.get_name()=="Android")
         else:
             s9_queue_requested_usec.erase(next)
-    _update_camera(delta)
+    # New camera rig processes look independently at render-frame frequency.
     if camera_water != null:
         camera_water.update_camera(view_camera.global_position,delta)
     if river_soundscape != null:
@@ -485,7 +500,9 @@ func _physics_process(delta: float) -> void:
     var script_start_usec: int=Time.get_ticks_usec()
     if player == null:
         return
-    var axis: Vector2 = stick
+    var raw_touch: Vector2 = mobile_input.movement()
+    var axis: Vector2 = Vector2(raw_touch.x, -raw_touch.y)
+    jump_buffer = mobile_input.consume_jump()
     var keys: Vector2 = Vector2.ZERO
     if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT):
         keys.x -= 1.0
@@ -497,8 +514,9 @@ func _physics_process(delta: float) -> void:
         keys.y -= 1.0
     if keys.length() > 0.01:
         axis = keys.normalized()
-    var forward: Vector3 = Vector3(-sin(look_yaw), 0.0, -cos(look_yaw))
-    var right: Vector3 = Vector3(cos(look_yaw), 0.0, -sin(look_yaw))
+    var camera_yaw: float = mobile_camera_rig.yaw_angle
+    var forward: Vector3 = Vector3(-sin(camera_yaw), 0.0, -cos(camera_yaw))
+    var right: Vector3 = Vector3(cos(camera_yaw), 0.0, -sin(camera_yaw))
     var desired: Vector3 = right * axis.x + forward * axis.y
     if desired.length() > 1.0:
         desired = desired.normalized()
@@ -506,7 +524,7 @@ func _physics_process(delta: float) -> void:
     if river_soundscape != null:
         river_soundscape.notify_water_contact(mouse_water.state,mouse_water.water_y,player.global_position)
     var swimming: bool = mouse_water.state == MouseWaterInteraction.SWIMMING
-    var wants_run: bool = not swimming and (run_pointer >= 0 or mouse_action == "run" or Input.is_key_pressed(KEY_SHIFT)) and desired.length() > 0.08 and stamina > 0.4
+    var wants_run: bool = not swimming and (axis.length() >= 0.90 or Input.is_key_pressed(KEY_SHIFT)) and desired.length() > 0.08 and stamina > 0.4
     running = wants_run
     stamina = clampf(stamina + (-18.0 if wants_run else (1.0 if swimming and desired.length()>0.08 else 12.0))*delta,0.0,100.0)
     # A midair tap cannot consume stamina without executing a jump.
@@ -525,103 +543,21 @@ func _physics_process(delta: float) -> void:
     last_physics_work_ms=float(Time.get_ticks_usec()-script_start_usec)*0.001
     max_physics_work_ms=maxf(max_physics_work_ms,last_physics_work_ms)
 
-func _input(event: InputEvent) -> void:
-    if hud == null:
-        return
-    if event is InputEventScreenTouch:
-        var touch: InputEventScreenTouch = event as InputEventScreenTouch
-        if touch.pressed:
-            if stick_pointer < 0 and touch.position.distance_to(hud.call("stick_center")) < float(hud.call("stick_radius")) * 1.9:
-                stick_pointer = touch.index
-                _stick_position(touch.position)
-            elif touch.position.distance_to(hud.call("jump_center")) < float(hud.call("button_radius")) * 1.6:
-                jump_pointer = touch.index
-                jump_buffer = true
-            elif touch.position.distance_to(hud.call("run_center")) < float(hud.call("button_radius")) * 1.6:
-                run_pointer = touch.index
-            elif look_pointer < 0:
-                look_pointer = touch.index
-        else:
-            if touch.index == stick_pointer:
-                stick_pointer = -1
-                stick = Vector2.ZERO
-            if touch.index == run_pointer:
-                run_pointer = -1
-            if touch.index == jump_pointer:
-                jump_pointer = -1
-            if touch.index == look_pointer:
-                look_pointer = -1
-    elif event is InputEventScreenDrag:
-        var drag: InputEventScreenDrag = event as InputEventScreenDrag
-        if drag.index == stick_pointer:
-            _stick_position(drag.position)
-        elif drag.index == look_pointer:
-            _turn_camera(drag.relative)
-    elif event is InputEventMouseButton:
-        var click: InputEventMouseButton = event as InputEventMouseButton
-        if click.button_index == MOUSE_BUTTON_WHEEL_UP and click.pressed:
-            follow_distance = maxf(1.8, follow_distance - 0.35)
-        elif click.button_index == MOUSE_BUTTON_WHEEL_DOWN and click.pressed:
-            follow_distance = minf(6.5, follow_distance + 0.35)
-        elif click.button_index == MOUSE_BUTTON_LEFT:
-            if click.pressed:
-                # Android may synthesize a second mouse event from an existing finger.
-                if stick_pointer >= 0 or run_pointer >= 0 or jump_pointer >= 0 or look_pointer >= 0:
-                    return
-                var pos: Vector2 = click.position
-                if pos.distance_to(hud.call("stick_center")) < float(hud.call("stick_radius")) * 1.9:
-                    mouse_action = "stick"
-                    _stick_position(pos)
-                elif pos.distance_to(hud.call("jump_center")) < float(hud.call("button_radius")) * 1.6:
-                    mouse_action = "jump"
-                    jump_buffer = true
-                elif pos.distance_to(hud.call("run_center")) < float(hud.call("button_radius")) * 1.6:
-                    mouse_action = "run"
-                else:
-                    mouse_action = "camera"
-            else:
-                if mouse_action == "stick":
-                    stick = Vector2.ZERO
-                mouse_action = ""
-        elif click.button_index == MOUSE_BUTTON_RIGHT:
-            mouse_action = "camera" if click.pressed else ""
-    elif event is InputEventMouseMotion:
-        var motion: InputEventMouseMotion = event as InputEventMouseMotion
-        if mouse_action == "stick":
-            _stick_position(motion.position)
-        elif mouse_action == "camera":
-            _turn_camera(motion.relative)
-    elif event is InputEventKey:
-        var key: InputEventKey = event as InputEventKey
-        if key.pressed and not key.echo and key.keycode == KEY_SPACE:
-            jump_buffer = true
+func _input(_event: InputEvent) -> void:
+    # All touches are now owned by FareTouchInputRouter, independently.
+    pass
 
-func _stick_position(pos: Vector2) -> void:
-    var center: Vector2 = hud.call("stick_center")
-    var radius: float = hud.call("stick_radius")
-    var offset: Vector2 = (pos - center) / radius
-    if offset.length() > 1.0:
-        offset = offset.normalized()
-    stick = Vector2(offset.x, -offset.y)
+func _stick_position(_pos: Vector2) -> void:
+    # Old API retained only for external integrations; no legacy input handler uses it.
+    pass
 
-func _turn_camera(amount: Vector2) -> void:
-    look_yaw -= amount.x * 0.0043
-    look_pitch = clampf(look_pitch + amount.y * 0.003, -0.16, 1.06)
+func _turn_camera(_amount: Vector2) -> void:
+    # Camera rotation is handled in FareThirdPersonCamera._process().
+    pass
 
-func _update_camera(delta: float) -> void:
-    if player == null or view_camera == null:
-        return
-    var focus: Vector3 = player.global_position + Vector3(0.0, 0.23, 0.0)
-    var orbit: Vector3 = Vector3(sin(look_yaw) * cos(look_pitch), sin(look_pitch), cos(look_yaw) * cos(look_pitch))
-    var goal: Vector3 = focus + orbit * follow_distance
-    var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(focus, goal)
-    query.collision_mask = 1
-    var hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
-    if not hit.is_empty():
-        var collision_point: Vector3 = hit["position"]
-        goal = focus + (collision_point - focus).normalized() * maxf(0.7, focus.distance_to(collision_point) - 0.2)
-    view_camera.global_position = goal if delta >= 1.0 else view_camera.global_position.lerp(goal, minf(delta * 9.0, 1.0))
-    view_camera.look_at(focus, Vector3.UP)
+func _update_camera(_delta: float) -> void:
+    # SpringArm3D and camera follow run in FareThirdPersonCamera.
+    pass
 
 func _pose(name: String, axis: Vector3, angle: float) -> void:
     if rig == null:
