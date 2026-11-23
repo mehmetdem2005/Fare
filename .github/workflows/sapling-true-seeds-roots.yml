@@ -38,6 +38,52 @@ jobs:
           replacement=b'faces.extend(((a,b,a+1),(a+1,b,b+1)))'
           assert original in contents
           contents=contents.replace(original,replacement)
+          # Lower, narrower buttress ridges: no broad paddle-like roots.
+          changes={
+            b'6+(rng.randrange(3))':b'5+(rng.randrange(3))',
+            b'length=rng.uniform(.71,1.16)':b'length=rng.uniform(.62,.95)',
+            b'base_width=rng.uniform(.13,.19)':b'base_width=rng.uniform(.075,.112)',
+            b'base_height=rng.uniform(.22,.35)':b'base_height=rng.uniform(.10,.16)',
+            b'radius=.045+length*t':b'radius=.065+length*t',
+            b'f=min(1.0,t/.34)':b'f=min(1.0,t/.23)',
+            b'cz=base_height*(1-f)+.06*math.sin(t*math.pi)-.16*t**1.5':b'cz=base_height*(1-f)+.024*math.sin(t*math.pi)-.13*t**1.35',
+            b'w=base_width*(1-t)**1.19+.008':b'w=base_width*(1-t)**1.4+.006',
+            b'h=w*(.65+.15*(1-t))':b'h=w*(.55+.15*(1-t))',
+          }
+          for a,b in changes.items():
+            assert a in contents, a
+            contents=contents.replace(a,b)
+          old=b'root_count=add_buttress_roots(SEED)'
+          assert old in contents
+          flare=b"""root_count=add_buttress_roots(SEED)
+# Root-aligned cambial buttresses, tapered smoothly into the real Sapling trunk.
+roots_obj=bpy.data.objects.get('Sapling_Roots')
+trunk_obj=bpy.data.objects.get('tree')
+if roots_obj is not None and trunk_obj is not None:
+    per_root=(14+1)*(10+1)
+    root_angles=[]
+    for root_index in range(root_count):
+        first=root_index*per_root+4*(10+1)
+        ring=roots_obj.data.vertices[first:first+11]
+        mid_x=sum(v.co.x for v in ring)/len(ring)
+        mid_y=sum(v.co.y for v in ring)/len(ring)
+        root_angles.append(math.atan2(mid_y,mid_x))
+    for v in trunk_obj.data.vertices:
+        x,y,z=v.co
+        radius=math.sqrt(x*x+y*y)
+        if 0.0<=z<.5 and .006<radius<.32:
+            phase=math.atan2(y,x)
+            weight=0.0
+            for ra in root_angles:
+                d=(phase-ra+math.pi)%(2*math.pi)-math.pi
+                weight=max(weight,math.exp(-.5*(d/.33)**2))
+            f=min(1.,z/.5)
+            f=f*f*(3.-2.*f)
+            factor=1.0+(.32*weight+.08)*(1.0-f)
+            v.co.x*=factor
+            v.co.y*=factor
+"""
+          contents=contents.replace(old,flare)
           Path('sapling_video/blender_seeded_sapling.py').write_bytes(contents)
           print('RECOVERED_EXACT_SEEDED_SOURCE',len(contents))
           PY
@@ -74,7 +120,7 @@ jobs:
           assert a["geometry_signature"]==b["geometry_signature"], "Same seed produced different geometry"
           assert a["geometry_signature"]!=c["geometry_signature"], "Different seeds produced same tree"
           assert a["geometry_signature"]!=d["geometry_signature"] and c["geometry_signature"]!=d["geometry_signature"]
-          assert min(a["root_count"],c["root_count"],d["root_count"])>=6
+          assert min(a["root_count"],c["root_count"],d["root_count"])>=5
           assert "Sapling_Roots" in a["models"] and "Sapling_Needles" in a["models"]
           print("SAPLING_SEED_DETERMINISM_OK",a["geometry_signature"],c["geometry_signature"])
           PY
